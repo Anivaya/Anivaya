@@ -7,3 +7,6 @@ export const fullDate = (value) =>
     month: "long",
     year: "numeric",
   });
+
+export const svgImage = (svg) =>
+  `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;

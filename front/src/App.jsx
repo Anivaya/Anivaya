@@ -10,6 +10,8 @@ import DocumentsPage from "./pages/documents/DocumentsPage.jsx";
 import "./css/dashboard.css";
 import "./css/animals.css";
 import "./css/documents.css";
+import "./css/fonts.css";
+import "./css/record.css";
 const pageComponents = {
   espace: DashboardPage,
   animaux: AnimalsPage,
@@ -27,19 +29,20 @@ const pages = {
   ],
 };
 const currentPage = () =>
-  Object.hasOwn(pages, window.location.hash.slice(1))
-    ? window.location.hash.slice(1)
+  Object.hasOwn(pages, window.location.hash.slice(1).split("/")[0])
+    ? window.location.hash.slice(1).split("/")[0]
     : "espace";
 
 export default function App() {
-  const [page, setPage] = useState(currentPage);
+  const [route, setRoute] = useState(() => window.location.hash);
+  const page = currentPage();
   const [modal, setModal] = useState(null);
   const [notice, setNotice] = useState("");
   const [pending, setPending] = useState(null);
   const { data, loading, error, reload } = useDashboard();
   useEffect(() => {
     function navigate() {
-      setPage(currentPage());
+      setRoute(window.location.hash);
       document.getElementById("dashboard-content")?.focus();
       window.scrollTo(0, 0);
     }
@@ -69,11 +72,24 @@ export default function App() {
     }
   }
   const household = data?.household;
-  const add = (kind) => setModal({ kind: `add-${kind}` });
+  const add = (kind, animal) =>
+    setModal({ kind: `add-${kind}`, item: animal ? { animal } : undefined });
   const Page = pageComponents[page];
   const actions = {
     add,
-    openAnimal: (item) => setModal({ kind: "animal", item }),
+    openAnimal: (item) =>
+      page === "animaux"
+        ? (window.location.hash = `animaux/${item.id}/apercu`)
+        : setModal({ kind: "animal", item }),
+    openRecord: (item) => {
+      window.location.hash = `animaux/${item.id}/apercu`;
+      setModal(null);
+    },
+    openDialog: (kind, item) => setModal({ kind, item }),
+    saved: async (message) => {
+      await reload().catch(() => {});
+      setNotice(message);
+    },
     openReminder: (item) => setModal({ kind: "reminder", item }),
     openDocument: (kind, item) => setModal({ kind, item }),
     toggleReminder,
@@ -129,7 +145,14 @@ export default function App() {
                 </button>
               </div>
             )}
-            {data && <Page data={data} actions={actions} pending={pending} />}
+            {data && (
+              <Page
+                data={data}
+                actions={actions}
+                pending={pending}
+                route={route}
+              />
+            )}
             <p className="app-foot">
               Espace de démonstration · Connexion simulée · Données fictives.
               <br />
@@ -144,6 +167,7 @@ export default function App() {
           modal={modal}
           data={data}
           onClose={() => setModal(null)}
+          onOpenRecord={actions.openRecord}
           onSaved={async (message) => {
             await reload().catch(() => {});
             setModal(null);

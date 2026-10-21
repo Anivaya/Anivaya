@@ -1,7 +1,19 @@
+import AnimalRecordPage from "./AnimalRecordPage.jsx";
 import PageHeading from "../../shared/layout/PageHeading.jsx";
 import AnimalsSection from "./components/AnimalsSection.jsx";
 
-export default function AnimalsPage({ data, actions }) {
+export default function AnimalsPage({ data, actions, route, pending }) {
+  const [, id, tab] = (route || "").slice(1).split("/");
+  if (id)
+    return (
+      <AnimalRecordPage
+        id={id}
+        tab={tab}
+        data={data}
+        actions={actions}
+        pending={pending}
+      />
+    );
   return (
     <>
       <PageHeading

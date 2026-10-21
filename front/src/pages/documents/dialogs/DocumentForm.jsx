@@ -4,7 +4,7 @@ import AnimalSelectField from "../../animals/components/AnimalSelectField.jsx";
 import { api, readFile } from "../../../shared/services/api.js";
 
 export default function DocumentForm({ data, item, ...props }) {
-  const editing = Boolean(item);
+  const editing = Boolean(item?.id);
   return (
     <SubmissionForm
       {...props}
@@ -18,7 +18,7 @@ export default function DocumentForm({ data, item, ...props }) {
       submitLabel={editing ? "Enregistrer" : "Ajouter"}
       disabled={!data.animals.length}
       onSubmit={async (values) => {
-        if (editing && !values.name?.trim())
+        if (!values.name?.trim())
           throw Object.assign(new Error("Renseignez le nom du document."), {
             field: "name",
           });
@@ -27,11 +27,11 @@ export default function DocumentForm({ data, item, ...props }) {
             new Error("Ajoutez d’abord un animal à votre foyer."),
             { field: "animal" },
           );
-        if (editing) {
+        const file = values.file;
+        if (editing && !file?.size) {
           await api.editDocument(item.id, values);
           return;
         }
-        const file = values.file;
         if (
           !file?.size ||
           !["application/pdf", "image/jpeg", "image/png"].includes(file.type)
@@ -43,47 +43,65 @@ export default function DocumentForm({ data, item, ...props }) {
           throw Object.assign(new Error("Le fichier dépasse 10 Mo."), {
             field: "file",
           });
-        await api.addDocument({
-          name: file.name,
+        const body = {
+          name: values.name.trim(),
+          category: values.category,
           animal: values.animal,
           type: file.type,
           content: await readFile(file),
-        });
+        };
+        if (editing) await api.editDocument(item.id, body);
+        else await api.addDocument(body);
       }}
     >
       {({ error, invalid }) => (
         <>
-          {editing && (
+          {
             <Field name="name" label="Nom du document" error={error}>
               <input
                 id="name"
                 name="name"
-                defaultValue={item.name}
+                defaultValue={item?.name || ""}
                 maxLength={120}
                 required
                 {...invalid("name")}
               />
             </Field>
-          )}
+          }
           <AnimalSelectField
             animals={data.animals}
             defaultValue={item?.animal}
             error={error}
             invalid={invalid}
           />
-          {!editing && (
-            <Field name="file" label="Fichier" error={error}>
+          <Field name="category" label="Catégorie">
+            <select
+              id="category"
+              name="category"
+              defaultValue={item?.category || "Santé"}
+            >
+              {["Santé", "Identité", "Assurance", "Autre"].map((value) => (
+                <option key={value}>{value}</option>
+              ))}
+            </select>
+          </Field>
+          {
+            <Field
+              name="file"
+              label={editing ? "Remplacer le fichier (facultatif)" : "Fichier"}
+              error={error}
+            >
               <input
                 id="file"
                 name="file"
                 type="file"
                 accept="application/pdf,image/jpeg,image/png"
-                required
+                required={!editing}
                 {...invalid("file")}
               />
               <p className="field-help">PDF, JPEG ou PNG · 10 Mo maximum</p>
             </Field>
-          )}
+          }
         </>
       )}
     </SubmissionForm>

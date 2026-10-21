@@ -30,6 +30,22 @@ const send = (path, method, body) =>
 export const api = {
   dashboard: (signal) => request("/dashboard", { signal }),
   addAnimal: (body) => send("/animals", "POST", body),
+  editAnimal: (id, body) => send(`/animals/${id}`, "PATCH", body),
+  deleteAnimal: (id) => request(`/animals/${id}`, { method: "DELETE" }),
+  saveEvent: (id, body) =>
+    send(id ? `/events/${id}` : "/events", id ? "PATCH" : "POST", body),
+  deleteEvent: (id) => request(`/events/${id}`, { method: "DELETE" }),
+  editReminder: (id, body) => send(`/reminders/${id}`, "PATCH", body),
+  deleteReminder: (id) => request(`/reminders/${id}`, { method: "DELETE" }),
+  saveEmergency: (id, body) => send(`/animals/${id}/emergency`, "PUT", body),
+  previewEmergency: (id, body, signal) =>
+    request(`/animals/${id}/emergency/preview`, {
+      method: "POST",
+      body: JSON.stringify(body),
+      signal,
+    }),
+  deleteEmergency: (id) =>
+    request(`/animals/${id}/emergency`, { method: "DELETE" }),
   addReminder: (body) => send("/reminders", "POST", body),
   setReminder: (id, done) => send(`/reminders/${id}`, "PATCH", { done }),
   addDocument: (body) => send("/documents", "POST", body),

@@ -3,7 +3,7 @@ import Field from "../../../shared/ui/Field.jsx";
 import AnimalSelectField from "../../animals/components/AnimalSelectField.jsx";
 import { api } from "../../../shared/services/api.js";
 
-export default function ReminderForm({ data, ...props }) {
+export default function ReminderForm({ data, item, ...props }) {
   return (
     <SubmissionForm
       {...props}
@@ -41,6 +41,7 @@ export default function ReminderForm({ data, ...props }) {
           </Field>
           <AnimalSelectField
             animals={data.animals}
+            defaultValue={item?.animal}
             error={error}
             invalid={invalid}
           />

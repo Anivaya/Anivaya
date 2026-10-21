@@ -109,6 +109,118 @@ test("API : données, validation, fichiers et persistance SQLite", async (t) => 
     name: "Carnet test",
     animal: "milo",
   });
+  assert.equal(
+    (await request("/animals/" + pet.id, "PATCH", { dob: "2099-01-01" }))
+      .status,
+    400,
+  );
+  assert.equal(
+    (await request("/animals/" + pet.id, "PATCH", { weight: "-1" })).status,
+    400,
+  );
+  await request("/animals/" + pet.id, "PATCH", {
+    breed: "Labrador",
+    dob: "2022-01-02",
+    weight: "12",
+    food: "Deux repas",
+    medical: "SECRET MEDICAL",
+    identifier: "SECRET IDENTIFIANT",
+    contact: "Contact fictif",
+  });
+  const png = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl6dVIAAAAASUVORK5CYII=",
+    "base64",
+  );
+  assert.equal(
+    (
+      await request("/animals/" + pet.id, "PATCH", {
+        photo: { type: "image/png", content: png.toString("base64") },
+      })
+    ).status,
+    200,
+  );
+  assert.deepEqual(
+    Buffer.from(
+      await (await request("/animals/" + pet.id + "/photo")).arrayBuffer(),
+    ),
+    png,
+  );
+  const event = await (
+    await request("/events", "POST", {
+      animal: pet.id,
+      type: "Pesée",
+      date: "2026-10-21",
+      note: "12 kg",
+    })
+  ).json();
+  assert.ok(event.id);
+  await request("/events/" + event.id, "PATCH", {
+    type: "Consultation",
+    date: "2026-10-20",
+    note: "Contrôle fictif",
+  });
+  await request("/reminders/" + reminder.id, "PATCH", {
+    name: "Rappel modifié",
+    date: "2026-12-03",
+    repeat: "Chaque année",
+  });
+  const sheet = await (
+    await request("/animals/" + pet.id + "/emergency", "PUT", {
+      active: true,
+      photo: true,
+      details: true,
+      notes: false,
+      contact: true,
+      vet: false,
+    })
+  ).json();
+  assert.ok(sheet.snapshot.qrSvg.includes("<svg"));
+  assert.ok(!JSON.stringify(sheet.snapshot).includes("SECRET"));
+  const preview = await (
+    await request(`/animals/${pet.id}/emergency/preview`, "POST", {
+      ...sheet.settings,
+      details: false,
+      contact: false,
+      photo: false,
+    })
+  ).json();
+  assert.equal(preview.snapshot.details, "");
+  assert.equal(preview.snapshot.contact, "");
+  assert.equal(preview.snapshot.photo, null);
+  assert.notEqual(preview.snapshot.qrSvg, sheet.snapshot.qrSvg);
+  assert.deepEqual(
+    await (await request(`/animals/${pet.id}/emergency`)).json(),
+    sheet,
+    "Preview must not modify the saved sheet",
+  );
+  const inactive = await (
+    await request(`/animals/${pet.id}/emergency/preview`, "POST", {
+      ...sheet.settings,
+      active: false,
+    })
+  ).json();
+  assert.equal(inactive.snapshot.qrSvg, undefined);
+  assert.equal(
+    (
+      await request(`/animals/${pet.id}/emergency/preview`, "POST", {
+        active: "yes",
+      })
+    ).status,
+    400,
+  );
+  assert.equal(
+    (
+      await request(
+        "/animals/missing/emergency/preview",
+        "POST",
+        sheet.settings,
+      )
+    ).status,
+    404,
+  );
+  const record = await (await request("/animals/" + pet.id)).json();
+  assert.equal(record.pet.breed, "Labrador");
+  assert.equal(record.events[0].note, "Contrôle fictif");
   await new Promise((resolve) => server.close(resolve));
   db.close();
   db = openDatabase(path);
@@ -141,4 +253,26 @@ test("API : données, validation, fichiers et persistance SQLite", async (t) => 
     403,
   );
   assert.equal((await request("/absent")).status, 404);
+
+  assert.equal(
+    (await (await request("/animals/" + pet.id)).json()).pet.food,
+    "Deux repas",
+  );
+  assert.equal(
+    (await (await request("/animals/" + pet.id + "/emergency")).json()).snapshot
+      .contact,
+    "Contact fictif",
+  );
+  await request("/events/" + event.id, "DELETE");
+  await request("/reminders/" + reminder.id, "DELETE");
+  await request("/animals/" + pet.id, "DELETE");
+  assert.equal((await request("/animals/" + pet.id)).status, 404);
+  const afterDelete = await (await request("/dashboard")).json();
+  assert.ok(!afterDelete.animals.some((a) => a.id === pet.id));
+  assert.ok(!afterDelete.events.some((e) => e.animal === pet.id));
+  assert.ok(!afterDelete.reminders.some((e) => e.animal === pet.id));
+  assert.ok(
+    db.prepare("SELECT deleted_at FROM animals WHERE id=?").get(pet.id)
+      .deleted_at,
+  );
 });

@@ -1,4 +1,5 @@
 const shapes = {
+  back: { viewBox: "0 0 24 24", body: <path d="M20 12H4m6-6-6 6 6 6" /> },
   file: {
     viewBox: "0 0 32 32",
     body: (

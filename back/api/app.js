@@ -52,6 +52,80 @@ export function createApi(db) {
         return json(200, { status: "ok" });
       if (method === "GET" && path === "/api/dashboard")
         return json(200, repository.dashboard());
+      if (method === "GET" && path === "/api/animals")
+        return json(200, repository.allAnimals());
+      const petRoute = path.match(/^\/api\/animals\/([^/]+)$/);
+      const previewRoute = path.match(
+        /^\/api\/animals\/([^/]+)\/emergency\/preview$/,
+      );
+      if (previewRoute && method === "POST")
+        return json(
+          200,
+          await repository.emergency.preview(
+            previewRoute[1],
+            await readJson(request),
+          ),
+        );
+      const sheetRoute = path.match(/^\/api\/animals\/([^/]+)\/emergency$/);
+      if (sheetRoute) {
+        if (!repository.allAnimals().some((a) => a.id === sheetRoute[1]))
+          throw new ApiError(404, "Animal introuvable.");
+        if (method === "GET")
+          return json(200, repository.emergency.get(sheetRoute[1]));
+        if (method === "PUT")
+          return json(
+            200,
+            await repository.emergency.save(
+              sheetRoute[1],
+              await readJson(request),
+            ),
+          );
+        if (method === "DELETE") {
+          repository.emergency.remove(sheetRoute[1]);
+          response.writeHead(204);
+          return response.end();
+        }
+      }
+      if (petRoute && method === "GET") {
+        const data = repository.dashboard(),
+          pet = data.animals.find((a) => a.id === petRoute[1]);
+        if (!pet) throw new ApiError(404, "Cet animal est introuvable.");
+        return json(200, {
+          pet,
+          events: data.events.filter((e) => e.animal === pet.id),
+          reminders: data.reminders.filter((r) => r.animal === pet.id),
+          documents: data.documents.filter((d) => d.animal === pet.id),
+        });
+      }
+      if (petRoute && method === "PATCH")
+        return json(
+          200,
+          repository.editAnimal(petRoute[1], await readJson(request)),
+        );
+      if (petRoute && method === "DELETE") {
+        repository.deleteAnimal(petRoute[1]);
+        response.writeHead(204);
+        return response.end();
+      }
+      const photoRoute = path.match(/^\/api\/animals\/([^/]+)\/photo$/);
+      if (photoRoute && method === "GET") {
+        const photo = repository.animalPhoto(photoRoute[1]);
+        response.writeHead(200, { "Content-Type": photo.type });
+        return response.end(Buffer.from(photo.photo));
+      }
+      if (path === "/api/events" && method === "POST")
+        return json(201, repository.saveEvent(null, await readJson(request)));
+      const eventRoute = path.match(/^\/api\/events\/([^/]+)$/);
+      if (eventRoute && method === "PATCH")
+        return json(
+          200,
+          repository.saveEvent(eventRoute[1], await readJson(request)),
+        );
+      if (eventRoute && method === "DELETE") {
+        repository.deleteEvent(eventRoute[1]);
+        response.writeHead(204);
+        return response.end();
+      }
       if (method === "POST" && path === "/api/animals")
         return json(201, repository.addAnimal(await readJson(request)));
       if (method === "POST" && path === "/api/reminders")
@@ -64,6 +138,11 @@ export function createApi(db) {
           200,
           repository.setReminder(reminder[1], await readJson(request)),
         );
+      if (reminder && method === "DELETE") {
+        repository.deleteReminder(reminder[1]);
+        response.writeHead(204);
+        return response.end();
+      }
       const document = path.match(/^\/api\/documents\/([^/]+)$/);
       if (document && method === "PATCH")
         return json(

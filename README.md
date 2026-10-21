@@ -1,6 +1,6 @@
 # Anivaya
 
-Dashboard React reproduit à partir de la maquette `accueil-connecter.html`, avec une API Node.js et une base SQLite locale.
+Dashboard et carnets des animaux en React, reproduits à partir des maquettes, avec une API Node.js et une base SQLite locale.
 
 ## Démarrer
 
@@ -9,6 +9,7 @@ Depuis `front-back` :
 
 ```powershell
 npm --prefix front install
+npm --prefix back install
 npm run dev
 ```
 
@@ -28,8 +29,7 @@ front-back/
 │       │   ├── dashboard/         # DashboardPage : assemble les panneaux
 │       │   ├── animals/           # Mes animaux : page, cartes, fiches, formulaire
 │       │   ├── reminders/         # Rappels : page, liste, fiche, formulaire
-│       │   ├── documents/         # Documents : page, liste, fiches, formulaires
-│       │   └── public/            # Message de page publique à venir
+│       │   └── documents/         # Documents : page, liste, fiches, formulaires
 │       ├── shared/                # Éléments universels
 │       │   ├── layout/            # Navigation et en-tête de page
 │       │   ├── ui/                # Fenêtre, champ, icônes, bouton fermer
@@ -56,16 +56,18 @@ front-back/
 └── README.md
 ```
 
-Chaque page possède son fichier `*Page.jsx` et importe ses composants. Un composant métier partagé reste dans son domaine : par exemple, le dashboard importe `AnimalCard` et `AnimalsSection` depuis `pages/animals`, et la sélection d'un animal est réutilisée dans les formulaires de rappels et de documents. Seuls les éléments universels sont dans `shared`. Tous les styles se trouvent dans `src/css`.
+Chaque page possède son fichier `*Page.jsx` et importe ses composants. Un composant métier partagé reste dans son domaine : par exemple, le dashboard importe `AnimalsSection` depuis `pages/animals` (qui contient aussi son petit composant interne `AnimalCard`), et la sélection d'un animal est réutilisée dans les formulaires de rappels et de documents. Seuls les éléments universels sont dans `shared`. Tous les styles se trouvent dans `src/css`.
 
 Le flux est **React → API → SQLite**. Les données métier ne sont pas dupliquées dans les composants React. Le contrat des routes est dans `back/docs/API.md`.
 
 ## Fonctionnalités
 
 - Navigation entre la vue d'ensemble, les animaux, les rappels et les documents.
-- Ajout d'un animal, consultation de son carnet.
-- Ajout d'un rappel, consultation et changement de statut.
-- Ajout d'un PDF/JPEG/PNG (10 Mo maximum), téléchargement, modification du nom et de l'animal, retrait du carnet.
+- Ajout et modification d'un animal, photo JPEG/PNG (2 Mo maximum), suppression du carnet.
+- Carnet en six onglets : vue d’ensemble, identité, suivi, documents, rappels et habitudes.
+- Ajout, modification et suppression des événements et rappels ; statut et fréquence des rappels.
+- Ajout d'un PDF/JPEG/PNG (10 Mo maximum), téléchargement, catégorie, remplacement et retrait du carnet.
+- Fiche d’urgence : choix des informations visibles, aperçu, sauvegarde et QR téléchargeable/imprimable. Le QR contient du texte de démonstration, sans URL publique hébergée.
 - Conservation des données après rechargement et redémarrage de l'API.
 - Erreurs de validation, état de chargement, reprise en cas d'API inaccessible et dialogues accessibles au clavier.
 
@@ -80,6 +82,7 @@ npm run build
 ```
 
 `npm test` utilise une base temporaire isolée : il ne modifie pas la base de développement.
+Les migrations sont appliquées automatiquement et conservent les données existantes. La migration `002_animal_records.sql` ajoute les profils, événements et fiches d’urgence.
 Le module natif `node:sqlite` émet un avertissement expérimental sur Node 22 ; c'est attendu.
 
 ## À quoi sert dist ?
@@ -97,3 +100,5 @@ Dépôt privé : https://github.com/libehon/Anivaya. La racine de pull/push est 
 - Les fichiers `package.json`, `package-lock.json`, `vite.config.js`, `.oxlintrc.json` et `.gitignore` servent aux dépendances, au développement et à la vérification du code.
 - Les migrations, les données initiales et les tests du backend sont conservés ; la base locale contient les données enregistrées.
 - `node_modules` contient les dépendances installées ; il peut être régénéré avec `npm install`, mais il est nécessaire pour lancer le projet.
+
+Les petits composants utilisés dans un seul fichier sont déclarés dans ce fichier : `AnimalCard` dans `AnimalsSection.jsx`, `PrivacyNote` dans `DashboardPage.jsx` et `PublicSiteNotice` dans `ActionDialog.jsx`. Les composants partagés et les formulaires/fiches métier restent séparés.

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import Icon from "./Icon.jsx";
-export default function Modal({ children, onClose, busy }) {
+export default function Modal({ children, onClose, busy, compact = false }) {
   const ref = useRef(null);
   useEffect(() => {
     const element = ref.current;
@@ -14,6 +14,7 @@ export default function Modal({ children, onClose, busy }) {
   }, []);
   return (
     <dialog
+      className={compact ? "animal-modal" : undefined}
       ref={ref}
       aria-labelledby="action-title"
       onCancel={(event) => {
@@ -32,18 +33,20 @@ export default function Modal({ children, onClose, busy }) {
           onClose();
       }}
     >
-      <div className="dialog-top">
-        <span>MON ESPACE ANIVAYA</span>
-        <button
-          type="button"
-          className="close"
-          disabled={busy}
-          onClick={onClose}
-          aria-label="Fermer la fenêtre"
-        >
-          <Icon name="close" />
-        </button>
-      </div>
+      {!compact && (
+        <div className="dialog-top">
+          <span>MON ESPACE ANIVAYA</span>
+          <button
+            type="button"
+            className="close"
+            disabled={busy}
+            onClick={onClose}
+            aria-label="Fermer la fenêtre"
+          >
+            <Icon name="close" />
+          </button>
+        </div>
+      )}
       {children}
     </dialog>
   );

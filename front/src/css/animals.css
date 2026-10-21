@@ -31,3 +31,64 @@
     transform: none;
   }
 }
+/* Dashboard animal sheet. */
+.animal-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  width: 100%;
+  margin-bottom: 10px;
+}
+.animal-title-row .dialog-title {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.animal-title-row .close {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.animal-sheet .sheet-heading {
+  gap: 20px;
+  margin-bottom: 25px;
+}
+.animal-sheet .sheet-heading > div {
+  flex: 1;
+  min-width: 0;
+}
+.animal-sheet .sheet-heading .portrait {
+  width: 85px;
+  height: 85px;
+}
+.animal-sheet .sheet-heading p {
+  margin-bottom: 0;
+}
+.animal-sheet h3 {
+  font-size: 16px;
+  margin-top: 22px;
+}
+.animal-sheet .sheet-identifier {
+  font-size: 11px;
+  overflow-wrap: anywhere;
+  margin-top: 7px;
+}
+.animal-sheet .sheet-qr {
+  text-align: center;
+  border-top: 1px solid var(--border);
+  padding-top: 23px;
+  margin-top: 23px;
+}
+.animal-sheet .sheet-qr img {
+  display: block;
+  width: 230px;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto 10px;
+}
+.animal-sheet .sheet-footer > :first-child {
+  margin-right: auto;
+}
+dialog:has(.animal-add-fields) {
+  max-height: calc(100dvh - 40px);
+}
