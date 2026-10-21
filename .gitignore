@@ -21,3 +21,8 @@ __pycache__/
 .DS_Store
 Thumbs.db
 .idea/
+
+# Base locale (recréée à partir des migrations et données de démonstration)
+back/database/data/
+*.sqlite-wal
+*.sqlite-shm

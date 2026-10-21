@@ -1,0 +1,16 @@
+{
+  "name": "anivaya",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:api": "node --watch back/api/server.js",
+    "dev:front": "npm --prefix front run dev",
+    "build": "npm --prefix front run build",
+    "lint": "npm --prefix front run lint",
+    "test": "node --test back/tests/*.test.js"
+  }
+}

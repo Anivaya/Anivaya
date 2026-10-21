@@ -1,0 +1,33 @@
+/* Les cartes sont partagées entre Mes animaux et le dashboard. */
+.animal-card {
+  transition:
+    transform 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+  transform-origin: center;
+}
+.animal-card:focus-within {
+  background-color: #eeeeee;
+}
+@media (hover: hover) and (pointer: fine) {
+  .animal-card:hover {
+    transform: scale(1.025);
+    background-color: #eeeeee;
+    box-shadow: var(--shadow);
+  }
+}
+.animal-picture-button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+}
+.animal-picture-button:focus-visible {
+  outline-offset: -5px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animal-card:hover {
+    transform: none;
+  }
+}

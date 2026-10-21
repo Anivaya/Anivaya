@@ -1,122 +1,159 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useEffect, useState } from "react";
+import { api } from "./shared/services/api.js";
+import { useDashboard } from "./shared/hooks/useDashboard.js";
+import Sidebar from "./shared/layout/Sidebar.jsx";
+import ActionDialog from "./app/ActionDialog.jsx";
+import DashboardPage from "./pages/dashboard/DashboardPage.jsx";
+import AnimalsPage from "./pages/animals/AnimalsPage.jsx";
+import RemindersPage from "./pages/reminders/RemindersPage.jsx";
+import DocumentsPage from "./pages/documents/DocumentsPage.jsx";
+import "./css/dashboard.css";
+import "./css/animals.css";
+import "./css/documents.css";
+const pageComponents = {
+  espace: DashboardPage,
+  animaux: AnimalsPage,
+  rappels: RemindersPage,
+  documents: DocumentsPage,
+};
 
-function App() {
-  const [count, setCount] = useState(0)
+const pages = {
+  espace: ["Vue d’ensemble", "Tout pour prendre soin de vos compagnons."],
+  animaux: ["Mes animaux", "Un carnet pour chacun de vos compagnons."],
+  rappels: ["Mes rappels", "Retrouvez les échéances que vous avez choisies."],
+  documents: [
+    "Mes documents",
+    "Les documents de vos animaux, au même endroit.",
+  ],
+};
+const currentPage = () =>
+  Object.hasOwn(pages, window.location.hash.slice(1))
+    ? window.location.hash.slice(1)
+    : "espace";
 
+export default function App() {
+  const [page, setPage] = useState(currentPage);
+  const [modal, setModal] = useState(null);
+  const [notice, setNotice] = useState("");
+  const [pending, setPending] = useState(null);
+  const { data, loading, error, reload } = useDashboard();
+  useEffect(() => {
+    function navigate() {
+      setPage(currentPage());
+      document.getElementById("dashboard-content")?.focus();
+      window.scrollTo(0, 0);
+    }
+    window.addEventListener("hashchange", navigate);
+    return () => window.removeEventListener("hashchange", navigate);
+  }, []);
+  useEffect(() => {
+    document.title = "Anivaya";
+  }, [page]);
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(""), 5000);
+    return () => clearTimeout(timer);
+  }, [notice]);
+  async function toggleReminder(reminder) {
+    setPending(reminder.id);
+    try {
+      await api.setReminder(reminder.id, !reminder.done);
+      await reload();
+      setNotice(
+        reminder.done ? "Rappel remis à faire." : "Rappel marqué comme fait.",
+      );
+    } catch (failure) {
+      setNotice(failure.message);
+    } finally {
+      setPending(null);
+    }
+  }
+  const household = data?.household;
+  const add = (kind) => setModal({ kind: `add-${kind}` });
+  const Page = pageComponents[page];
+  const actions = {
+    add,
+    openAnimal: (item) => setModal({ kind: "animal", item }),
+    openReminder: (item) => setModal({ kind: "reminder", item }),
+    openDocument: (kind, item) => setModal({ kind, item }),
+    toggleReminder,
+  };
   return (
     <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
+      <a
+        className="skip"
+        href="#dashboard-content"
+        onClick={(event) => {
+          event.preventDefault();
+          document.getElementById("dashboard-content").focus();
+        }}
+      >
+        Aller au contenu
+      </a>
+      <div className={`workspace ${page !== "espace" ? "section-mode" : ""}`}>
+        <Sidebar
+          page={page}
+          household={household}
+          onPublic={() => setModal({ kind: "public" })}
+        />
+        <div className="app-main">
+          <header className="app-top">
+            <strong>Mon espace</strong>
+            <small>/ {pages[page][0]}</small>
+            <button
+              className="demo-label"
+              onClick={() => setModal({ kind: "public" })}
+            >
+              Voir le site public ↗
+            </button>
+          </header>
+          <main
+            className="app-content"
+            id="dashboard-content"
+            tabIndex={-1}
+            aria-busy={loading}
+          >
+            {loading && !data && (
+              <p className="empty" role="status">
+                Chargement de votre espace…
+              </p>
+            )}
+            {error && (
+              <div className="empty error-panel" role="alert">
+                <p>{error}</p>
+                <button
+                  className="button outline"
+                  onClick={() => reload().catch(() => {})}
                 >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
+                  Réessayer
+                </button>
+              </div>
+            )}
+            {data && <Page data={data} actions={actions} pending={pending} />}
+            <p className="app-foot">
+              Espace de démonstration · Connexion simulée · Données fictives.
+              <br />
+              Vos ajouts sont enregistrés localement et conservés après
+              actualisation. Aucune notification réelle n’est envoyée.
+            </p>
+          </main>
         </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
+      </div>
+      {modal && (
+        <ActionDialog
+          modal={modal}
+          data={data}
+          onClose={() => setModal(null)}
+          onSaved={async (message) => {
+            await reload().catch(() => {});
+            setModal(null);
+            setNotice(message);
+          }}
+        />
+      )}
+      <div className="toast" role="status" hidden={!notice}>
+        {notice}
+      </div>
     </>
-  )
+  );
 }
-
-export default App

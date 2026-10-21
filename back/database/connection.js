@@ -1,0 +1,32 @@
+import { DatabaseSync } from "node:sqlite";
+import { mkdirSync, readFileSync } from "node:fs";
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+export function openDatabase(
+  path = process.env.DATABASE_PATH ||
+    fileURLToPath(new URL("./data/anivaya.sqlite", import.meta.url)),
+) {
+  if (path !== ":memory:") mkdirSync(dirname(path), { recursive: true });
+  const database = new DatabaseSync(path);
+  database.exec(
+    readFileSync(
+      new URL("./migrations/001_dashboard.sql", import.meta.url),
+      "utf8",
+    ),
+  );
+  if (!database.prepare("SELECT id FROM household WHERE id = 1").get()) {
+    database.exec("BEGIN");
+    try {
+      database.exec(
+        readFileSync(new URL("./seeds/demo.sql", import.meta.url), "utf8"),
+      );
+      database.exec("COMMIT");
+    } catch (error) {
+      database.exec("ROLLBACK");
+      database.close();
+      throw error;
+    }
+  }
+  return database;
+}
