@@ -1,11 +1,23 @@
+# Dépendances et compilations
 node_modules/
 dist/
+dist-ssr/
 build/
 coverage/
 .vite/
+
+# Secrets et configuration locale
 .env
 .env.*
 !.env.example
+*.local
+
+# Backend Python éventuel
+__pycache__/
+.venv/
+
+# Journaux et fichiers système
 *.log
 .DS_Store
 Thumbs.db
+.idea/
