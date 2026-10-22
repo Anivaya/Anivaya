@@ -1,6 +1,12 @@
 import { useEffect, useRef } from "react";
 import Icon from "./Icon.jsx";
-export default function Modal({ children, onClose, busy, compact = false }) {
+export default function Modal({
+  children,
+  onClose,
+  busy,
+  compact = false,
+  sharing = false,
+}) {
   const ref = useRef(null);
   useEffect(() => {
     const element = ref.current;
@@ -14,7 +20,9 @@ export default function Modal({ children, onClose, busy, compact = false }) {
   }, []);
   return (
     <dialog
-      className={compact ? "animal-modal" : undefined}
+      className={
+        compact ? "animal-modal" : sharing ? "sharing-modal" : undefined
+      }
       ref={ref}
       aria-labelledby="action-title"
       onCancel={(event) => {

@@ -2,8 +2,9 @@ import Icon from "../ui/Icon.jsx";
 const navigation = [
   ["espace", "home", "Vue d’ensemble"],
   ["animaux", "paw", "Mes animaux"],
-  ["rappels", "bell", "Rappels"],
   ["documents", "file", "Documents"],
+  ["rappels", "bell", "Rappels"],
+  ["partage", "share", "Partage"],
 ];
 export default function Sidebar({ page, household, onPublic }) {
   const fullName = household

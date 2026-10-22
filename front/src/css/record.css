@@ -586,8 +586,8 @@
   display: flex;
   align-items: center;
   gap: 15px;
-  padding: 18px 0;
-  border-bottom: 1px solid var(--line);
+  padding: 15px 0;
+  border-bottom: 0;
 }
 .record-page .switch-row input {
   width: 19px;
@@ -1306,4 +1306,24 @@ dialog:has(.record-form-grid) {
   .record-page .saved-qr-section .qr-wrap {
     max-width: 250px;
   }
+}
+
+.record-page .emergency-information {
+  background: var(--pale);
+  padding: 12px 15px;
+  border-radius: 8px;
+  margin: 8px 0;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.record-page .visibility-option ~ .note {
+  margin-top: 18px;
+  margin-bottom: 0;
+}
+.record-page .qr-panel details {
+  margin-top: 18px;
+}
+.record-page .saved-section dl:last-child .datum:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
 }

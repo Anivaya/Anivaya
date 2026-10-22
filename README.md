@@ -29,7 +29,8 @@ front-back/
 │       │   ├── dashboard/         # DashboardPage : assemble les panneaux
 │       │   ├── animals/           # Mes animaux : page, cartes, fiches, formulaire
 │       │   ├── reminders/         # Rappels : page, liste, fiche, formulaire
-│       │   └── documents/         # Documents : page, liste, fiches, formulaires
+│       │   ├── documents/         # Documents : page, liste, fiches, formulaires
+│       │   └── sharing/           # Partage : personnes, associations, accès simulés
 │       ├── shared/                # Éléments universels
 │       │   ├── layout/            # Navigation et en-tête de page
 │       │   ├── ui/                # Fenêtre, champ, icônes, bouton fermer
@@ -62,16 +63,19 @@ Le flux est **React → API → SQLite**. Les données métier ne sont pas dupli
 
 ## Fonctionnalités
 
-- Navigation entre la vue d'ensemble, les animaux, les rappels et les documents.
+- Navigation entre la vue d'ensemble, les animaux, les documents, les rappels et le partage.
 - Ajout et modification d'un animal, photo JPEG/PNG (2 Mo maximum), suppression du carnet.
-- Carnet en six onglets : vue d’ensemble, identité, suivi, documents, rappels et habitudes.
-- Ajout, modification et suppression des événements et rappels ; statut et fréquence des rappels.
+- Carnet en sept onglets : vue d’ensemble, identité, suivi, documents, rappels, habitudes et personnes de confiance.
+- Ajout, modification et suppression des événements et rappels ; statut, fréquence, délai de prévention et note. Recherche et filtres par animal/statut.
 - Ajout d'un PDF/JPEG/PNG (10 Mo maximum), téléchargement, catégorie, remplacement et retrait du carnet.
 - Fiche d’urgence : choix des informations visibles, aperçu, sauvegarde et QR téléchargeable/imprimable. Le QR contient du texte de démonstration, sans URL publique hébergée.
 - Conservation des données après rechargement et redémarrage de l'API.
+- Documents : aperçu PDF/image, recherche, filtres et partage simulé individuel ou multiple.
+- Personnes de confiance communes aux carnets : ajout, modification, association à plusieurs animaux et retrait d’un carnet sans révocation des partages.
+- Partages simulés en lecture seule, date de fin, détection des doublons et révocation. Supprimer une personne révoque ses partages ; aucun e-mail ni accès externe n’est créé.
 - Erreurs de validation, état de chargement, reprise en cas d'API inaccessible et dialogues accessibles au clavier.
 
-Les données initiales sont fictives : Camille, Nala et Milo. Les deux documents d'exemple ne contiennent aucun fichier. Les fichiers ajoutés sont enregistrés dans la base SQLite locale. La connexion est simulée, sans authentification ni partage ; cette version est destinée au développement local. Aucune notification réelle n'est envoyée.
+Les données initiales sont fictives : Camille, Nala et Milo. Les deux documents d'exemple ne contiennent aucun fichier. Les fichiers ajoutés sont enregistrés dans la base SQLite locale. La connexion et les partages sont simulés, sans authentification ni invitation ; cette version est destinée au développement local. Aucune notification réelle n'est envoyée.
 
 ## Vérifications
 
@@ -83,6 +87,7 @@ npm run build
 
 `npm test` utilise une base temporaire isolée : il ne modifie pas la base de développement.
 Les migrations sont appliquées automatiquement et conservent les données existantes. La migration `002_animal_records.sql` ajoute les profils, événements et fiches d’urgence.
+La migration `003_sharing.sql` ajoute les contacts, leurs associations, les partages et les précisions des rappels.
 Le module natif `node:sqlite` émet un avertissement expérimental sur Node 22 ; c'est attendu.
 
 ## À quoi sert dist ?

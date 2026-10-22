@@ -13,6 +13,8 @@ export default function RemindersPage({ data, actions, pending }) {
       <div className="app-grid">
         <div className="app-left">
           <RemindersSection
+            today={data.today}
+            onAction={actions.openDialog}
             reminders={data.reminders}
             animals={data.animals}
             onAdd={() => actions.add("reminder")}

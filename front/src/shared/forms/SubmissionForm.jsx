@@ -12,6 +12,7 @@ export default function SubmissionForm({
   setBusy,
   disabled = false,
   submitLabel = "Ajouter",
+  danger = false,
 }) {
   const [error, setError] = useState(null);
   const ref = useRef(null);
@@ -25,11 +26,14 @@ export default function SubmissionForm({
     setError(null);
     setBusy(true);
     try {
-      await onSubmit(Object.fromEntries(new FormData(event.currentTarget)));
-      await onSaved(successMessage);
+      const message = await onSubmit(
+        Object.fromEntries(new FormData(event.currentTarget)),
+      );
+      await onSaved(typeof message === "string" ? message : successMessage);
     } catch (failure) {
       setError({ message: failure.message, field: failure.field });
-      if (failure.field) ref.current.elements.namedItem(failure.field)?.focus();
+      if (failure.field)
+        ref.current.elements.namedItem(failure.field)?.focus?.();
     } finally {
       setBusy(false);
     }
@@ -56,7 +60,11 @@ export default function SubmissionForm({
           >
             Annuler
           </button>
-          <button className="button" type="submit" disabled={busy || disabled}>
+          <button
+            className={`button${danger ? " danger" : ""}`}
+            type="submit"
+            disabled={busy || disabled}
+          >
             {busy ? "Enregistrement…" : submitLabel}
           </button>
         </div>

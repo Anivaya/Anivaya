@@ -63,8 +63,7 @@ export default function RecordAction({ kind, item, ...props }) {
         </div>
       </>
     );
-  const habits = kind === "habits",
-    event = kind.includes("event");
+  const habits = kind === "habits";
   const editing = Boolean(item.id);
   const textFields = habits
     ? [
@@ -75,62 +74,44 @@ export default function RecordAction({ kind, item, ...props }) {
         ["contact", "Contact principal fictif"],
         ["vet", "Vétérinaire habituel fictif"],
       ]
-    : event
-      ? [["note", "Informations déclarées"]]
-      : [];
+    : [["note", "Informations déclarées"]];
   return (
     <SubmissionForm
       {...props}
       title={
         habits
           ? "Modifier les habitudes"
-          : `${editing ? "Modifier" : "Ajouter"} ${event ? "un événement" : "un rappel"}`
+          : `${editing ? "Modifier" : "Ajouter"} un événement`
       }
       description="Informations déclaratives conservées dans votre carnet local."
       successMessage="Modifications enregistrées."
       submitLabel="Enregistrer"
       onSubmit={async (values) => {
         if (habits) await api.editAnimal(item.id, values);
-        else if (event)
-          await api.saveEvent(item.id, { ...values, animal: item.animal });
-        else if (editing) await api.editReminder(item.id, values);
-        else await api.addReminder({ ...values, animal: item.animal });
+        else await api.saveEvent(item.id, { ...values, animal: item.animal });
       }}
     >
       {({ error, invalid }) => (
         <>
           {!habits && (
             <>
-              {event ? (
-                <Field name="type" label="Type" error={error}>
-                  <select
-                    id="type"
-                    name="type"
-                    defaultValue={item.type || "Consultation"}
-                    {...invalid("type")}
-                  >
-                    {[
-                      "Consultation",
-                      "Pesée",
-                      "Vaccination déclarée",
-                      "Autre",
-                    ].map((v) => (
-                      <option key={v}>{v}</option>
-                    ))}
-                  </select>
-                </Field>
-              ) : (
-                <Field name="name" label="Intitulé" error={error}>
-                  <input
-                    id="name"
-                    name="name"
-                    defaultValue={item.name || ""}
-                    maxLength={80}
-                    required
-                    {...invalid("name")}
-                  />
-                </Field>
-              )}
+              <Field name="type" label="Type" error={error}>
+                <select
+                  id="type"
+                  name="type"
+                  defaultValue={item.type || "Consultation"}
+                  {...invalid("type")}
+                >
+                  {[
+                    "Consultation",
+                    "Pesée",
+                    "Vaccination déclarée",
+                    "Autre",
+                  ].map((v) => (
+                    <option key={v}>{v}</option>
+                  ))}
+                </select>
+              </Field>
               <Field name="date" label="Date" error={error}>
                 <input
                   id="date"
@@ -141,28 +122,6 @@ export default function RecordAction({ kind, item, ...props }) {
                   {...invalid("date")}
                 />
               </Field>
-              {!event && (
-                <Field name="repeat" label="Répétition">
-                  <select
-                    id="repeat"
-                    name="repeat"
-                    defaultValue={item.repeat || "Aucune"}
-                  >
-                    {[
-                      "Aucune",
-                      "Chaque semaine",
-                      "Chaque mois",
-                      "Chaque année",
-                    ].map((v) => (
-                      <option key={v}>{v}</option>
-                    ))}
-                  </select>
-                  <p className="field-help">
-                    Le choix est enregistré ; aucun envoi automatique n’est
-                    programmé.
-                  </p>
-                </Field>
-              )}
             </>
           )}
           {textFields.map(([name, label]) => (

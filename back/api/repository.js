@@ -2,10 +2,39 @@ import { randomUUID } from "node:crypto";
 import { ApiError, text, date, documentFile } from "./validation.js";
 import { createAnimalRepository } from "./animals.js";
 import { emergencyRepository } from "./emergency.js";
+import { sharingRepository, localToday } from "./sharing.js";
 
 export function createRepository(db) {
   const records = createAnimalRepository(db);
   const emergency = emergencyRepository(db, records.allAnimals);
+  const sharing = sharingRepository(db);
+  function reminderValues(data) {
+    const repeat = data.repeat ?? "Aucune",
+      notice = data.notice ?? "Le jour même";
+    if (
+      !["Aucune", "Chaque semaine", "Chaque mois", "Chaque année"].includes(
+        repeat,
+      )
+    )
+      throw new ApiError(400, "Choisissez une répétition valide.", "repeat");
+    if (
+      ![
+        "Le jour même",
+        "1 jour avant",
+        "3 jours avant",
+        "7 jours avant",
+      ].includes(notice)
+    )
+      throw new ApiError(400, "Choisissez un délai valide.", "notice");
+    return [
+      text(data.name, "name", 80),
+      animal(data.animal),
+      date(data.date),
+      repeat,
+      notice,
+      text(data.note ?? "", "note", 1000, false),
+    ];
+  }
   const animal = (id) => {
     if (typeof id !== "string")
       throw new ApiError(400, "Choisissez un animal existant.", "animal");
@@ -33,8 +62,10 @@ export function createRepository(db) {
   return {
     ...records,
     emergency,
+    sharing,
     dashboard() {
       return {
+        today: localToday(),
         household: db
           .prepare(
             "SELECT first_name AS firstName, last_name AS lastName, label FROM household WHERE id = 1",
@@ -43,6 +74,8 @@ export function createRepository(db) {
         animals: records.allAnimals(),
         events: records.events(),
         emergencySheets: emergency.all(),
+        people: sharing.allPeople(),
+        shares: sharing.allShares(),
         reminders: db
           .prepare(
             "SELECT r.* FROM reminders r JOIN animals a ON a.id=r.animal WHERE r.deleted_at IS NULL AND a.deleted_at IS NULL ORDER BY r.date,r.rowid",
@@ -62,22 +95,9 @@ export function createRepository(db) {
     },
     addReminder(data) {
       const id = randomUUID();
-      if (
-        data.repeat &&
-        !["Aucune", "Chaque semaine", "Chaque mois", "Chaque année"].includes(
-          data.repeat,
-        )
-      )
-        throw new ApiError(400, "Choisissez une répétition valide.", "repeat");
       db.prepare(
-        "INSERT INTO reminders(id,name,animal,date,done,repeat) VALUES (?,?,?,?,0,?)",
-      ).run(
-        id,
-        text(data.name, "name", 80),
-        animal(data.animal),
-        date(data.date),
-        data.repeat || "Aucune",
-      );
+        "INSERT INTO reminders(id,name,animal,date,repeat,notice,note,done) VALUES (?,?,?,?,?,?,?,0)",
+      ).run(id, ...reminderValues(data));
       return { ...find("reminders", id), done: false };
     },
     setReminder(id, data) {
@@ -86,31 +106,10 @@ export function createRepository(db) {
         throw new ApiError(400, "Le statut doit être un booléen.", "done");
       const old = find("reminders", id);
       animal(old.animal);
-      if (Object.hasOwn(data, "name") || Object.hasOwn(data, "date")) {
-        if (
-          !["Aucune", "Chaque semaine", "Chaque mois", "Chaque année"].includes(
-            data.repeat || old.repeat,
-          )
-        )
-          throw new ApiError(
-            400,
-            "Choisissez une répétition valide.",
-            "repeat",
-          );
-        db.prepare(
-          "UPDATE reminders SET name=?,date=?,repeat=? WHERE id=?",
-        ).run(
-          text(data.name ?? old.name, "name", 80),
-          date(data.date ?? old.date),
-          data.repeat ?? old.repeat,
-          id,
-        );
-      }
-      if (Object.hasOwn(data, "done"))
-        db.prepare("UPDATE reminders SET done=? WHERE id=?").run(
-          Number(data.done),
-          id,
-        );
+      const values = reminderValues({ ...old, ...data });
+      db.prepare(
+        "UPDATE reminders SET name=?,animal=?,date=?,repeat=?,notice=?,note=?,done=? WHERE id=?",
+      ).run(...values, Number(data.done ?? old.done), id);
       const saved = find("reminders", id);
       return { ...saved, done: Boolean(saved.done) };
     },
@@ -158,6 +157,7 @@ export function createRepository(db) {
     },
     deleteDocument(id) {
       find("documents", id);
+      db.prepare("UPDATE document_shares SET revoked=1 WHERE doc=?").run(id);
       db.prepare("UPDATE documents SET deleted_at = ? WHERE id = ?").run(
         new Date().toISOString(),
         id,

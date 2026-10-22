@@ -1,4 +1,5 @@
 import RecordAction from "../pages/animals/dialogs/RecordAction.jsx";
+import SharingDialog from "../pages/sharing/dialogs/SharingDialog.jsx";
 import { useState } from "react";
 import Modal from "../shared/ui/Modal.jsx";
 import AnimalDetails from "../pages/animals/dialogs/AnimalDetails.jsx";
@@ -16,8 +17,17 @@ const dialogs = {
   "record-event": RecordAction,
   "edit-event": RecordAction,
   "view-event": RecordAction,
-  "record-reminder": RecordAction,
-  "edit-reminder": RecordAction,
+  "record-reminder": ReminderForm,
+  "edit-reminder": ReminderForm,
+  "add-person": SharingDialog,
+  "edit-person": SharingDialog,
+  "delete-person": SharingDialog,
+  "remove-person": SharingDialog,
+  "associate-people": SharingDialog,
+  "share-document": SharingDialog,
+  "share-documents": SharingDialog,
+  "share-details": SharingDialog,
+  "revoke-share": SharingDialog,
   habits: RecordAction,
   "delete-record-item": RecordAction,
   "add-animal": AnimalForm,
@@ -36,14 +46,21 @@ export default function ActionDialog({
   onClose,
   onSaved,
   onOpenRecord,
+  onOpenDialog,
 }) {
   const [busy, setBusy] = useState(false);
   const Content = dialogs[modal.kind];
   return (
-    <Modal onClose={onClose} busy={busy} compact={modal.kind === "animal"}>
+    <Modal
+      onClose={onClose}
+      busy={busy}
+      compact={modal.kind === "animal"}
+      sharing={Content === SharingDialog}
+    >
       <Content
         kind={modal.kind}
         onOpenRecord={onOpenRecord}
+        onOpenDialog={onOpenDialog}
         item={modal.item}
         data={data}
         onClose={onClose}

@@ -3,6 +3,7 @@ export default function PageHeading({
   description,
   actionLabel,
   onAction,
+  showPlus = true,
 }) {
   return (
     <div className="welcome">
@@ -11,7 +12,7 @@ export default function PageHeading({
         <p>{description}</p>
       </div>
       <button className="button" onClick={onAction}>
-        <span aria-hidden="true">+</span>
+        {showPlus && <span aria-hidden="true">+</span>}
         {actionLabel}
       </button>
     </div>

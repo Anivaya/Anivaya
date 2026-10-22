@@ -19,7 +19,7 @@ export default function DeleteDocument({
       <p className="dialog-copy">
         « {item.name} » sera retiré du carnet de{" "}
         {animalName(animals, item.animal)}. Le fichier d’origine sur votre
-        ordinateur sera conservé.
+        ordinateur sera conservé. Les partages de ce document seront révoqués.
       </p>
       {error && (
         <p className="form-error" role="alert">

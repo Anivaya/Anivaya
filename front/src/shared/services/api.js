@@ -28,6 +28,12 @@ async function request(path, options = {}) {
 const send = (path, method, body) =>
   request(path, { method, body: JSON.stringify(body) });
 export const api = {
+  savePerson: (id, body) =>
+    send(id ? `/people/${id}` : "/people", id ? "PATCH" : "POST", body),
+  deletePerson: (id) => request(`/people/${id}`, { method: "DELETE" }),
+  associate: (body) => send("/associations", "POST", body),
+  share: (body) => send("/shares", "POST", body),
+  revoke: (id) => request(`/shares/${id}`, { method: "DELETE" }),
   dashboard: (signal) => request("/dashboard", { signal }),
   addAnimal: (body) => send("/animals", "POST", body),
   editAnimal: (id, body) => send(`/animals/${id}`, "PATCH", body),

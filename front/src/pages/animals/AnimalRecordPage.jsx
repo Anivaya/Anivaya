@@ -2,6 +2,7 @@ import Portrait from "./components/AnimalPortrait.jsx";
 import Icon from "../../shared/ui/Icon.jsx";
 import { fullDate, svgImage } from "../../shared/utils/format.js";
 import EmergencySheet from "./components/EmergencySheet.jsx";
+import PeopleList from "../sharing/components/PeopleList.jsx";
 
 const tabs = {
   apercu: "Vue d’ensemble",
@@ -10,6 +11,7 @@ const tabs = {
   documents: "Documents",
   rappels: "Rappels",
   habitudes: "Habitudes",
+  confiance: "Personnes de confiance",
 };
 export default function AnimalRecordPage({
   id,
@@ -32,9 +34,15 @@ export default function AnimalRecordPage({
   const active = tabs[tab] ? tab : "apercu";
   const link = (section) => `#animaux/${id}/${section}`;
   const events = data.events.filter((e) => e.animal === id),
-    reminders = data.reminders.filter((r) => r.animal === id),
+    reminders = data.reminders
+      .filter((r) => r.animal === id)
+      .sort(
+        (a, b) =>
+          Number(a.done) - Number(b.done) || a.date.localeCompare(b.date),
+      ),
     documents = data.documents.filter((d) => d.animal === id);
   const sheet = data.emergencySheets.find((s) => s.animal === id);
+  const people = data.people.filter((p) => p.animals.includes(id));
   const open = (kind, item) =>
     actions.openDialog(kind, { ...item, animal: id });
   const identity = [
@@ -93,12 +101,22 @@ export default function AnimalRecordPage({
                 {item.note}
               </>
             ) : (
-              `${fullDate(item.date)} · ${item.repeat}`
+              `${fullDate(item.date)} · ${item.done ? "Terminé" : item.date < data.today ? "En retard" : "À faire"} · ${item.repeat} · ${item.notice}`
             )}
           </small>
         </button>
         {!limit && (
           <div className="row-actions">
+            {kind === "document" && (
+              <button
+                className="icon-btn"
+                onClick={() => open("share-document", item)}
+                aria-label={`Partager ${item.name}`}
+                title="Partager"
+              >
+                <Icon name="share" />
+              </button>
+            )}
             {kind === "document" && (
               <button
                 className="icon-btn"
@@ -255,6 +273,18 @@ export default function AnimalRecordPage({
                     Tout voir
                   </a>,
                 )}
+                {panel(
+                  "Personnes de confiance",
+                  <PeopleList
+                    people={people.slice(0, 3)}
+                    animals={data.animals}
+                    actions={actions}
+                    compact
+                  />,
+                  <a className="text-button" href={link("confiance")}>
+                    Gérer les contacts
+                  </a>,
+                )}
               </div>
               <div className="stack">
                 {panel(
@@ -393,6 +423,9 @@ export default function AnimalRecordPage({
                   locale.
                 </p>
                 {rows("document", documents)}
+                <a className="text-button" href={`#partage/partages/${id}`}>
+                  Partager et gérer les accès →
+                </a>
               </>,
               <button
                 className="button"
@@ -429,6 +462,43 @@ export default function AnimalRecordPage({
               >
                 Modifier les habitudes
               </button>,
+            )}
+          {active === "confiance" &&
+            panel(
+              "Ses personnes de confiance",
+              <>
+                <p className="muted">
+                  Des proches et professionnels à retrouver facilement.
+                  L’association à ce carnet ne donne pas accès aux documents.
+                </p>
+                <PeopleList
+                  people={people}
+                  animals={data.animals}
+                  actions={actions}
+                  animal={id}
+                />
+                <a className="text-button" href={`#partage/personnes/${id}`}>
+                  Gérer les personnes et les partages →
+                </a>
+              </>,
+              <div className="row-buttons">
+                <button
+                  className="button outline"
+                  onClick={() =>
+                    actions.openDialog("associate-people", { animal: id })
+                  }
+                >
+                  Associer une personne
+                </button>
+                <button
+                  className="button"
+                  onClick={() =>
+                    actions.openDialog("add-person", { animal: id })
+                  }
+                >
+                  Ajouter une personne
+                </button>
+              </div>,
             )}
         </>
       )}

@@ -223,7 +223,7 @@ export default function EmergencySheet({
                     </label>
                   </div>
                   {key === "photo" && (
-                    <div className="switch-row">
+                    <div className="emergency-information">
                       <span className="muted">
                         Toujours inclus : nom et espèce. L’identification
                         complète, les documents privés et l’adresse du foyer

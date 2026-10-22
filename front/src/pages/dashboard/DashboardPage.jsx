@@ -22,6 +22,9 @@ export default function DashboardPage({ data, actions, pending }) {
             onAdd={() => actions.add("animal")}
           />
           <RemindersSection
+            today={data.today}
+            onAction={actions.openDialog}
+            overview
             reminders={data.reminders}
             animals={data.animals}
             onAdd={() => actions.add("reminder")}
@@ -32,6 +35,7 @@ export default function DashboardPage({ data, actions, pending }) {
         </div>
         <div className="app-right">
           <DocumentsSection
+            shares={data.shares}
             documents={data.documents}
             animals={data.animals}
             overview
@@ -53,9 +57,9 @@ function PrivacyNote() {
       </div>
       <h2>Un dossier, vos choix.</h2>
       <p>
-        Vos documents sont conservés dans votre espace local. Aucun partage
-        n’est activé. Vous choisissez les documents que vous ajoutez à votre
-        carnet.
+        Vos documents sont conservés dans votre espace local. Les partages sont
+        simulés : vous choisissez les documents et les personnes concernés, sans
+        envoi d’invitation.
       </p>
     </aside>
   );

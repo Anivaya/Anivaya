@@ -1,4 +1,15 @@
 const shapes = {
+  share: {
+    viewBox: "0 0 24 24",
+    body: (
+      <>
+        <circle cx="18" cy="5" r="3" />
+        <circle cx="6" cy="12" r="3" />
+        <circle cx="18" cy="19" r="3" />
+        <path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4" />
+      </>
+    ),
+  },
   back: { viewBox: "0 0 24 24", body: <path d="M20 12H4m6-6-6 6 6 6" /> },
   file: {
     viewBox: "0 0 32 32",

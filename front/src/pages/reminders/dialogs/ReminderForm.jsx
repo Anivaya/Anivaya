@@ -2,31 +2,18 @@ import SubmissionForm from "../../../shared/forms/SubmissionForm.jsx";
 import Field from "../../../shared/ui/Field.jsx";
 import AnimalSelectField from "../../animals/components/AnimalSelectField.jsx";
 import { api } from "../../../shared/services/api.js";
-
-export default function ReminderForm({ data, item, ...props }) {
+export default function ReminderForm({ data, item = {}, ...props }) {
   return (
     <SubmissionForm
       {...props}
-      title="Ajouter un rappel"
-      description="Choisissez une date à suivre pour votre animal."
-      successMessage="Rappel ajouté."
+      title={item.id ? "Modifier le rappel" : "Ajouter un rappel"}
+      description="Choisissez une date à suivre pour votre animal. Aucune notification réelle n’est envoyée."
+      submitLabel={item.id ? "Enregistrer" : "Ajouter"}
+      successMessage={item.id ? "Rappel modifié." : "Rappel ajouté."}
       disabled={!data.animals.length}
-      onSubmit={async (values) => {
-        if (!values.name?.trim())
-          throw Object.assign(new Error("Renseignez un intitulé."), {
-            field: "name",
-          });
-        if (!values.animal)
-          throw Object.assign(
-            new Error("Ajoutez d’abord un animal à votre foyer."),
-            { field: "animal" },
-          );
-        if (!values.date)
-          throw Object.assign(new Error("Choisissez une date."), {
-            field: "date",
-          });
-        await api.addReminder(values);
-      }}
+      onSubmit={(values) =>
+        item.id ? api.editReminder(item.id, values) : api.addReminder(values)
+      }
     >
       {({ error, invalid }) => (
         <>
@@ -36,12 +23,13 @@ export default function ReminderForm({ data, item, ...props }) {
               name="name"
               maxLength={80}
               required
+              defaultValue={item.name || ""}
               {...invalid("name")}
             />
           </Field>
           <AnimalSelectField
             animals={data.animals}
-            defaultValue={item?.animal}
+            defaultValue={item.animal}
             error={error}
             invalid={invalid}
           />
@@ -51,7 +39,50 @@ export default function ReminderForm({ data, item, ...props }) {
               name="date"
               type="date"
               required
+              defaultValue={item.date || ""}
               {...invalid("date")}
+            />
+          </Field>
+          <div className="field-grid">
+            {[
+              [
+                "repeat",
+                "Répétition",
+                ["Aucune", "Chaque semaine", "Chaque mois", "Chaque année"],
+              ],
+              [
+                "notice",
+                "Prévenir",
+                [
+                  "Le jour même",
+                  "1 jour avant",
+                  "3 jours avant",
+                  "7 jours avant",
+                ],
+              ],
+            ].map(([name, label, values]) => (
+              <Field key={name} name={name} label={label} error={error}>
+                <select
+                  id={name}
+                  name={name}
+                  defaultValue={item[name] || values[0]}
+                  {...invalid(name)}
+                >
+                  {values.map((v) => (
+                    <option key={v}>{v}</option>
+                  ))}
+                </select>
+              </Field>
+            ))}
+          </div>
+          <Field name="note" label="Note (facultatif)" error={error}>
+            <textarea
+              id="note"
+              name="note"
+              maxLength={1000}
+              rows={3}
+              defaultValue={item.note || ""}
+              {...invalid("note")}
             />
           </Field>
         </>

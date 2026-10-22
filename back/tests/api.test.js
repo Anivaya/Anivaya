@@ -99,6 +99,10 @@ test("API : données, validation, fichiers et persistance SQLite", async (t) => 
   ).json();
   assert.ok(doc.hasFile);
   assert.equal(doc.content, undefined);
+  const filePreview = await request(`/documents/${doc.id}/file?preview=1`);
+  assert.match(filePreview.headers.get("content-disposition"), /^inline;/);
+  assert.equal(filePreview.headers.get("content-type"), "application/pdf");
+  assert.deepEqual(Buffer.from(await filePreview.arrayBuffer()), content);
   assert.deepEqual(
     Buffer.from(
       await (await request(`/documents/${doc.id}/file`)).arrayBuffer(),

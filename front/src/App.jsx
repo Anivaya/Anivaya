@@ -7,19 +7,27 @@ import DashboardPage from "./pages/dashboard/DashboardPage.jsx";
 import AnimalsPage from "./pages/animals/AnimalsPage.jsx";
 import RemindersPage from "./pages/reminders/RemindersPage.jsx";
 import DocumentsPage from "./pages/documents/DocumentsPage.jsx";
+import SharingPage from "./pages/sharing/SharingPage.jsx";
 import "./css/dashboard.css";
 import "./css/animals.css";
 import "./css/documents.css";
 import "./css/fonts.css";
 import "./css/record.css";
+import "./css/sharing.css";
+import "./css/collections.css";
 const pageComponents = {
   espace: DashboardPage,
   animaux: AnimalsPage,
   rappels: RemindersPage,
   documents: DocumentsPage,
+  partage: SharingPage,
 };
 
 const pages = {
+  partage: [
+    "Partage",
+    "Les bonnes informations, aux personnes que vous choisissez.",
+  ],
   espace: ["Vue d’ensemble", "Tout pour prendre soin de vos compagnons."],
   animaux: ["Mes animaux", "Un carnet pour chacun de vos compagnons."],
   rappels: ["Mes rappels", "Retrouvez les échéances que vous avez choisies."],
@@ -164,10 +172,12 @@ export default function App() {
       </div>
       {modal && (
         <ActionDialog
+          key={`${modal.kind}-${modal.item?.id || "new"}`}
           modal={modal}
           data={data}
           onClose={() => setModal(null)}
           onOpenRecord={actions.openRecord}
+          onOpenDialog={actions.openDialog}
           onSaved={async (message) => {
             await reload().catch(() => {});
             setModal(null);

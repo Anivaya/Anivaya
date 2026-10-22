@@ -10,16 +10,13 @@ export default function DocumentsPage({ data, actions }) {
         actionLabel="Ajouter un document"
         onAction={() => actions.add("document")}
       />
-      <div className="app-grid">
-        <div className="app-right">
-          <DocumentsSection
-            documents={data.documents}
-            animals={data.animals}
-            onAdd={() => actions.add("document")}
-            onAction={actions.openDocument}
-          />
-        </div>
-      </div>
+      <DocumentsSection
+        shares={data.shares}
+        documents={data.documents}
+        animals={data.animals}
+        onAdd={() => actions.add("document")}
+        onAction={actions.openDocument}
+      />
     </>
   );
 }

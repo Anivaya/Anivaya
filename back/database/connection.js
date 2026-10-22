@@ -31,28 +31,29 @@ export function openDatabase(
   database.exec(
     "CREATE TABLE IF NOT EXISTS schema_migrations (name TEXT PRIMARY KEY)",
   );
-  const migration = "002_animal_records.sql";
-  if (
-    !database
-      .prepare("SELECT name FROM schema_migrations WHERE name=?")
-      .get(migration)
-  ) {
-    database.exec("BEGIN");
-    try {
-      database.exec(
-        readFileSync(
-          new URL(`./migrations/${migration}`, import.meta.url),
-          "utf8",
-        ),
-      );
-      database
-        .prepare("INSERT INTO schema_migrations VALUES (?)")
-        .run(migration);
-      database.exec("COMMIT");
-    } catch (error) {
-      database.exec("ROLLBACK");
-      database.close();
-      throw error;
+  for (const migration of ["002_animal_records.sql", "003_sharing.sql"]) {
+    if (
+      !database
+        .prepare("SELECT name FROM schema_migrations WHERE name=?")
+        .get(migration)
+    ) {
+      database.exec("BEGIN");
+      try {
+        database.exec(
+          readFileSync(
+            new URL(`./migrations/${migration}`, import.meta.url),
+            "utf8",
+          ),
+        );
+        database
+          .prepare("INSERT INTO schema_migrations VALUES (?)")
+          .run(migration);
+        database.exec("COMMIT");
+      } catch (error) {
+        database.exec("ROLLBACK");
+        database.close();
+        throw error;
+      }
     }
   }
   return database;

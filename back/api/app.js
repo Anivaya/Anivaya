@@ -48,6 +48,43 @@ export function createApi(db) {
         throw new ApiError(403, "Origine non autorisée.");
       const path = new URL(request.url, "http://localhost").pathname;
       const method = request.method;
+      if (path === "/api/sharing" && method === "GET")
+        return json(200, {
+          people: repository.sharing.allPeople(),
+          shares: repository.sharing.allShares(),
+        });
+      if (path === "/api/people" && method === "POST")
+        return json(
+          201,
+          repository.sharing.savePerson(null, await readJson(request)),
+        );
+      const personRoute = path.match(/^\/api\/people\/([^/]+)$/);
+      if (personRoute && method === "PATCH")
+        return json(
+          200,
+          repository.sharing.savePerson(
+            personRoute[1],
+            await readJson(request),
+          ),
+        );
+      if (personRoute && method === "DELETE") {
+        repository.sharing.deletePerson(personRoute[1]);
+        response.writeHead(204);
+        return response.end();
+      }
+      if (path === "/api/associations" && method === "POST")
+        return json(200, repository.sharing.associate(await readJson(request)));
+      if (path === "/api/shares" && method === "POST")
+        return json(
+          201,
+          repository.sharing.createShares(await readJson(request)),
+        );
+      const shareRoute = path.match(/^\/api\/shares\/([^/]+)$/);
+      if (shareRoute && method === "DELETE") {
+        repository.sharing.revoke(shareRoute[1]);
+        response.writeHead(204);
+        return response.end();
+      }
       if (method === "GET" && path === "/api/health")
         return json(200, { status: "ok" });
       if (method === "GET" && path === "/api/dashboard")
@@ -95,6 +132,10 @@ export function createApi(db) {
           events: data.events.filter((e) => e.animal === pet.id),
           reminders: data.reminders.filter((r) => r.animal === pet.id),
           documents: data.documents.filter((d) => d.animal === pet.id),
+          people: data.people.filter((p) => p.animals.includes(pet.id)),
+          shares: data.shares.filter((s) =>
+            data.documents.some((d) => d.id === s.doc && d.animal === pet.id),
+          ),
         });
       }
       if (petRoute && method === "PATCH")
@@ -159,7 +200,7 @@ export function createApi(db) {
         const row = repository.file(file[1]);
         response.writeHead(200, {
           "Content-Type": row.type,
-          "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(row.name)}`,
+          "Content-Disposition": `${new URL(request.url, "http://localhost").searchParams.get("preview") === "1" ? "inline" : "attachment"}; filename*=UTF-8''${encodeURIComponent(row.name)}`,
         });
         return response.end(Buffer.from(row.content));
       }
