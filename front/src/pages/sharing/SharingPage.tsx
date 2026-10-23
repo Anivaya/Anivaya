@@ -1,12 +1,20 @@
-import type { PageProps } from "../../shared/types.ts";
+import type { PageProps, Actions, Animal, Person } from "../../shared/types.ts";
 import { useState } from "react";
 import PageHeading from "../../shared/layout/PageHeading.tsx";
 import Icon from "../../shared/ui/Icon.tsx";
-import PeopleList from "./components/PeopleList.tsx";
-import { animalName, fullDate } from "../../shared/utils/format.ts";
-export default function SharingPage({ data, actions, route }: PageProps) {
-  const parts = route.replace(/^#/, "").split("/");
-  const peopleTab = parts[1] === "personnes";
+import {
+  animalName,
+  fullDate,
+  matches,
+  shareLabels,
+} from "../../shared/utils/format.ts";
+
+export default function SharingPage({
+  data,
+  actions,
+  params: [section, animal = ""],
+}: PageProps) {
+  const peopleTab = section === "personnes";
   return (
     <div className="sharing-page">
       <PageHeading
@@ -15,7 +23,7 @@ export default function SharingPage({ data, actions, route }: PageProps) {
         actionLabel="Partager des documents"
         showPlus={false}
         onAction={() =>
-          actions.openDialog("share-documents", { animal: parts[2] })
+          actions.openDialog("share-documents", { animal: animal || undefined })
         }
       />
       <nav className="sharing-tabs" aria-label="Sections du partage">
@@ -25,7 +33,7 @@ export default function SharingPage({ data, actions, route }: PageProps) {
         ].map(([key, label]) => (
           <a
             key={key}
-            href={`#partage/${key}${parts[2] ? `/${parts[2]}` : ""}`}
+            href={`#partage/${key}${animal ? `/${animal}` : ""}`}
             aria-current={
               peopleTab === (key === "personnes") ? "page" : undefined
             }
@@ -42,11 +50,11 @@ export default function SharingPage({ data, actions, route }: PageProps) {
         </span>
       </div>
       <SharingContent
-        key={`${peopleTab}-${parts[2] || ""}`}
+        key={`${peopleTab}-${animal}`}
         data={data}
         actions={actions}
         peopleTab={peopleTab}
-        initialAnimal={parts[2] || ""}
+        initialAnimal={animal}
       />
       <p className="share-note">
         Partages en lecture seule simulés, conservés dans votre espace local.
@@ -55,6 +63,7 @@ export default function SharingPage({ data, actions, route }: PageProps) {
     </div>
   );
 }
+
 function SharingContent({
   data,
   actions,
@@ -62,29 +71,26 @@ function SharingContent({
   initialAnimal,
 }: {
   data: PageProps["data"];
-  actions: PageProps["actions"];
+  actions: Actions;
   peopleTab: boolean;
   initialAnimal: string;
 }) {
   const [search, setSearch] = useState(""),
     [animal, setAnimal] = useState(initialAnimal),
     [status, setStatus] = useState("");
-  const q = search.trim().toLocaleLowerCase("fr");
   const people = data.people.filter(
     (p) =>
       (!animal || p.animals.includes(animal)) &&
-      `${p.name} ${p.email} ${p.phone}`.toLocaleLowerCase("fr").includes(q),
+      matches(`${p.name} ${p.email} ${p.phone}`, search),
   );
-  const shares = data.shares.filter((s) => {
-    const doc = data.documents.find((d) => d.id === s.doc)!;
-    return (
-      doc &&
+  const shares = data.shares.flatMap((share) => {
+    const doc = data.documents.find((d) => d.id === share.doc);
+    return doc &&
       (!animal || doc.animal === animal) &&
-      (!status || s.status === status) &&
-      `${doc.name} ${s.recipient} ${s.email}`
-        .toLocaleLowerCase("fr")
-        .includes(q)
-    );
+      (!status || share.status === status) &&
+      matches(`${doc.name} ${share.recipient} ${share.email}`, search)
+      ? [{ share, doc }]
+      : [];
   });
   return (
     <section className="sharing-panel">
@@ -169,49 +175,42 @@ function SharingContent({
         )
       ) : (
         <>
-          {shares.map((s) => {
-            const doc = data.documents.find((d) => d.id === s.doc)!;
-            return (
-              <article className="access-row" key={s.id}>
-                <span className="doc-icon">
-                  <Icon name="file" />
+          {shares.map(({ share: s, doc }) => (
+            <article className="access-row" key={s.id}>
+              <span className="doc-icon">
+                <Icon name="file" />
+              </span>
+              <div className="person-info">
+                <h3>{doc.name}</h3>
+                <p>
+                  {animalName(data.animals, doc.animal)} · {s.recipient} ·{" "}
+                  {s.email}
+                </p>
+                <p>Lecture seule · Jusqu’au {fullDate(s.until)}</p>
+                <span
+                  className={`access-state ${s.status !== "active" ? "off" : ""}`}
+                >
+                  {shareLabels[s.status]}
                 </span>
-                <div className="person-info">
-                  <h3>{doc.name}</h3>
-                  <p>
-                    {animalName(data.animals, doc.animal)} · {s.recipient} ·{" "}
-                    {s.email}
-                  </p>
-                  <p>Lecture seule · Jusqu’au {fullDate(s.until)}</p>
-                  <span
-                    className={`access-state ${s.status !== "active" ? "off" : ""}`}
-                  >
-                    {s.status === "active"
-                      ? "Actif dans la démo"
-                      : s.status === "expired"
-                        ? "Expiré"
-                        : "Révoqué"}
-                  </span>
-                </div>
-                <div className="row-buttons">
+              </div>
+              <div className="row-buttons">
+                <button
+                  aria-label={`Voir le partage de ${doc.name} avec ${s.recipient}`}
+                  onClick={() => actions.openDialog("share-details", s)}
+                >
+                  <Icon name="eye" />
+                </button>
+                {s.status === "active" && (
                   <button
-                    aria-label={`Voir le partage de ${doc.name} avec ${s.recipient}`}
-                    onClick={() => actions.openDialog("share-details", s)}
+                    className="red"
+                    onClick={() => actions.openDialog("revoke-share", s)}
                   >
-                    <Icon name="eye" />
+                    Révoquer
                   </button>
-                  {s.status === "active" && (
-                    <button
-                      className="red"
-                      onClick={() => actions.openDialog("revoke-share", s)}
-                    >
-                      Révoquer
-                    </button>
-                  )}
-                </div>
-              </article>
-            );
-          })}
+                )}
+              </div>
+            </article>
+          ))}
           {!shares.length && (
             <div className="share-empty">
               <h3>
@@ -237,4 +236,84 @@ function SharingContent({
       )}
     </section>
   );
+}
+
+/** Liste des personnes de confiance, aussi affichée dans le carnet d’un animal. */
+export function PeopleList({
+  people,
+  animals,
+  actions,
+  animal,
+  compact = false,
+}: {
+  people: Person[];
+  animals: Animal[];
+  actions: Actions;
+  animal?: string;
+  compact?: boolean;
+}) {
+  if (!people.length)
+    return (
+      <p className="share-empty">
+        Aucune personne de confiance pour le moment.
+      </p>
+    );
+  return people.map((person) => (
+    <article className="person-card" key={person.id}>
+      <span className="person-avatar" aria-hidden="true">
+        {person.name.slice(0, 1).toLocaleUpperCase("fr")}
+      </span>
+      <div className="person-info">
+        <h3>{person.name}</h3>
+        <p>
+          {person.role}
+          {!compact && ` · ${person.email || person.phone}`}
+        </p>
+        {!compact && (
+          <p>
+            {animal
+              ? person.note
+              : person.animals.length
+                ? person.animals
+                    .map((id) => animalName(animals, id))
+                    .join(" · ")
+                : "Aucun animal associé"}
+          </p>
+        )}
+      </div>
+      {!compact && (
+        <div className="row-buttons">
+          {!animal && (
+            <button
+              onClick={() =>
+                actions.openDialog("associate-people", { person: person.id })
+              }
+            >
+              Associer
+            </button>
+          )}
+          <button
+            aria-label={`Modifier ${person.name}`}
+            title="Modifier"
+            onClick={() => actions.openDialog("edit-person", person)}
+          >
+            <Icon name="edit" />
+          </button>
+          <button
+            className="red"
+            aria-label={`${animal ? "Retirer" : "Supprimer"} ${person.name}`}
+            title={animal ? "Retirer du carnet" : "Supprimer"}
+            onClick={() =>
+              actions.openDialog(animal ? "remove-person" : "delete-person", {
+                ...person,
+                animal,
+              })
+            }
+          >
+            <Icon name="trash" />
+          </button>
+        </div>
+      )}
+    </article>
+  ));
 }

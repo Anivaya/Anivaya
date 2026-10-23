@@ -1,8 +1,8 @@
 import type { PageProps } from "../../shared/types.ts";
 import PageHeading from "../../shared/layout/PageHeading.tsx";
-import AnimalsSection from "../animals/components/AnimalsSection.tsx";
-import RemindersSection from "../reminders/components/RemindersSection.tsx";
-import DocumentsSection from "../documents/components/DocumentsSection.tsx";
+import { AnimalsSection } from "../animals/AnimalsPage.tsx";
+import { RemindersSection } from "../reminders/RemindersPage.tsx";
+import { DocumentsSection } from "../documents/DocumentsPage.tsx";
 import Icon from "../../shared/ui/Icon.tsx";
 
 export default function DashboardPage({ data, actions, pending }: PageProps) {
@@ -28,8 +28,6 @@ export default function DashboardPage({ data, actions, pending }: PageProps) {
             overview
             reminders={data.reminders}
             animals={data.animals}
-            onAdd={() => actions.add("reminder")}
-            onOpen={actions.openReminder}
             onToggle={actions.toggleReminder}
             pending={pending}
           />
@@ -41,7 +39,7 @@ export default function DashboardPage({ data, actions, pending }: PageProps) {
             animals={data.animals}
             overview
             onAdd={() => actions.add("document")}
-            onAction={actions.openDocument}
+            onAction={actions.openDialog}
           />
           <PrivacyNote />
         </div>

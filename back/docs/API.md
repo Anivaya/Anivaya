@@ -2,7 +2,38 @@
 
 API locale : http://127.0.0.1:3001. React utilise le proxy `/api` de Vite, puis l’API lit/écrit SQLite.
 
-## Routes
+## Comptes et sessions
+
+Toutes les routes métier nécessitent une session, sauf la santé du serveur, l’authentification et la lecture des fiches publiques. L’accès anonyme retourne 401. Les écritures utilisent JSON et vérifient l’origine du navigateur.
+
+| Méthode     | Route                                        | Usage                                                                                |
+| ----------- | -------------------------------------------- | ------------------------------------------------------------------------------------ |
+| GET         | /api/auth/demo                               | Identifiants de démonstration affichés dans le formulaire                            |
+| GET         | /api/auth/session                            | Compte et profil, ou null                                                            |
+| POST        | /api/auth/register                           | name, email, password, confirmPassword ; compte vide et session                      |
+| POST        | /api/auth/login                              | email, password, remember facultatif ; cookie HttpOnly                               |
+| POST        | /api/auth/logout                             | Invalide la session et expire le cookie                                              |
+| GET / PATCH | /api/profile                                 | Profil, photo et préférences                                                         |
+| GET         | /api/profile/photo                           | Avatar privé                                                                         |
+| GET         | /api/directory                               | Professionnels, favoris, réservations et date de Paris                               |
+| PUT         | /api/professionals/:id/favorite              | favorite: boolean                                                                    |
+| GET         | /api/professionals/:id/slots?date=YYYY-MM-DD | Créneaux ; ignore=:bookingId pour un déplacement                                     |
+| POST        | /api/bookings                                | professional, animal, service (index), date, time, contactName, email, note, payment |
+| PATCH       | /api/bookings/:id                            | date et time pour déplacer, ou status: cancelled pour annuler                        |
+| GET         | /api/public/emergency/:token                 | Informations sélectionnées, sans session                                             |
+| GET         | /api/public/emergency/:token/photo           | Photo si autorisée sur la fiche active                                               |
+
+Mot de passe : 12 à 256 caractères, hachage scrypt avec sel aléatoire. Jeton de session aléatoire, seul son SHA-256 est stocké. Durée maximale : 24 h, ou 7 jours avec remember=true. Connexion et inscription limitées à 30 tentatives par IP en 15 minutes. Le compte de démonstration conserve son adresse affichée.
+
+Chaque compte dispose de sa base SQLite, sélectionnée depuis la session. Les identifiants des ressources d’un autre compte ne donnent pas accès à ses données.
+
+PATCH /api/profile attend name, email, phone, city et notifications={reminders,reservations,shares} (booléens). photo est absent pour conserver l’image, null pour la retirer, ou {type,content} pour importer du JPG/PNG/WebP en base64, 5 Mo maximum.
+
+Le prix vient du serveur. Réservations entre demain et dans 60 jours. Conflit de créneau : 409. payment=declined : 402 sans création ; payment=success : confirmation simulée. Une réservation passée ou annulée ne peut plus être déplacée. Les disponibilités des professionnels fictifs sont calculées dans chaque espace privé.
+
+Une fiche publique utilise un jeton imprévisible. Désactivation : 410 sans informations personnelles. Suppression : 404 et révocation du jeton ; une recréation produit un nouveau lien. Aucun identifiant d’animal complet, document privé ou adresse du foyer n’est exposé.
+
+## Routes métier
 
 | Méthode              | Route                      | Usage                                                            |
 | -------------------- | -------------------------- | ---------------------------------------------------------------- |
@@ -51,9 +82,9 @@ Les listes renvoient `status` : `active`, `expired` ou `revoked`. `GET /api/dash
 
 Ces accès sont une simulation locale : aucune invitation, URL publique ou autorisation externe n’est créée.
 
-Fiche d’urgence (PUT) : `{ "active": true, "photo": true, "details": true, "notes": false, "contact": true, "vet": false }`. Tous les choix sont booléens. Le serveur sauvegarde les choix, une copie des informations sélectionnées et un QR SVG. Identifiant complet et documents restent exclus. Le QR contient du texte de démonstration (900 caractères maximum), sans lien public hébergé. Les changements du profil sont repris lors du prochain enregistrement de la fiche.
+Fiche d’urgence (PUT) : `{ "active": true, "photo": true, "details": true, "notes": false, "contact": true, "vet": false }`. Tous les choix sont booléens. Le serveur sauvegarde les choix, une copie des informations sélectionnées et un QR SVG. Identifiant complet et documents restent exclus. Le QR contient le lien vers la fiche publique. Les informations affichées suivent la dernière configuration sauvegardée et active. Les changements du profil sont repris lors du prochain enregistrement de la fiche.
 
-La route `POST /api/animals/:id/emergency/preview` accepte les mêmes options que PUT et renvoie le QR recalculé sans écrire en base. React annule les requêtes précédentes quand les options changent ; seule la configuration sauvegardée est affichée dans le dashboard.
+La route `POST /api/animals/:id/emergency/preview` accepte les mêmes options que PUT et renvoie le QR recalculé sans publier ni sauvegarder les choix (le jeton public peut être réservé en base). React annule les requêtes précédentes quand les options changent ; seule la configuration sauvegardée est affichée dans le dashboard.
 
 ## Persistance
 
@@ -61,4 +92,4 @@ SQLite : `back/database/data/anivaya.sqlite`, exclue de Git. Les migrations sont
 
 `DATABASE_PATH` choisit une autre base ; `PORT` change le port API (adapter également le proxy Vite). Node >= 22.18 est requis. Installer les dépendances avec `npm --prefix back install`.
 
-Cette version reste une démonstration locale mono-foyer, sans authentification ni notifications réelles. Les deux documents initiaux sont des exemples sans fichier.
+Cette version dispose de comptes réels isolés ; les notifications, les paiements et les invitations de partage restent simulés. Les deux documents initiaux sont des exemples sans fichier.

@@ -5,14 +5,14 @@ export default function Modal({
   children,
   onClose,
   busy,
-  compact = false,
-  sharing = false,
+  header = true,
+  className = "",
 }: {
   children: ReactNode;
   onClose: () => void;
   busy: boolean;
-  compact?: boolean;
-  sharing?: boolean;
+  header?: boolean;
+  className?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -27,9 +27,7 @@ export default function Modal({
   }, []);
   return (
     <dialog
-      className={
-        compact ? "animal-modal" : sharing ? "sharing-modal" : undefined
-      }
+      className={className}
       ref={ref}
       aria-labelledby="action-title"
       onCancel={(event) => {
@@ -48,7 +46,7 @@ export default function Modal({
           onClose();
       }}
     >
-      {!compact && (
+      {header && (
         <div className="dialog-top">
           <span>MON ESPACE ANIVAYA</span>
           <button
@@ -64,5 +62,15 @@ export default function Modal({
       )}
       {children}
     </dialog>
+  );
+}
+
+export function CloseDialogButton({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="dialog-actions">
+      <button className="button" onClick={onClose}>
+        Fermer
+      </button>
+    </div>
   );
 }

@@ -1,0 +1,457 @@
+.public-emergency {
+  --blue: #1b3b8e;
+  --navy: #132e5c;
+  --gold: #f0ab06;
+  --muted: #65748b;
+  --pale: #edf4fc;
+  --line: #dfe6ef;
+  --warm: #fff7e3;
+  font-family: "Segoe UI", Arial, sans-serif;
+  color: var(--navy);
+  background: #f4f7fc;
+  color-scheme: light;
+  scrollbar-color: var(--muted) var(--pale);
+  scrollbar-width: thin;
+}
+.public-emergency * {
+  box-sizing: border-box;
+}
+.public-emergency {
+  margin: 0;
+}
+.public-emergency a {
+  color: var(--blue);
+  text-decoration: none;
+}
+.public-emergency a,
+.public-emergency button,
+.public-emergency summary {
+  cursor: pointer;
+}
+.public-emergency a:hover {
+  text-decoration: underline;
+}
+.public-emergency button,
+.public-emergency input,
+.public-emergency select,
+.public-emergency textarea {
+  font: inherit;
+}
+.public-emergency button {
+  color: inherit;
+}
+.public-emergency a:focus-visible,
+.public-emergency button:focus-visible,
+.public-emergency summary:focus-visible,
+.public-emergency input:focus-visible,
+.public-emergency select:focus-visible,
+.public-emergency textarea:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+}
+.public-emergency [hidden] {
+  display: none !important;
+}
+.public-emergency h1,
+.public-emergency h2,
+.public-emergency h3,
+.public-emergency p {
+  margin-top: 0;
+}
+.public-emergency p {
+  line-height: 1.7;
+}
+.public-emergency h1 {
+  font-size: 32px;
+  letter-spacing: -1px;
+  margin-bottom: 10px;
+}
+.public-emergency h2 {
+  font-size: 20px;
+  letter-spacing: -0.4px;
+  margin-bottom: 19px;
+}
+.public-emergency h3 {
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+.public-emergency .muted {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.public-emergency .back {
+  font-size: 12px;
+  display: inline-block;
+  margin-bottom: 25px;
+}
+.public-emergency .portrait {
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background-color: var(--pale);
+}
+.public-emergency .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 43px;
+  border: 1px solid var(--blue);
+  border-radius: 8px;
+  background: var(--blue);
+  color: white;
+  padding: 11px 17px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.public-emergency .button:hover {
+  background: var(--navy);
+  color: white;
+  text-decoration: none;
+}
+.public-emergency .outline {
+  background: white;
+  color: var(--blue);
+}
+.public-emergency .outline:hover {
+  background: var(--pale);
+  color: var(--blue);
+}
+.public-emergency svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+.public-emergency .error {
+  font-size: 12px;
+  color: #a52b38;
+  line-height: 1.7;
+}
+.public-emergency dialog {
+  width: min(620px, calc(100% - 30px));
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 25px;
+  color: var(--navy);
+  max-height: 90vh;
+  overflow: auto;
+}
+.public-emergency dialog::backdrop {
+  background: #132e5c66;
+  backdrop-filter: blur(4px);
+}
+.public-emergency dialog h2 {
+  font-size: 24px;
+  margin-bottom: 12px;
+}
+.public-emergency .public-shell {
+  width: min(660px, 90%);
+  margin: 30px auto;
+}
+.public-emergency .public-card {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 30px;
+  background: white;
+}
+.public-emergency .public-hero {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.public-emergency .public-hero .portrait {
+  width: 140px;
+  height: 140px;
+  margin-bottom: 15px;
+}
+.public-emergency .public-hero h1 {
+  font-size: 34px;
+  margin-bottom: 10px;
+}
+.public-emergency .public-card .button {
+  width: 100%;
+  margin-top: 12px;
+}
+.public-emergency .public-note {
+  font-size: 12px;
+  line-height: 1.8;
+  background: var(--warm);
+  padding: 18px;
+  border-radius: 9px;
+}
+.public-emergency .public-card h2 {
+  margin-top: 26px;
+  font-size: 18px;
+}
+@media (max-width: 850px) {
+  .public-emergency .portrait {
+    width: 95px;
+    height: 95px;
+  }
+}
+@media (max-width: 620px) {
+  .public-emergency .portrait {
+    width: 85px;
+    height: 85px;
+  }
+  .public-emergency .button {
+    font-size: 11px;
+    padding: 10px 12px;
+  }
+  .public-emergency .public-card {
+    padding: 23px;
+  }
+  .public-emergency .public-card h1 {
+    font-size: 30px;
+  }
+  .public-emergency .public-shell {
+    margin-top: 20px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .public-emergency * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
+@media print {
+  .public-emergency {
+    background: white;
+  }
+  .public-emergency dialog {
+    display: none !important;
+  }
+}
+.public-emergency .back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 8px;
+  background: transparent;
+}
+.public-emergency .back:hover {
+  background: var(--pale);
+  text-decoration: none;
+}
+.public-emergency .back svg {
+  width: 23px;
+  height: 23px;
+}
+
+
+/* Nunito sur toute la page, y compris le conteneur. */
+.public-emergency {
+  font-family: "Anivaya Nunito", "Segoe UI", sans-serif !important;
+}
+/* Options de visibilité : séparation par l’espace. */
+.public-emergency .public-shell {
+  max-width: 660px;
+}
+.public-emergency .public-card h1 {
+  overflow-wrap: anywhere;
+}
+.public-emergency .public-card p {
+  overflow-wrap: anywhere;
+}
+.public-emergency .public-status {
+  display: inline-block;
+  padding: 7px 12px;
+  border-radius: 7px;
+  background: var(--warm);
+  color: var(--navy);
+  font-size: 12px;
+}
+.public-emergency .public-unavailable {
+  text-align: center;
+  padding: 30px 5px;
+}
+.public-emergency .public-unavailable h1 {
+  font-size: 29px;
+  margin: 18px 0;
+}
+.public-emergency .public-unavailable p {
+  max-width: 430px;
+  margin: 0 auto 20px;
+}
+.public-emergency .public-icon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--pale);
+  color: var(--blue);
+  margin: auto;
+}
+.public-emergency .public-icon svg {
+  width: 30px;
+  height: 30px;
+}
+.public-emergency .public-contact {
+  background: var(--pale);
+  padding: 18px;
+  border-radius: 10px;
+  margin: 12px 0;
+}
+.public-emergency .public-contact h3 {
+  margin: 0 0 8px;
+}
+.public-emergency .public-contact p {
+  margin: 0;
+}
+.public-emergency .public-footer {
+  text-align: center;
+  font-size: 11px;
+  margin-top: 24px;
+}
+.public-emergency .public-hero .portrait {
+  object-fit: cover;
+}
+.public-emergency .public-card section + section {
+  border-top: 1px solid var(--line);
+  margin-top: 24px;
+}
+.public-emergency .public-card .public-contact h3 {
+  font-size: 14px;
+}
+.public-emergency .public-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 6px;
+}
+.public-emergency .public-card-top > img {
+  display: block;
+  width: 76px;
+  height: 66px;
+  object-fit: contain;
+}
+.public-emergency .state-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 40px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: white;
+  color: var(--navy);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.public-emergency .state-toggle:hover {
+  background: var(--pale);
+}
+.public-emergency .state-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #737d8b;
+  flex-shrink: 0;
+}
+.public-emergency .state-dot.active {
+  background: #25834a;
+}
+.public-emergency .state-dot.disabled {
+  background: #c73843;
+}
+.public-emergency .state-dot.unavailable {
+  background: #737d8b;
+}
+.public-emergency .public-back {
+  margin: 4px 0 12px;
+}
+.public-emergency .public-card .public-hero {
+  margin-top: 0;
+}
+@media (max-width: 420px) {
+  .public-emergency .public-card-top {
+    gap: 12px;
+  }
+  .public-emergency .public-card-top > img {
+    width: 65px;
+    height: 57px;
+  }
+  .public-emergency .state-toggle {
+    font-size: 11px;
+    padding: 9px 10px;
+  }
+  .public-emergency .public-card {
+    padding: 20px;
+  }
+}
+.public-emergency .public-shell {
+  position: relative;
+}
+.public-emergency .public-back {
+  position: absolute;
+  left: -58px;
+  top: 8px;
+  margin: 0;
+}
+.public-emergency .public-card .state-toggle {
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.public-emergency .state-toggle span:last-child {
+  flex: 0 0 auto;
+}
+@media (max-width: 800px) {
+  .public-emergency .public-back {
+    position: relative;
+    left: auto;
+    top: auto;
+    display: inline-flex;
+    margin: 0 0 12px -8px;
+  }
+  .public-emergency .public-shell {
+    margin-top: 16px;
+  }
+}
+
+.public-emergency .public-hero .portrait {
+  display: block;
+  margin: 0 auto 18px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+}
+.public-emergency .public-hero h1 {
+  margin-top: 17px;
+}
+
+.public-emergency .public-card-top img {
+  display: block;
+  width: 76px;
+  height: 66px;
+  object-fit: contain;
+}
+.public-emergency .state-toggle {
+  cursor: default;
+}
+
+.public-emergency {
+  display: flow-root;
+  min-height: 100vh;
+}
+.public-emergency .record-portrait.new {
+  display: grid;
+  place-items: center;
+}

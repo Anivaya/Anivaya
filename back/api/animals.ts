@@ -1,14 +1,23 @@
 import type {
   Database,
   Input,
+  Animal,
   AnimalRow,
   AnimalEvent,
 } from "../database/types.ts";
-import { errorMessage } from "../../shared/models.ts";
 import { randomUUID } from "node:crypto";
-import { ApiError, text, date, documentFile } from "./validation.ts";
+import { transaction } from "../database/connection.ts";
+import {
+  ApiError,
+  text,
+  date,
+  oneOf,
+  upload,
+  localToday,
+  documentFile,
+} from "./validation.ts";
 
-const fields = [
+const profileFields = [
   "breed",
   "sex",
   "dob",
@@ -23,94 +32,104 @@ const fields = [
   "contact",
   "vet",
 ] as const;
+const longFields = ["food", "routine", "behavior", "medical"];
+const species = ["Chien", "Chat"];
 const eventTypes = ["Consultation", "Pesée", "Vaccination déclarée", "Autre"];
+
+type ProfileValues = Partial<Record<(typeof profileFields)[number], string>> & {
+  photo?: Uint8Array;
+  photo_type?: string;
+};
+
+function speciesValue(value: unknown) {
+  if (typeof value !== "string" || !species.includes(value))
+    throw new ApiError(400, "Choisissez Chien ou Chat.", "species");
+  return value;
+}
+
+/** Valide les champs du profil présents dans `data` (mise à jour partielle). */
+function profileValues(data: Input): ProfileValues {
+  const result: ProfileValues = {};
+  for (const field of profileFields)
+    if (Object.hasOwn(data, field))
+      result[field] = text(
+        data[field],
+        field,
+        longFields.includes(field) ? 500 : 120,
+        false,
+      );
+  if (result.dob) {
+    date(result.dob, "dob");
+    if (result.dob > localToday())
+      throw new ApiError(
+        400,
+        "La naissance ne peut pas être dans le futur.",
+        "dob",
+      );
+  }
+  const weight = Number(result.weight);
+  if (
+    result.weight &&
+    (!Number.isFinite(weight) || weight < 0.1 || weight > 200)
+  )
+    throw new ApiError(
+      400,
+      "Choisissez un poids entre 0,1 et 200 kg.",
+      "weight",
+    );
+  if (result.sex)
+    oneOf(
+      result.sex,
+      ["Femelle", "Mâle", "Non renseigné"],
+      "sex",
+      "Choisissez un sexe valide.",
+    );
+  if (result.neutered)
+    oneOf(
+      result.neutered,
+      ["Oui", "Non", "Non renseignée"],
+      "neutered",
+      "Choisissez un statut valide.",
+    );
+  if (data.photo) {
+    const photo = upload(data.photo, "Choisissez un JPEG ou PNG.", "photo");
+    if (
+      typeof photo.type !== "string" ||
+      !["image/png", "image/jpeg"].includes(photo.type)
+    )
+      throw new ApiError(400, "Choisissez un JPEG ou PNG.", "photo");
+    const bytes = documentFile(photo.type, photo.content, "photo");
+    if (bytes.length > 2 * 1024 * 1024)
+      throw new ApiError(400, "La photo dépasse 2 Mo.", "photo");
+    result.photo = bytes;
+    result.photo_type = photo.type;
+  }
+  return result;
+}
+
 export function createAnimalRepository(db: Database) {
   function requireAnimal(id: unknown) {
-    const key = text(id, "animal", 120);
     const pet = db
       .prepare("SELECT * FROM animals WHERE id=? AND deleted_at IS NULL")
-      .get<AnimalRow>(key);
+      .get<AnimalRow>(text(id, "animal", 120));
     if (!pet) throw new ApiError(404, "Cet animal est introuvable.");
     return pet;
   }
-  function profile(data: Input) {
-    const result: Partial<Record<(typeof fields)[number], string>> & {
-      photo?: Uint8Array;
-      photo_type?: string;
-    } = {};
-    for (const field of fields)
-      if (Object.hasOwn(data, field))
-        result[field] = text(
-          data[field],
-          field,
-          ["food", "routine", "behavior", "medical"].includes(field)
-            ? 500
-            : 120,
-          false,
-        );
-    if (result.dob) {
-      try {
-        date(result.dob);
-      } catch (error) {
-        throw new ApiError(400, errorMessage(error), "dob");
-      }
-      const today = new Intl.DateTimeFormat("en-CA", {
-        timeZone: "Europe/Paris",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      }).format(new Date());
-      if (result.dob > today)
-        throw new ApiError(
-          400,
-          "La naissance ne peut pas être dans le futur.",
-          "dob",
-        );
-    }
-    if (
-      result.weight &&
-      (!Number.isFinite(Number(result.weight)) ||
-        Number(result.weight) < 0.1 ||
-        Number(result.weight) > 200)
-    )
-      throw new ApiError(
-        400,
-        "Choisissez un poids entre 0,1 et 200 kg.",
-        "weight",
-      );
-    if (
-      result.sex &&
-      !["Femelle", "Mâle", "Non renseigné"].includes(result.sex)
-    )
-      throw new ApiError(400, "Choisissez un sexe valide.", "sex");
-    if (
-      result.neutered &&
-      !["Oui", "Non", "Non renseignée"].includes(result.neutered)
-    )
-      throw new ApiError(400, "Choisissez un statut valide.", "neutered");
-    if (Object.hasOwn(data, "photo") && data.photo) {
-      if (typeof data.photo !== "object" || Array.isArray(data.photo))
-        throw new ApiError(400, "Choisissez un JPEG ou PNG.", "photo");
-      const photo = data.photo as Input;
-      if (
-        typeof photo.type !== "string" ||
-        !["image/png", "image/jpeg"].includes(photo.type)
-      )
-        throw new ApiError(400, "Choisissez un JPEG ou PNG.", "photo");
-      let bytes;
-      try {
-        bytes = documentFile(photo.type, photo.content);
-      } catch (error) {
-        throw new ApiError(400, errorMessage(error), "photo");
-      }
-      if (bytes.length > 2 * 1024 * 1024)
-        throw new ApiError(400, "La photo dépasse 2 Mo.", "photo");
-      result.photo = bytes;
-      result.photo_type = photo.type;
-    }
-    return result;
+  function requireEvent(id: string) {
+    const event = db
+      .prepare("SELECT * FROM events WHERE id=? AND deleted_at IS NULL")
+      .get<AnimalEvent>(id);
+    if (!event) throw new ApiError(404, "Événement introuvable.");
+    return event;
   }
-  function allAnimals(): import("../../shared/models.ts").Animal[] {
+  function saveProfile(id: string, values: ProfileValues) {
+    const keys = Object.keys(values);
+    if (keys.length)
+      db.prepare(
+        `UPDATE animal_profiles SET ${keys.map((key) => `${key}=?`).join(",")} WHERE animal=?`,
+      ).run(...Object.values(values), id);
+  }
+  function allAnimals(): Animal[] {
     return db
       .prepare(
         "SELECT a.*,p.breed,p.sex,p.dob,p.weight,p.coat,p.identifier,p.neutered,p.food,p.routine,p.behavior,p.medical,p.contact,p.vet,length(p.photo) AS hasPhoto FROM animals a LEFT JOIN animal_profiles p ON p.animal=a.id WHERE a.deleted_at IS NULL ORDER BY a.rowid",
@@ -121,72 +140,50 @@ export function createAnimalRepository(db: Database) {
         photo: hasPhoto ? `/api/animals/${pet.id}/photo?v=${hasPhoto}` : null,
       }));
   }
-  function editAnimal(id: string, data: Input) {
-    const pet = requireAnimal(id);
-    const name = Object.hasOwn(data, "name")
-      ? text(data.name, "name", 40)
-      : pet.name;
-    const species = data.species ?? pet.species;
-    if (typeof species !== "string" || !["Chien", "Chat"].includes(species))
-      throw new ApiError(400, "Choisissez Chien ou Chat.", "species");
-    const values = profile(data);
-    db.exec("BEGIN");
-    try {
-      db.prepare(
-        "INSERT OR IGNORE INTO animal_profiles(animal) VALUES (?)",
-      ).run(id);
-      if (Object.keys(values).length)
-        db.prepare(
-          `UPDATE animal_profiles SET ${Object.keys(values)
-            .map((key) => `${key}=?`)
-            .join(",")} WHERE animal=?`,
-        ).run(...Object.values(values), id);
-      const description = Object.hasOwn(values, "breed")
-        ? values.breed || "Profil à compléter"
-        : pet.description;
-      db.prepare(
-        "UPDATE animals SET name=?,species=?,description=? WHERE id=?",
-      ).run(name, species, description, id);
-      db.exec("COMMIT");
-    } catch (error) {
-      db.exec("ROLLBACK");
-      throw error;
-    }
-    return allAnimals().find((animal) => animal.id === id)!;
-  }
+  const findAnimal = (id: string) =>
+    allAnimals().find((animal) => animal.id === id);
+
   return {
     allAnimals,
-    editAnimal,
     createAnimal(data: Input) {
-      // Validate all fields before the first write, then create profile in one transaction.
-      const values = profile(data);
+      // Tout est validé avant la première écriture.
+      const values = profileValues(data);
       const name = text(data.name, "name", 40),
-        species = data.species || "Chien";
-      if (typeof species !== "string" || !["Chien", "Chat"].includes(species))
-        throw new ApiError(400, "Choisissez Chien ou Chat.", "species");
-      const id = randomUUID();
-      const description =
-        values.breed ||
-        text(data.description ?? "", "description", 70, false) ||
-        "Profil à compléter";
-      db.exec("BEGIN");
-      try {
+        kind = speciesValue(data.species || "Chien"),
+        description =
+          values.breed ||
+          text(data.description ?? "", "description", 70, false) ||
+          "Profil à compléter",
+        id = randomUUID();
+      transaction(db, () => {
         db.prepare(
           "INSERT INTO animals(id,name,species,description,style) VALUES (?,?,?,?,?)",
-        ).run(id, name, species, description, "new");
+        ).run(id, name, kind, description, "new");
         db.prepare("INSERT INTO animal_profiles(animal) VALUES (?)").run(id);
-        if (Object.keys(values).length)
-          db.prepare(
-            `UPDATE animal_profiles SET ${Object.keys(values)
-              .map((key) => `${key}=?`)
-              .join(",")} WHERE animal=?`,
-          ).run(...Object.values(values), id);
-        db.exec("COMMIT");
-      } catch (error) {
-        db.exec("ROLLBACK");
-        throw error;
-      }
-      return allAnimals().find((animal) => animal.id === id);
+        saveProfile(id, values);
+      });
+      return findAnimal(id);
+    },
+    editAnimal(id: string, data: Input) {
+      const pet = requireAnimal(id);
+      const name = Object.hasOwn(data, "name")
+          ? text(data.name, "name", 40)
+          : pet.name,
+        kind = speciesValue(data.species ?? pet.species),
+        values = profileValues(data),
+        description = Object.hasOwn(values, "breed")
+          ? values.breed || "Profil à compléter"
+          : pet.description;
+      transaction(db, () => {
+        db.prepare(
+          "INSERT OR IGNORE INTO animal_profiles(animal) VALUES (?)",
+        ).run(id);
+        saveProfile(id, values);
+        db.prepare(
+          "UPDATE animals SET name=?,species=?,description=? WHERE id=?",
+        ).run(name, kind, description, id);
+      });
+      return findAnimal(id)!;
     },
     deleteAnimal(id: string) {
       requireAnimal(id);
@@ -203,7 +200,7 @@ export function createAnimalRepository(db: Database) {
         )
         .get<{ photo: Uint8Array | null; type: string }>(id);
       if (!row?.photo) throw new ApiError(404, "Aucune photo disponible.");
-      return { photo: row.photo, type: row.type };
+      return { content: row.photo, type: row.type };
     },
     events() {
       return db
@@ -213,18 +210,13 @@ export function createAnimalRepository(db: Database) {
         .all<AnimalEvent>();
     },
     saveEvent(id: string | null, data: Input) {
-      const previous = id
-        ? db
-            .prepare("SELECT * FROM events WHERE id=? AND deleted_at IS NULL")
-            .get<AnimalEvent>(id)
-        : null;
-      if (id && !previous) throw new ApiError(404, "Événement introuvable.");
-      const animal = text(previous?.animal || data.animal, "animal", 120);
-      requireAnimal(animal);
+      const previous = id ? requireEvent(id) : null;
+      const animal = requireAnimal(previous?.animal || data.animal).id;
       if (typeof data.type !== "string" || !eventTypes.includes(data.type))
         throw new ApiError(400, "Choisissez un type valide.", "type");
       const when = date(data.date),
         note = text(data.note ?? "", "note", 500, false);
+      const key = id ?? randomUUID();
       if (id)
         db.prepare("UPDATE events SET type=?,date=?,note=? WHERE id=?").run(
           data.type,
@@ -232,20 +224,16 @@ export function createAnimalRepository(db: Database) {
           note,
           id,
         );
-      else {
-        id = randomUUID();
+      else
         db.prepare(
           "INSERT INTO events(id,animal,type,date,note) VALUES (?,?,?,?,?)",
-        ).run(id, animal, data.type, when, note);
-      }
-      return db.prepare("SELECT * FROM events WHERE id=?").get<AnimalEvent>(id);
+        ).run(key, animal, data.type, when, note);
+      return db
+        .prepare("SELECT * FROM events WHERE id=?")
+        .get<AnimalEvent>(key);
     },
     deleteEvent(id: string) {
-      const e = db
-        .prepare("SELECT * FROM events WHERE id=? AND deleted_at IS NULL")
-        .get<AnimalEvent>(id);
-      if (!e) throw new ApiError(404, "Événement introuvable.");
-      requireAnimal(e.animal);
+      requireAnimal(requireEvent(id).animal);
       db.prepare("UPDATE events SET deleted_at=? WHERE id=?").run(
         new Date().toISOString(),
         id,

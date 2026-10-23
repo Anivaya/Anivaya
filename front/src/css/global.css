@@ -1,3 +1,38 @@
+/* Nunito : police libre SIL Open Font License, Vernon Adams et contributeurs. Intégrée pour usage hors ligne. */
+@font-face {
+  font-family: "Anivaya Nunito";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(/fonts/nunito-600.ttf) format("truetype");
+}
+@font-face {
+  font-family: "Anivaya Nunito";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(/fonts/nunito-700.ttf) format("truetype");
+}
+@font-face {
+  font-family: "Anivaya Nunito";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url(/fonts/nunito-800.ttf) format("truetype");
+}
+body,
+button,
+input,
+select,
+textarea,
+h1,
+h2,
+h3,
+.button,
+.subtle,
+.welcome h1 {
+  font-family: "Anivaya Nunito", "Segoe UI", sans-serif !important;
+}
 :root {
   --blue: #1b3b8e;
   --gold: #f0ab06;

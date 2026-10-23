@@ -1,0 +1,1240 @@
+.directory-page,
+.directory-dialog {
+  --blue: #1b3b8e;
+  --gold: #f0ab06;
+  --navy: #132e5c;
+  --muted: #65748b;
+  --white: #fff;
+  --pale: #edf4fc;
+  --border: #e1e7f0;
+  --shadow: 0 8px 28px #132e5c12;
+  color-scheme: light;
+  font-family: "Anivaya Nunito", "Segoe UI", sans-serif;
+  color: var(--navy);
+  background: #f4f7fc;
+  scrollbar-color: var(--muted) var(--pale);
+  scrollbar-width: thin;
+}
+.directory-page *,
+.directory-dialog * {
+  box-sizing: border-box;
+}
+.directory-page,
+.directory-dialog {
+  margin: auto;
+}
+.directory-page,
+.directory-page button,
+.directory-page input,
+.directory-page select,
+.directory-page textarea,
+.directory-dialog,
+.directory-dialog button,
+.directory-dialog input,
+.directory-dialog select,
+.directory-dialog textarea {
+  font-family: "Anivaya Nunito", "Segoe UI", sans-serif;
+}
+.directory-page button,
+.directory-page input,
+.directory-page select,
+.directory-page textarea,
+.directory-dialog button,
+.directory-dialog input,
+.directory-dialog select,
+.directory-dialog textarea {
+  font-size: 14px;
+  color: inherit;
+}
+.directory-page button,
+.directory-page a,
+.directory-page select,
+.directory-page input[type="radio"],
+.directory-dialog button,
+.directory-dialog a,
+.directory-dialog select,
+.directory-dialog input[type="radio"] {
+  cursor: pointer;
+}
+.directory-page button,
+.directory-page a,
+.directory-dialog button,
+.directory-dialog a {
+  -webkit-tap-highlight-color: transparent;
+}
+.directory-page button,
+.directory-dialog button {
+  font-weight: 700;
+}
+.directory-page a,
+.directory-dialog a {
+  color: inherit;
+  text-decoration: none;
+}
+.directory-page a:hover,
+.directory-dialog a:hover {
+  color: var(--blue);
+}
+.directory-page svg,
+.directory-dialog svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+.directory-page .svg-library,
+.directory-dialog .svg-library {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+.directory-page button:focus-visible,
+.directory-page a:focus-visible,
+.directory-page input:focus-visible,
+.directory-page select:focus-visible,
+.directory-page textarea:focus-visible,
+.directory-page summary:focus-visible,
+.directory-dialog button:focus-visible,
+.directory-dialog a:focus-visible,
+.directory-dialog input:focus-visible,
+.directory-dialog select:focus-visible,
+.directory-dialog textarea:focus-visible,
+.directory-dialog summary:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+}
+.directory-page button:disabled,
+.directory-dialog button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.directory-page button:active:not(:disabled),
+.directory-dialog button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.directory-page [hidden],
+.directory-dialog [hidden] {
+  display: none !important;
+}
+.directory-page .skip,
+.directory-dialog .skip {
+  position: fixed;
+  top: -100px;
+  left: 20px;
+  padding: 12px;
+  background-color: white;
+  z-index: 99;
+}
+.directory-page .skip:not(:focus),
+.directory-dialog .skip:not(:focus) {
+  clip-path: inset(50%);
+}
+.directory-page .skip:focus,
+.directory-dialog .skip:focus {
+  top: 10px;
+}
+.directory-page .initials,
+.directory-dialog .initials {
+  width: 37px;
+  height: 37px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--navy);
+  color: white;
+  font-size: 12px;
+}
+.directory-page .welcome,
+.directory-dialog .welcome {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+.directory-page h1,
+.directory-dialog h1 {
+  font-size: 34px;
+  letter-spacing: -1px;
+  line-height: 1.2;
+  margin: 0 0 9px;
+}
+.directory-page h2,
+.directory-dialog h2 {
+  font-size: 22px;
+  line-height: 1.3;
+  margin: 0 0 14px;
+}
+.directory-page h3,
+.directory-dialog h3 {
+  font-size: 19px;
+  line-height: 1.4;
+  margin: 0;
+}
+.directory-page p,
+.directory-dialog p {
+  line-height: 1.65;
+}
+.directory-page .welcome p,
+.directory-dialog .welcome p {
+  color: var(--muted);
+  font-size: 15px;
+  margin: 0;
+}
+.directory-page .button,
+.directory-dialog .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  background: var(--blue);
+  color: white;
+  border: 1px solid var(--blue);
+  border-radius: 9px;
+  min-height: 44px;
+  padding: 11px 17px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+.directory-page .button:hover,
+.directory-dialog .button:hover {
+  background: var(--navy);
+  color: white;
+}
+.directory-page .button.outline,
+.directory-dialog .button.outline {
+  background-color: white;
+  color: var(--blue);
+  border-color: var(--border);
+}
+.directory-page .button.outline:hover,
+.directory-dialog .button.outline:hover {
+  background: var(--pale);
+  border-color: var(--blue);
+}
+.directory-page .button.danger,
+.directory-dialog .button.danger {
+  background: #a52b38;
+  border-color: #a52b38;
+}
+.directory-page .button.danger:hover,
+.directory-dialog .button.danger:hover {
+  background: #84232e;
+}
+.directory-page .text-button,
+.directory-dialog .text-button {
+  background: transparent;
+  border: 0;
+  color: var(--blue);
+  padding: 8px 0;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.directory-page .icon-button,
+.directory-dialog .icon-button {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: white;
+  border: 1px solid var(--border);
+  padding: 0;
+}
+.directory-page .icon-button:hover,
+.directory-dialog .icon-button:hover {
+  background: var(--pale);
+}
+.directory-page .icon-button[aria-pressed="true"],
+.directory-dialog .icon-button[aria-pressed="true"] {
+  color: var(--blue);
+  background: var(--pale);
+}
+.directory-page .icon-button[aria-pressed="true"] svg,
+.directory-dialog .icon-button[aria-pressed="true"] svg {
+  fill: #dbe7fc;
+}
+.directory-page .tabs,
+.directory-dialog .tabs {
+  display: flex;
+  gap: 25px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 25px;
+  overflow-x: auto;
+}
+.directory-page .tabs a,
+.directory-dialog .tabs a {
+  font-size: 14px;
+  padding: 0 0 15px;
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+}
+.directory-page .tabs a[aria-current="page"],
+.directory-dialog .tabs a[aria-current="page"] {
+  color: var(--blue);
+  border-color: var(--blue);
+  font-weight: 800;
+}
+.directory-page .intro-note,
+.directory-dialog .intro-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #fff6e0;
+  border-radius: 10px;
+  padding: 14px 17px;
+  margin: 0 0 23px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.directory-page .intro-note svg,
+.directory-dialog .intro-note svg {
+  width: 19px;
+  height: 19px;
+  margin-top: 1px;
+}
+.directory-page .filters,
+.directory-dialog .filters {
+  display: grid;
+  grid-template-columns: minmax(170px, 1.5fr) repeat(3, minmax(110px, 1fr));
+  gap: 12px;
+  padding: 20px;
+  background-color: white;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+}
+.directory-page .field,
+.directory-dialog .field {
+  min-width: 0;
+}
+.directory-page .field label,
+.directory-page .field-label,
+.directory-dialog .field label,
+.directory-dialog .field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.directory-page .field input,
+.directory-page .field select,
+.directory-page .field textarea,
+.directory-dialog .field input,
+.directory-dialog .field select,
+.directory-dialog .field textarea {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #bdc9dc;
+  border-radius: 7px;
+  padding: 10px 12px;
+  background-color: white;
+}
+.directory-page .field textarea,
+.directory-dialog .field textarea {
+  resize: none;
+  min-height: 100px;
+  line-height: 1.5;
+}
+.directory-page .search-box,
+.directory-dialog .search-box {
+  position: relative;
+}
+.directory-page .search-box input,
+.directory-dialog .search-box input {
+  padding-right: 38px;
+}
+.directory-page .search-box button,
+.directory-dialog .search-box button {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  background-color: white;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+}
+.directory-page .search-box svg,
+.directory-dialog .search-box svg {
+  width: 17px;
+  height: 17px;
+}
+.directory-page .results-head,
+.directory-dialog .results-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin: 20px 0 16px;
+  font-size: 13px;
+}
+.directory-page .results-head p,
+.directory-dialog .results-head p {
+  margin: 0;
+  color: var(--muted);
+}
+.directory-page .favorite-filter,
+.directory-dialog .favorite-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.directory-page .favorite-filter input,
+.directory-dialog .favorite-filter input {
+  accent-color: var(--blue);
+  width: 17px;
+  height: 17px;
+}
+.directory-page .professional-grid,
+.directory-dialog .professional-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+.directory-page .pro-card,
+.directory-dialog .pro-card {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  overflow: hidden;
+  min-width: 0;
+}
+.directory-page .pro-top,
+.directory-dialog .pro-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 20px 0;
+}
+.directory-page .profession-icon,
+.directory-dialog .profession-icon {
+  display: grid;
+  place-items: center;
+  width: 53px;
+  height: 53px;
+  border-radius: 16px;
+  background: var(--pale);
+  color: var(--blue);
+}
+.directory-page .profession-icon svg,
+.directory-dialog .profession-icon svg {
+  width: 30px;
+  height: 30px;
+}
+.directory-page .pro-card:nth-child(3n + 2) .profession-icon,
+.directory-dialog .pro-card:nth-child(3n + 2) .profession-icon {
+  background: #fff6e0;
+  color: #805800;
+}
+.directory-page .pro-body,
+.directory-dialog .pro-body {
+  padding: 16px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.directory-page .category,
+.directory-dialog .category {
+  color: var(--blue);
+  font-size: 11px;
+  font-weight: 800;
+  margin: 0 0 6px;
+}
+.directory-page .pro-card h3,
+.directory-dialog .pro-card h3 {
+  font-size: 19px;
+  margin-bottom: 8px;
+}
+.directory-page .location,
+.directory-dialog .location {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  margin: 0 0 12px;
+}
+.directory-page .location svg,
+.directory-dialog .location svg {
+  width: 15px;
+  height: 15px;
+}
+.directory-page .description,
+.directory-dialog .description {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0 0 14px;
+}
+.directory-page .tags,
+.directory-dialog .tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.directory-page .tag,
+.directory-page .badge,
+.directory-dialog .tag,
+.directory-dialog .badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 6px;
+  background: var(--pale);
+  color: var(--blue);
+  padding: 5px 8px;
+  font-size: 11px;
+}
+.directory-page .tag,
+.directory-dialog .tag {
+  color: var(--muted);
+  background: #f4f7fc;
+}
+.directory-page .badge.cancelled,
+.directory-dialog .badge.cancelled {
+  background: #fff0f2;
+  color: #a52b38;
+}
+.directory-page .badge.confirmed,
+.directory-dialog .badge.confirmed {
+  background: #eaf6ee;
+  color: #21633a;
+}
+.directory-page .availability,
+.directory-dialog .availability {
+  font-size: 12px;
+  color: #21633a;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: auto;
+  margin-bottom: 14px;
+}
+.directory-page .availability:before,
+.directory-dialog .availability:before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #25834a;
+  flex-shrink: 0;
+}
+.directory-page .price-line,
+.directory-dialog .price-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+  margin-bottom: 14px;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.directory-page .price-line strong,
+.directory-dialog .price-line strong {
+  font-size: 20px;
+  color: var(--navy);
+}
+.directory-page .card-actions,
+.directory-dialog .card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.directory-page .card-actions .button,
+.directory-dialog .card-actions .button {
+  flex: 1;
+  white-space: nowrap;
+  font-size: 12px;
+  padding: 9px 11px;
+  min-height: 40px;
+}
+.directory-page .empty,
+.directory-dialog .empty {
+  grid-column: 1/-1;
+  text-align: center;
+  background-color: white;
+  padding: 45px 22px;
+  border: 1px dashed #bdc9dc;
+  border-radius: 13px;
+}
+.directory-page .empty p,
+.directory-dialog .empty p {
+  color: var(--muted);
+  font-size: 14px;
+}
+.directory-page .booking-list,
+.directory-dialog .booking-list {
+  display: grid;
+  gap: 14px;
+}
+.directory-page .booking-row,
+.directory-dialog .booking-row {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  background-color: white;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  padding: 22px;
+}
+.directory-page .date-tile,
+.directory-dialog .date-tile {
+  width: 60px;
+  flex-shrink: 0;
+  background: #fff4d6;
+  padding: 10px 5px;
+  border-radius: 8px;
+  text-align: center;
+}
+.directory-page .date-tile strong,
+.directory-dialog .date-tile strong {
+  display: block;
+  font-size: 24px;
+}
+.directory-page .date-tile small,
+.directory-dialog .date-tile small {
+  font-size: 11px;
+}
+.directory-page .booking-summary,
+.directory-dialog .booking-summary {
+  flex: 1;
+  min-width: 0;
+}
+.directory-page .booking-summary h3,
+.directory-dialog .booking-summary h3 {
+  font-size: 17px;
+}
+.directory-page .booking-summary p,
+.directory-dialog .booking-summary p {
+  font-size: 13px;
+  margin: 5px 0;
+  color: var(--muted);
+}
+.directory-page .booking-summary small,
+.directory-dialog .booking-summary small {
+  color: var(--muted);
+}
+.directory-page .booking-tail,
+.directory-dialog .booking-tail {
+  text-align: right;
+}
+.directory-page .booking-tail .badge,
+.directory-dialog .booking-tail .badge {
+  margin-bottom: 12px;
+}
+.directory-page .app-foot,
+.directory-dialog .app-foot {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 32px;
+  padding-top: 19px;
+  border-top: 1px solid var(--border);
+  line-height: 1.7;
+}
+.directory-page dialog,
+.directory-dialog {
+  width: min(720px, calc(100% - 30px));
+  max-height: calc(100dvh - 40px);
+  padding: 27px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  color: var(--navy);
+  box-shadow: 0 20px 90px #132e5c30;
+  overflow-y: auto;
+}
+.directory-page dialog::backdrop,
+.directory-dialog::backdrop {
+  background: #132e5c60;
+}
+.directory-page .dialog-top,
+.directory-dialog .dialog-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 18px;
+  font-size: 10px;
+  letter-spacing: 0.8px;
+  color: var(--muted);
+}
+.directory-page .close,
+.directory-dialog .close {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background-color: white;
+}
+.directory-page .close svg,
+.directory-dialog .close svg {
+  width: 18px;
+  height: 18px;
+}
+.directory-page .close:hover,
+.directory-dialog .close:hover {
+  background: var(--pale);
+}
+.directory-page #dialog-title,
+.directory-dialog #dialog-title {
+  font-size: 25px;
+  margin: 0 0 10px;
+  outline: none;
+}
+.directory-page .muted,
+.directory-dialog .muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+.directory-page .profile-heading,
+.directory-dialog .profile-heading {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin: 20px 0;
+}
+.directory-page .profile-heading .profession-icon,
+.directory-dialog .profile-heading .profession-icon {
+  width: 65px;
+  height: 65px;
+}
+.directory-page .service-row,
+.directory-dialog .service-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  border-bottom: 1px solid var(--border);
+  padding: 16px 0;
+}
+.directory-page .service-row:last-child,
+.directory-dialog .service-row:last-child {
+  border: 0;
+}
+.directory-page .service-row strong,
+.directory-dialog .service-row strong {
+  font-size: 14px;
+}
+.directory-page .service-row small,
+.directory-dialog .service-row small {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 5px;
+}
+.directory-page .service-row .button,
+.directory-dialog .service-row .button {
+  white-space: nowrap;
+}
+.directory-page .detail-grid,
+.directory-dialog .detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 22px 0;
+}
+.directory-page .detail-grid > div,
+.directory-dialog .detail-grid > div {
+  padding: 14px;
+  border-radius: 8px;
+  background: var(--pale);
+  min-width: 0;
+}
+.directory-page .detail-grid dt,
+.directory-dialog .detail-grid dt {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.directory-page .detail-grid dd,
+.directory-dialog .detail-grid dd {
+  margin: 0;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.directory-page .dialog-actions,
+.directory-dialog .dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+.directory-page .dialog-actions .back,
+.directory-dialog .dialog-actions .back {
+  margin-right: auto;
+}
+.directory-page .stepper,
+.directory-dialog .stepper {
+  display: flex;
+  gap: 16px;
+  list-style: none;
+  margin: 0 0 25px;
+  padding: 0;
+  counter-reset: steps;
+  color: var(--muted);
+  font-size: 12px;
+}
+.directory-page .stepper li,
+.directory-dialog .stepper li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  counter-increment: steps;
+}
+.directory-page .stepper li:before,
+.directory-dialog .stepper li:before {
+  content: counter(steps);
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #f0f3f8;
+  font-size: 11px;
+}
+.directory-page .stepper li[aria-current="step"],
+.directory-dialog .stepper li[aria-current="step"] {
+  color: var(--blue);
+  font-weight: 800;
+}
+.directory-page .stepper li[aria-current="step"]:before,
+.directory-dialog .stepper li[aria-current="step"]:before {
+  background: var(--blue);
+  color: white;
+}
+.directory-page .form-grid,
+.directory-dialog .form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-top: 22px;
+}
+.directory-page .full,
+.directory-dialog .full {
+  grid-column: 1/-1;
+}
+.directory-page fieldset,
+.directory-dialog fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.directory-page legend,
+.directory-dialog legend {
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.directory-page .slots,
+.directory-dialog .slots {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+.directory-page .slot input,
+.directory-dialog .slot input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.directory-page .slot span,
+.directory-dialog .slot span {
+  display: block;
+  border: 1px solid #bdc9dc;
+  border-radius: 7px;
+  padding: 10px 16px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.directory-page .slot input:checked + span,
+.directory-dialog .slot input:checked + span {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: white;
+}
+.directory-page .slot input:focus-visible + span,
+.directory-dialog .slot input:focus-visible + span {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+}
+.directory-page .slot input:disabled + span,
+.directory-dialog .slot input:disabled + span {
+  background: #f4f5f7;
+  opacity: 0.6;
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+.directory-page .field-help,
+.directory-dialog .field-help {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 7px 0 0;
+}
+.directory-page .error,
+.directory-dialog .error {
+  color: #a52b38;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 14px 0 0;
+}
+.directory-page .field [aria-invalid="true"],
+.directory-dialog .field [aria-invalid="true"] {
+  border-color: #a52b38;
+}
+.directory-page .payment-card,
+.directory-dialog .payment-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 17px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background-color: white;
+  margin-top: 20px;
+}
+.directory-page .payment-card svg,
+.directory-dialog .payment-card svg {
+  width: 32px;
+  height: 32px;
+}
+.directory-page .payment-card p,
+.directory-dialog .payment-card p {
+  margin: 0;
+  font-size: 13px;
+}
+.directory-page .payment-card small,
+.directory-dialog .payment-card small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 4px;
+}
+.directory-page .total,
+.directory-dialog .total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 0;
+  border-top: 1px solid var(--border);
+  margin-top: 18px;
+  font-size: 16px;
+}
+.directory-page .total strong,
+.directory-dialog .total strong {
+  font-size: 23px;
+}
+.directory-page .demo-scenario,
+.directory-dialog .demo-scenario {
+  margin-top: 18px;
+  font-size: 12px;
+}
+.directory-page .demo-scenario summary,
+.directory-dialog .demo-scenario summary {
+  cursor: pointer;
+  color: var(--muted);
+}
+.directory-page .demo-scenario .field,
+.directory-dialog .demo-scenario .field {
+  margin-top: 12px;
+}
+.directory-page .confirmation,
+.directory-dialog .confirmation {
+  text-align: center;
+  padding: 12px 0;
+}
+.directory-page .confirmation-mark,
+.directory-dialog .confirmation-mark {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #eaf6ee;
+  color: #21633a;
+  margin: 0 auto 18px;
+}
+.directory-page .confirmation-mark svg,
+.directory-dialog .confirmation-mark svg {
+  width: 29px;
+  height: 29px;
+}
+.directory-page .toast,
+.directory-dialog .toast {
+  position: fixed;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  background: var(--navy);
+  color: white;
+  box-shadow: var(--shadow);
+  border-radius: 9px;
+  padding: 13px 20px;
+  font-size: 13px;
+  max-width: calc(100% - 28px);
+  line-height: 1.5;
+}
+.directory-page .booking-filters,
+.directory-dialog .booking-filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 0 0 20px;
+  max-width: 820px;
+}
+.directory-page .badge.past,
+.directory-dialog .badge.past {
+  background: var(--pale);
+  color: var(--muted);
+}
+@media (max-width: 620px) {
+  .directory-page .booking-filters,
+  .directory-dialog .booking-filters {
+    grid-template-columns: 1fr;
+  }
+}
+.directory-page .notice-error,
+.directory-dialog .notice-error {
+  background: #fff0f2;
+  color: #a52b38;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+.directory-page .button[aria-busy="true"],
+.directory-dialog .button[aria-busy="true"] {
+  min-width: 185px;
+}
+@media (max-width: 1200px) {
+  .directory-page .professional-grid,
+  .directory-dialog .professional-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 1100px) {
+  .directory-page h1,
+  .directory-dialog h1 {
+    font-size: 30px;
+  }
+  .directory-page .filters,
+  .directory-dialog .filters {
+    grid-template-columns: 1fr 1fr;
+  }
+  .directory-page .welcome,
+  .directory-dialog .welcome {
+    align-items: flex-start;
+  }
+  .directory-page .welcome > .button,
+  .directory-dialog .welcome > .button {
+    max-width: 170px;
+  }
+}
+@media (max-width: 760px) {
+  .directory-page .professional-grid,
+  .directory-dialog .professional-grid {
+    grid-template-columns: 1fr;
+  }
+  .directory-page .booking-row,
+  .directory-dialog .booking-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .directory-page .booking-tail,
+  .directory-dialog .booking-tail {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+  }
+  .directory-page .booking-tail .badge,
+  .directory-dialog .booking-tail .badge {
+    margin: 0;
+  }
+  .directory-page .booking-summary,
+  .directory-dialog .booking-summary {
+    flex-basis: 60%;
+  }
+  .directory-page .welcome,
+  .directory-dialog .welcome {
+    display: block;
+  }
+  .directory-page .welcome > .button,
+  .directory-dialog .welcome > .button {
+    margin-top: 16px;
+    max-width: none;
+  }
+}
+@media (max-width: 620px) {
+  .directory-page h1,
+  .directory-dialog h1 {
+    font-size: 29px;
+  }
+  .directory-page .welcome p,
+  .directory-dialog .welcome p {
+    font-size: 13px;
+  }
+  .directory-page .filters,
+  .directory-dialog .filters {
+    padding: 15px;
+    gap: 14px;
+  }
+  .directory-page .filters .field:first-child,
+  .directory-dialog .filters .field:first-child {
+    grid-column: 1/-1;
+  }
+  .directory-page .results-head,
+  .directory-dialog .results-head {
+    align-items: flex-start;
+  }
+  .directory-page .favorite-filter,
+  .directory-dialog .favorite-filter {
+    font-size: 11px;
+  }
+  .directory-page .form-grid,
+  .directory-dialog .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .directory-page .detail-grid,
+  .directory-dialog .detail-grid {
+    gap: 10px;
+  }
+  .directory-page .detail-grid > div,
+  .directory-dialog .detail-grid > div {
+    padding: 12px;
+  }
+  .directory-page .detail-grid dd,
+  .directory-dialog .detail-grid dd {
+    font-size: 13px;
+  }
+  .directory-page .stepper,
+  .directory-dialog .stepper {
+    gap: 12px;
+    font-size: 11px;
+  }
+  .directory-page dialog,
+  .directory-dialog {
+    padding: 20px;
+    max-height: calc(100dvh - 24px);
+  }
+  .directory-page .dialog-actions .button,
+  .directory-dialog .dialog-actions .button {
+    flex: 1;
+  }
+  .directory-page .dialog-actions .back,
+  .directory-dialog .dialog-actions .back {
+    margin-right: 0;
+  }
+  .directory-page .service-row,
+  .directory-dialog .service-row {
+    align-items: flex-start;
+  }
+  .directory-page .service-row .button,
+  .directory-dialog .service-row .button {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+  .directory-page .tabs,
+  .directory-dialog .tabs {
+    gap: 20px;
+  }
+  .directory-page .tabs a,
+  .directory-dialog .tabs a {
+    font-size: 13px;
+  }
+  .directory-page .toast,
+  .directory-dialog .toast {
+    bottom: 14px;
+    width: max-content;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .directory-page *,
+  .directory-dialog * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
+@media (forced-colors: active) {
+  .directory-page *,
+  .directory-dialog * {
+    scrollbar-color: auto;
+  }
+  .directory-page .slot input:checked + span,
+  .directory-dialog .slot input:checked + span {
+    outline: 2px solid Highlight;
+  }
+  .directory-page .icon-button[aria-pressed="true"],
+  .directory-dialog .icon-button[aria-pressed="true"] {
+    outline: 2px solid Highlight;
+  }
+}
+
+.directory-page .sr-only,
+.directory-dialog .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (max-width: 620px) {
+  .directory-page .topbar,
+  .directory-dialog .topbar {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
+.directory-page .profile-avatar,
+.directory-dialog .profile-avatar {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: var(--navy);
+  color: white;
+  font-size: 12px;
+}
+.directory-page .profile-avatar img,
+.directory-dialog .profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+@media (max-width: 620px) {
+  .directory-page .topbar,
+  .directory-dialog .topbar {
+    flex-wrap: wrap;
+  }
+}
+
+/* Menu du compte, commun aux pages connectées. */

@@ -1,11 +1,23 @@
+import { useState } from "react";
 import type { ReactNode } from "react";
-import type { DialogKind, DialogItem, Reminder } from "../../shared/types.ts";
-import type { Dashboard, Actions } from "../../shared/types.ts";
+import type {
+  DialogKind,
+  DialogItem,
+  Reminder,
+  Dashboard,
+  Actions,
+} from "../../shared/types.ts";
 import Portrait from "./components/AnimalPortrait.tsx";
 import Icon from "../../shared/ui/Icon.tsx";
-import { fullDate, svgImage } from "../../shared/utils/format.ts";
-import EmergencySheet from "./components/EmergencySheet.tsx";
-import PeopleList from "../sharing/components/PeopleList.tsx";
+import {
+  fullDate,
+  svgImage,
+  reminderState,
+  reminderLabels,
+  byReminderOrder,
+} from "../../shared/utils/format.ts";
+import EmergencySheet, { QrDialog } from "./components/EmergencySheet.tsx";
+import { PeopleList } from "../sharing/SharingPage.tsx";
 
 const tabs: Record<string, string> = {
   apercu: "Vue d’ensemble",
@@ -29,6 +41,7 @@ export default function AnimalRecordPage({
   actions: Actions;
   pending: string | null;
 }) {
+  const [enlarged, setEnlarged] = useState(false);
   const pet = data.animals.find((a) => a.id === id);
   if (!pet)
     return (
@@ -41,14 +54,12 @@ export default function AnimalRecordPage({
       </div>
     );
   const active = tabs[tab] ? tab : "apercu";
+  const emergency = tab.startsWith("urgence");
   const link = (section: string) => `#animaux/${id}/${section}`;
   const events = data.events.filter((e) => e.animal === id),
     reminders = data.reminders
       .filter((r) => r.animal === id)
-      .sort(
-        (a, b) =>
-          Number(a.done) - Number(b.done) || a.date.localeCompare(b.date),
-      ),
+      .sort(byReminderOrder),
     documents = data.documents.filter((d) => d.animal === id);
   const sheet = data.emergencySheets.find((s) => s.animal === id);
   const people = data.people.filter((p) => p.animals.includes(id));
@@ -62,7 +73,7 @@ export default function AnimalRecordPage({
     ["Poids déclaré", pet.weight ? `${pet.weight} kg` : ""],
     ["Stérilisation déclarée", pet.neutered],
     ["Robe", pet.coat],
-    ["Identification — fictive", pet.identifier],
+    ["Identification", pet.identifier],
   ];
   function rows(
     kind: "event" | "reminder" | "document",
@@ -114,7 +125,7 @@ export default function AnimalRecordPage({
                 {item.note}
               </>
             ) : (
-              `${fullDate(item.date!)} · ${item.done ? "Terminé" : item.date! < data.today ? "En retard" : "À faire"} · ${item.repeat} · ${item.notice}`
+              `${fullDate(item.date!)} · ${reminderLabels[reminderState(item as Reminder, data.today)]} · ${item.repeat} · ${item.notice}`
             )}
           </small>
         </button>
@@ -194,18 +205,36 @@ export default function AnimalRecordPage({
   );
   return (
     <div className="record-page">
+      {enlarged && sheet?.snapshot.qrSvg && (
+        <QrDialog
+          name={pet.name}
+          qrSvg={sheet.snapshot.qrSvg}
+          onClose={() => setEnlarged(false)}
+        >
+          <a
+            className="button outline"
+            href={svgImage(sheet.snapshot.qrSvg)}
+            download={`anivaya-qr-${pet.id}.svg`}
+          >
+            Télécharger le QR
+          </a>
+          <a
+            className="button"
+            href={link("urgence")}
+            onClick={() => setEnlarged(false)}
+          >
+            Gérer sa fiche
+          </a>
+        </QrDialog>
+      )}
       <a
         className="back"
-        href={tab.startsWith("urgence") ? link("apercu") : "#animaux"}
-        aria-label={
-          tab.startsWith("urgence")
-            ? "Retour au carnet"
-            : "Retour à mes animaux"
-        }
+        href={emergency ? link("apercu") : "#animaux"}
+        aria-label={emergency ? "Retour au carnet" : "Retour à mes animaux"}
       >
         <Icon name="back" />
       </a>
-      {!tab.startsWith("urgence") && (
+      {!emergency && (
         <div className="pet-header">
           <Portrait pet={pet} />
           <div className="pet-summary">
@@ -214,7 +243,7 @@ export default function AnimalRecordPage({
               {pet.breed || "Race non renseignée"} ·{" "}
               {pet.sex || "Sexe non renseigné"} · {age(pet.dob)}
             </p>
-            <span className="badge">Dossier privé · Démonstration</span>
+            <span className="badge">Dossier privé</span>
             {(!pet.breed || !pet.dob || !pet.identifier) && (
               <p className="muted">
                 Profil incomplet : complétez les informations avec « Modifier le
@@ -243,7 +272,7 @@ export default function AnimalRecordPage({
           </div>
         </div>
       )}
-      {tab.startsWith("urgence") ? (
+      {emergency ? (
         <EmergencySheet
           key={`${pet.id}-${tab}-${Boolean(sheet)}`}
           pet={pet}
@@ -375,11 +404,27 @@ export default function AnimalRecordPage({
                     )}
                     {sheet.snapshot.qrSvg && (
                       <div className="inline-sheet-qr">
-                        <img
-                          src={svgImage(sheet.snapshot.qrSvg)}
-                          alt={`QR sauvegardé de ${pet.name}`}
-                        />
-                        <p className="muted">QR de démonstration sauvegardé</p>
+                        <button
+                          className="qr-enlarge"
+                          onClick={() => setEnlarged(true)}
+                          aria-label={`Agrandir le QR de ${pet.name}`}
+                        >
+                          <img
+                            src={svgImage(sheet.snapshot.qrSvg)}
+                            alt={`QR sauvegardé de ${pet.name}`}
+                          />
+                        </button>
+                        <p className="muted">QR sauvegardé</p>
+                        {sheet.snapshot.payload?.startsWith("http") && (
+                          <a
+                            className="text-button"
+                            href={sheet.snapshot.payload}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Voir la fiche publique
+                          </a>
+                        )}
                       </div>
                     )}
                   </section>
@@ -466,8 +511,8 @@ export default function AnimalRecordPage({
                 ["Rythme et sorties", pet.routine],
                 ["Comportement et approche", pet.behavior],
                 ["Consignes essentielles déclarées", pet.medical],
-                ["Contact principal — fictif", pet.contact],
-                ["Vétérinaire habituel — fictif", pet.vet],
+                ["Contact principal", pet.contact],
+                ["Vétérinaire habituel", pet.vet],
               ]),
               <button
                 className="button outline"

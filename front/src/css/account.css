@@ -1,0 +1,233 @@
+.account-menu {
+  position: relative;
+  width: 100%;
+}
+.account-trigger {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 12px 8px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  border-radius: 9px;
+  text-align: left;
+  color: var(--navy);
+  cursor: pointer;
+}
+.account-trigger:hover {
+  background: var(--pale);
+}
+.profile-avatar {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: var(--navy);
+  color: white;
+  font-size: 12px;
+}
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.profile-label {
+  min-width: 0;
+}
+.profile-label strong {
+  display: block;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.profile-label small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 3px;
+}
+.account-popup {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 10px);
+  width: 270px;
+  max-width: calc(100vw - 28px);
+  padding: 15px;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 10px 35px #132e5c25;
+  z-index: 30;
+}
+.account-identity {
+  display: grid;
+  gap: 5px;
+  padding: 4px 5px 14px;
+  border-bottom: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+.account-identity span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.account-actions {
+  display: grid;
+  gap: 4px;
+  padding-top: 9px;
+}
+.account-actions a,
+.account-actions button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  color: var(--navy);
+  cursor: pointer;
+}
+.account-actions svg {
+  width: 19px;
+  height: 19px;
+}
+.account-actions a:hover,
+.account-actions button:hover {
+  background: var(--pale);
+}
+.account-actions .account-signout {
+  color: #a52b38;
+}
+.mobile-account {
+  display: none;
+  margin-left: auto;
+  width: auto;
+}
+.session-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  color: var(--navy);
+}
+.auth-page .demo-credentials {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  margin-top: 14px;
+  background: #edf4fc;
+  border: 1px solid #bdc9dc;
+  border-radius: 9px;
+  color: #132e5c;
+  text-align: left;
+  cursor: pointer;
+}
+.auth-page .demo-credentials span,
+.auth-page .demo-credentials strong {
+  display: block;
+}
+.auth-page .demo-credentials small {
+  display: block;
+  margin-top: 6px;
+}
+.profile-page .profile-tabs {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 25px;
+}
+.profile-page .profile-tabs button {
+  border: 0;
+  background: transparent;
+  padding: 13px 2px;
+  font-weight: 800;
+}
+.profile-page .profile-tabs button[aria-selected="true"] {
+  border-bottom: 3px solid var(--blue);
+  color: var(--blue);
+}
+.directory-dialog {
+  background: white;
+  margin: auto;
+}
+.directory-dialog h2 {
+  font-size: 25px;
+}
+.directory-page select,
+.directory-dialog select {
+  padding-right: 38px !important;
+}
+.directory-dialog .error {
+  white-space: pre-line;
+}
+.directory-page .booking-filters {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 22px;
+}
+.directory-dialog .confirmation {
+  text-align: center;
+  padding: 20px 0;
+}
+.directory-dialog .confirmation > svg {
+  width: 56px;
+  height: 56px;
+  color: #21633a;
+}
+.directory-dialog .slots-loading {
+  font-size: 13px;
+  color: var(--muted);
+}
+@media (max-width: 800px) {
+  .mobile-account {
+    display: block;
+  }
+  .mobile-account .account-popup {
+    left: auto;
+    right: 0;
+    bottom: auto;
+    top: calc(100% + 8px);
+  }
+  .mobile-account .profile-label {
+    display: none;
+  }
+  .app-top {
+    gap: 8px;
+  }
+  .app-top .account-trigger {
+    padding: 0;
+  }
+  .sidebar .side-bottom {
+    display: none;
+  }
+}
+@media (max-width: 620px) {
+  .directory-page .booking-filters {
+    grid-template-columns: 1fr;
+  }
+  .directory-dialog {
+    padding: 20px;
+  }
+  .directory-dialog .stepper {
+    gap: 9px;
+  }
+  .directory-dialog .stepper li {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 620px) {
+  .workspace .side-nav {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .side-nav a {
+    font-size: 11px;
+  }
+}

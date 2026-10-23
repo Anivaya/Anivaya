@@ -99,9 +99,6 @@
 .pdf-preview {
   height: 330px;
 }
-.dialog-actions {
-  flex-wrap: wrap;
-}
 .doc-actions svg {
   color: inherit;
 }

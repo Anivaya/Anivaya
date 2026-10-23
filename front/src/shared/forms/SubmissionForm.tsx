@@ -1,5 +1,10 @@
 import type { ReactNode, FormEvent } from "react";
-import type { DialogControls, ValidationState, FormError } from "../types.ts";
+import type {
+  Animal,
+  DialogControls,
+  ValidationState,
+  FormError,
+} from "../types.ts";
 import { errorMessage, errorField } from "../types.ts";
 import { useRef, useState } from "react";
 
@@ -68,11 +73,7 @@ export default function SubmissionForm({
       <p className="dialog-copy">{description}</p>
       <form ref={ref} noValidate onSubmit={submit} aria-busy={busy}>
         {children({ error, invalid })}
-        {error && (
-          <p className="form-error" role="alert">
-            {error.message}
-          </p>
-        )}
+        <FormAlert message={error?.message} />
         <div className="dialog-actions">
           <button
             className="button outline"
@@ -92,5 +93,62 @@ export default function SubmissionForm({
         </div>
       </form>
     </>
+  );
+}
+
+export function FormAlert({ message }: { message?: string }) {
+  return message ? (
+    <p className="form-error" role="alert">
+      {message}
+    </p>
+  ) : null;
+}
+
+export function Field({
+  name,
+  label,
+  error,
+  children,
+}: {
+  name: string;
+  label: ReactNode;
+  error?: FormError | null;
+  children: ReactNode;
+}) {
+  return (
+    <div className="field">
+      <label htmlFor={name}>{label}</label>
+      {children}
+      {error?.field === name && (
+        <p className="field-help form-error" id={`${name}-error`}>
+          {error.message}
+        </p>
+      )}
+    </div>
+  );
+}
+
+export function AnimalSelectField({
+  animals,
+  defaultValue,
+  error,
+  invalid,
+}: ValidationState & { animals: Animal[]; defaultValue?: string }) {
+  return (
+    <Field name="animal" label="Animal" error={error}>
+      <select
+        id="animal"
+        name="animal"
+        defaultValue={defaultValue || animals[0]?.id || ""}
+        {...invalid("animal")}
+      >
+        {!animals.length && <option value="">Aucun animal</option>}
+        {animals.map((animal) => (
+          <option key={animal.id} value={animal.id}>
+            {animal.name}
+          </option>
+        ))}
+      </select>
+    </Field>
   );
 }

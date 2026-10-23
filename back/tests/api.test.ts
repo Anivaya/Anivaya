@@ -21,7 +21,7 @@ test("API : données, validation, fichiers et persistance SQLite", async (t) => 
   const directory = mkdtempSync(join(tmpdir(), "anivaya-test-"));
   const path = join(directory, "test.sqlite");
   let db = openDatabase(path);
-  let server = createApi(db);
+  let server = createApi(db, { authentication: false });
   server.listen(0, "127.0.0.1");
   await once(server, "listening");
   let base = `http://127.0.0.1:${(server.address() as AddressInfo).port}/api`;
@@ -240,7 +240,7 @@ test("API : données, validation, fichiers et persistance SQLite", async (t) => 
   await new Promise((resolve) => server.close(resolve));
   db.close();
   db = openDatabase(path);
-  server = createApi(db);
+  server = createApi(db, { authentication: false });
   server.listen(0, "127.0.0.1");
   await once(server, "listening");
   base = `http://127.0.0.1:${(server.address() as AddressInfo).port}/api`;

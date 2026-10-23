@@ -1,9 +1,4 @@
-import type {
-  Dispatch,
-  SetStateAction,
-  ReactNode,
-  InputHTMLAttributes,
-} from "react";
+import type { Dispatch, SetStateAction, InputHTMLAttributes } from "react";
 import type {
   Animal,
   AnimalEvent,
@@ -44,7 +39,6 @@ export type DialogKind =
   | "add-document"
   | "edit-document"
   | "delete-document"
-  | "public"
   | "add-person"
   | "edit-person"
   | "delete-person"
@@ -78,15 +72,14 @@ export interface Actions {
   openRecord: (item: Pick<Animal, "id">) => void;
   openDialog: OpenDialog;
   saved: (message: string) => Promise<void>;
-  openReminder: (item: Reminder) => void;
-  openDocument: OpenDialog;
   toggleReminder: (item: Reminder) => Promise<void>;
 }
 export interface PageProps {
   data: Dashboard;
   actions: Actions;
   pending: string | null;
-  route: string;
+  /** Segments du hash après le nom de la page, par exemple [id, onglet]. */
+  params: string[];
 }
 export interface DialogControls {
   onClose: () => void;
@@ -109,10 +102,4 @@ export interface ValidationState {
     InputHTMLAttributes<HTMLInputElement>,
     "aria-invalid" | "aria-describedby"
   >;
-}
-export interface FieldProps {
-  name: string;
-  label: ReactNode;
-  error?: FormError | null;
-  children: ReactNode;
 }

@@ -1,16 +1,19 @@
+import type { ReactNode } from "react";
 import type {
+  Actions,
+  Animal,
   EmergencySheet,
   EmergencySettings,
-} from "../../../../../shared/models.ts";
+} from "../../../shared/types.ts";
 import { errorMessage } from "../../../shared/types.ts";
-import type { Actions, Animal } from "../../../shared/types.ts";
 import { useEffect, useState } from "react";
 import { api } from "../../../shared/services/api.ts";
 import { svgImage } from "../../../shared/utils/format.ts";
+import Modal from "../../../shared/ui/Modal.tsx";
 import Icon from "../../../shared/ui/Icon.tsx";
 import Portrait from "./AnimalPortrait.tsx";
 
-const defaults = {
+const defaults: EmergencySettings = {
   active: true,
   photo: true,
   details: true,
@@ -18,9 +21,9 @@ const defaults = {
   contact: true,
   vet: false,
 };
-const labels = {
+const labels: Record<keyof EmergencySettings, [string, string]> = {
   active: [
-    "Activer la fiche de démonstration",
+    "Activer la fiche publique",
     "Activez pour préparer un QR, puis sauvegardez votre configuration.",
   ],
   photo: ["Photo de l’animal", "Photo ou illustration du profil."],
@@ -30,12 +33,12 @@ const labels = {
     "Comportement et consignes renseignés dans les habitudes.",
   ],
   contact: [
-    "Contact principal fictif",
-    "Aucun appel réel n’est effectué dans la démo.",
+    "Contact principal",
+    "Coordonnées enregistrées dans les habitudes de l’animal.",
   ],
   vet: [
-    "Contact vétérinaire fictif",
-    "Coordonnées de démonstration uniquement.",
+    "Contact vétérinaire",
+    "Coordonnées du vétérinaire enregistrées dans le carnet.",
   ],
 };
 
@@ -50,6 +53,7 @@ export default function EmergencySheet({
   actions: Actions;
   startEditing?: boolean;
 }) {
+  const [enlarged, setEnlarged] = useState(false);
   const [editing, setEditing] = useState(startEditing || !saved);
   const [settings, setSettings] = useState(saved?.settings || defaults);
   const [result, setResult] = useState<{
@@ -94,7 +98,7 @@ export default function EmergencySheet({
       id: pet.id,
       name: "la fiche et son QR",
     });
-  const downloads = sheet?.qrSvg && (
+  const downloads = sheet.qrSvg && (
     <>
       <a
         className="button outline"
@@ -108,13 +112,15 @@ export default function EmergencySheet({
       </button>
     </>
   );
-  const qr = sheet?.qrSvg && (
-    <div className="qr-wrap">
-      <img
-        src={svgImage(sheet.qrSvg)}
-        alt={`QR de démonstration de ${pet.name}`}
-      />
-    </div>
+  const qr = sheet.qrSvg && (
+    <button
+      type="button"
+      className="qr-wrap qr-enlarge"
+      onClick={() => setEnlarged(true)}
+      aria-label={`Agrandir le QR de ${pet.name}`}
+    >
+      <img src={svgImage(sheet.qrSvg)} alt={`QR de ${pet.name}`} />
+    </button>
   );
 
   async function save() {
@@ -201,10 +207,22 @@ export default function EmergencySheet({
             {qr}
             <p className="muted">
               {sheet.qrSvg
-                ? "QR de démonstration hors ligne, contenant uniquement les informations fictives sélectionnées."
+                ? "Ce QR ouvre la fiche publique avec les informations sélectionnées."
                 : "La fiche est désactivée. Modifiez-la pour préparer un nouveau QR."}
             </p>
-            <div className="actions">{downloads}</div>
+            <div className="actions">
+              {downloads}
+              {sheet.payload?.startsWith("http") && (
+                <a
+                  className="button"
+                  href={sheet.payload}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Voir la fiche publique
+                </a>
+              )}
+            </div>
           </div>
         </section>
       ) : (
@@ -219,13 +237,18 @@ export default function EmergencySheet({
           <div className="grid">
             <section className="panel">
               <h2>Informations visibles</h2>
-              {Object.entries(labels).map(([key, [label, help]]) => (
+              {(
+                Object.entries(labels) as [
+                  keyof EmergencySettings,
+                  [string, string],
+                ][]
+              ).map(([key, [label, help]]) => (
                 <div className="visibility-option" key={key}>
                   <div className="switch-row">
                     <input
                       id={`visibility-${key}`}
                       type="checkbox"
-                      checked={settings[key as keyof EmergencySettings]}
+                      checked={settings[key]}
                       disabled={busy || (!settings.active && key !== "active")}
                       onChange={(event) =>
                         setSettings({
@@ -260,7 +283,7 @@ export default function EmergencySheet({
                 <h2>Le QR de {pet.name}</h2>
                 <span className="active-status">
                   {settings.active
-                    ? "Fiche de démonstration active"
+                    ? "Fiche publique active"
                     : "Fiche désactivée"}
                 </span>
                 {settings.active ? (
@@ -284,14 +307,13 @@ export default function EmergencySheet({
                       qr
                     )}
                     <p className="muted">
-                      QR lisible : il contient un texte fictif, sans lien web ni
-                      coordonnées réelles. Le scanner affiche ce texte ; il
-                      n’ouvre pas la page locale.
+                      Le QR ouvre sa fiche publique. Sauvegardez pour publier
+                      vos choix de visibilité.
                     </p>
                     <div className="actions">
                       <button
                         className="button"
-                        disabled={busy || loading || !sheet?.qrSvg}
+                        disabled={busy || loading || !sheet.qrSvg}
                         onClick={save}
                       >
                         {busy ? "Sauvegarde…" : "Sauvegarder"}
@@ -307,7 +329,7 @@ export default function EmergencySheet({
                         </button>
                       )}
                     </div>
-                    {sheet?.payload && (
+                    {sheet.payload && (
                       <details>
                         <summary className="muted">
                           Voir le contenu du QR
@@ -317,10 +339,15 @@ export default function EmergencySheet({
                     )}
                   </>
                 ) : (
-                  <p className="empty">
-                    La fiche est désactivée. Réactivez-la pour générer son QR et
-                    son aperçu.
-                  </p>
+                  <>
+                    <p className="empty">
+                      La fiche est désactivée. Enregistrez ce choix pour retirer
+                      l’accès public.
+                    </p>
+                    <button className="button" disabled={busy} onClick={save}>
+                      {busy ? "Sauvegarde…" : "Sauvegarder la désactivation"}
+                    </button>
+                  </>
                 )}
                 {saved && (
                   <button
@@ -342,15 +369,24 @@ export default function EmergencySheet({
                 )}
               </section>
               <p className="note">
-                Une fiche accessible par QR sur téléphone nécessitera une
-                adresse web publiée. Ce QR contient une copie des informations
-                sélectionnées ; les QR déjà téléchargés restent lisibles.
+                La désactivation retire l’accès public, y compris avec un QR
+                déjà téléchargé. Pour scanner depuis un autre appareil, le site
+                doit être hébergé à une adresse accessible.
               </p>
             </div>
           </div>
         </>
       )}
-      {sheet?.qrSvg && (
+      {enlarged && sheet.qrSvg && (
+        <QrDialog
+          name={pet.name}
+          qrSvg={sheet.qrSvg}
+          onClose={() => setEnlarged(false)}
+        >
+          {downloads}
+        </QrDialog>
+      )}
+      {sheet.qrSvg && (
         <div className="qr-print">
           <h1>{sheet.name}</h1>
           <p>{sheet.details || sheet.species}</p>
@@ -358,9 +394,30 @@ export default function EmergencySheet({
           <p>{sheet.contact}</p>
           <p>{sheet.vet}</p>
           <img src={svgImage(sheet.qrSvg)} alt="QR à imprimer" />
-          <p>Anivaya · QR de démonstration hors ligne</p>
+          <p>Anivaya · Fiche d’urgence</p>
         </div>
       )}
     </>
+  );
+}
+
+/** QR agrandi, avec les actions propres à l’écran qui l’ouvre. */
+export function QrDialog({
+  name,
+  qrSvg,
+  onClose,
+  children,
+}: {
+  name: string;
+  qrSvg: string;
+  onClose: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <Modal className="qr-dialog" busy={false} onClose={onClose}>
+      <h2 id="action-title">Le QR de {name}</h2>
+      <img className="large-qr" src={svgImage(qrSvg)} alt={`QR de ${name}`} />
+      <div className="dialog-actions">{children}</div>
+    </Modal>
   );
 }

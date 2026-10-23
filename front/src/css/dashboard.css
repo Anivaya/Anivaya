@@ -897,3 +897,16 @@
     padding-top: 53px;
   }
 }
+/* Garde l'icône et les actions à distance du bord du fond au survol. */
+.document-row {
+  padding-inline: 12px;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+}
+.document-row .doc-icon {
+  margin-right: 6px;
+}
+@media (max-width: 1100px) and (min-width: 851px), (max-width: 420px) {
+  .document-row {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+}

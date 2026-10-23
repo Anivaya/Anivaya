@@ -19,7 +19,7 @@ test("Partage : sélection multiple, associations, validation, révocation et pe
   const directory = mkdtempSync(join(tmpdir(), "anivaya-sharing-"));
   const path = join(directory, "test.sqlite");
   let db = openDatabase(path),
-    server = createApi(db);
+    server = createApi(db, { authentication: false });
   server.listen(0, "127.0.0.1");
   await once(server, "listening");
   let base = `http://127.0.0.1:${(server.address() as AddressInfo).port}/api`;
@@ -233,7 +233,7 @@ test("Partage : sélection multiple, associations, validation, révocation et pe
   await new Promise((resolve) => server.close(resolve));
   db.close();
   db = openDatabase(path);
-  server = createApi(db);
+  server = createApi(db, { authentication: false });
   server.listen(0, "127.0.0.1");
   await once(server, "listening");
   base = `http://127.0.0.1:${(server.address() as AddressInfo).port}/api`;
