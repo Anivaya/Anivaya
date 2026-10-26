@@ -94,6 +94,19 @@ export interface EmergencySheet {
   snapshot: EmergencySnapshot;
   updatedAt?: string;
 }
+export type NotificationCategory =
+  "reminders" | "reservations" | "shares" | "documents" | "account";
+export interface Notification {
+  id: string;
+  category: NotificationCategory;
+  title: string;
+  text: string;
+  /** Lien interne vers la page concernée, par exemple `#rappels`. */
+  href: string;
+  action: string;
+  date: string;
+  read: boolean;
+}
 export interface Household {
   firstName: string;
   lastName: string;
@@ -109,6 +122,7 @@ export interface Dashboard {
   people: Person[];
   shares: Share[];
   emergencySheets: EmergencySheet[];
+  notifications: Notification[];
 }
 export interface UploadedFile {
   type: string;

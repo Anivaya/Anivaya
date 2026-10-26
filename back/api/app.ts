@@ -201,6 +201,13 @@ api.delete("/api/shares/:id", ({ repository, params }) => {
   repository.sharing.revoke(params[0]);
 });
 
+api.patch("/api/notifications/:id", async ({ repository, params, body }) =>
+  repository.notifications.setRead(params[0], (await body()).read),
+);
+api.post("/api/notifications/read-all", ({ repository }) =>
+  repository.notifications.readAll(),
+);
+
 api.get("/api/dashboard", async ({ repository }) => {
   await repository.emergency.upgradePublicLinks();
   return repository.dashboard();

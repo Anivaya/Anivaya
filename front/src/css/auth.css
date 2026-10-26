@@ -569,3 +569,30 @@
   outline: 3px solid var(--gold);
   outline-offset: 3px;
 }
+/* Réinitialisation du mot de passe */
+.auth-page .reset-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--blue);
+  font-size: 13px;
+  margin-bottom: 26px;
+}
+.auth-page .reset-back svg {
+  width: 20px;
+  height: 20px;
+  color: inherit;
+}
+.auth-page .reset-demo-states {
+  margin-top: 24px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.auth-page .reset-demo-states summary {
+  cursor: pointer;
+}
+.auth-page .reset-demo-states div {
+  display: flex;
+  gap: 22px;
+  padding: 12px 0;
+}

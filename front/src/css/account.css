@@ -53,8 +53,9 @@
   position: absolute;
   left: 0;
   bottom: calc(100% + 10px);
-  width: 270px;
-  max-width: calc(100vw - 28px);
+  /* Largeur du contenu (nom, e-mail, actions) ; un e-mail très long passe à la ligne. */
+  width: max-content;
+  max-width: min(360px, calc(100vw - 28px));
   padding: 15px;
   background: white;
   border: 1px solid var(--border);

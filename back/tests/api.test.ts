@@ -6,6 +6,7 @@ import type {
   Document,
   Reminder,
   EmergencySheet,
+  Notification,
 } from "../../shared/models.ts";
 type AnimalRecord = { pet: Animal; events: AnimalEvent[] };
 import { test } from "node:test";
@@ -39,6 +40,38 @@ test("API : données, validation, fichiers et persistance SQLite", async (t) => 
   const initial = (await (await request("/dashboard")).json()) as Dashboard;
   assert.equal(initial.household.firstName, "Camille");
   assert.equal(initial.animals.length, 2);
+
+  // Notifications d’exemple : la plus récente d’abord, trois non lues.
+  assert.deepEqual(
+    initial.notifications.map((n) => n.id),
+    ["rappel-nala", "rendez-vous", "partage", "documents", "bienvenue"],
+  );
+  assert.equal(initial.notifications.filter((n) => !n.read).length, 3);
+  const read = (await (
+    await request("/notifications/rappel-nala", "PATCH", { read: true })
+  ).json()) as Notification;
+  assert.equal(read.read, true);
+  assert.equal(
+    (
+      (await (
+        await request("/notifications/bienvenue", "PATCH", { read: false })
+      ).json()) as Notification
+    ).read,
+    false,
+  );
+  assert.equal(
+    (await request("/notifications/bienvenue", "PATCH", { read: "oui" }))
+      .status,
+    400,
+  );
+  assert.equal(
+    (await request("/notifications/absente", "PATCH", { read: true })).status,
+    404,
+  );
+  const allRead = (await (
+    await request("/notifications/read-all", "POST", {})
+  ).json()) as Notification[];
+  assert.ok(allRead.length === 5 && allRead.every((n) => n.read));
   assert.equal(
     (await request("/animals", "POST", { name: "", species: "Chien" })).status,
     400,

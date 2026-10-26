@@ -18,6 +18,7 @@ export type {
   Share,
   Dashboard,
   FormError,
+  Notification,
   EmergencySettings,
   EmergencySheet,
 } from "../../../shared/models.ts";
@@ -71,7 +72,8 @@ export interface Actions {
   openAnimal: (item: Animal) => void;
   openRecord: (item: Pick<Animal, "id">) => void;
   openDialog: OpenDialog;
-  saved: (message: string) => Promise<void>;
+  /** Recharge l’espace ; le message éventuel est confirmé à l’écran. */
+  saved: (message?: string) => Promise<void>;
   toggleReminder: (item: Reminder) => Promise<void>;
 }
 export interface PageProps {

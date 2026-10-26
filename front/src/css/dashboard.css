@@ -7,6 +7,8 @@
 }
 .sidebar {
   position: sticky;
+  /* Au-dessus du contenu pour que le menu du compte, plus large que la barre, reste visible. */
+  z-index: 40;
   top: 0;
   height: 100vh;
   background: white;
@@ -18,6 +20,7 @@
 .app-brand {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 14px;
   padding: 0 14px 24px;
 }
@@ -99,6 +102,10 @@
   min-width: 0;
 }
 .app-top {
+  /* Reste visible en haut pendant le défilement, au-dessus des cartes mais sous les fenêtres. */
+  position: sticky;
+  top: 0;
+  z-index: 30;
   min-height: 65px;
   padding: 17px 35px;
   border-bottom: 1px solid var(--border);
@@ -106,7 +113,8 @@
   align-items: center;
   gap: 15px;
   font-size: 13px;
-  background: #ffffff70;
+  background: #ffffffd9;
+  backdrop-filter: blur(8px);
 }
 .app-top small {
   color: var(--muted);
@@ -419,14 +427,6 @@
   line-height: 1.75;
   color: #5b667b;
   margin: 0;
-}
-.app-foot {
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 32px;
-  padding-top: 19px;
-  border-top: 1px solid var(--border);
-  line-height: 1.7;
 }
 .section-mode .app-grid {
   grid-template-columns: minmax(0, 1fr);
@@ -908,5 +908,90 @@
 @media (max-width: 1100px) and (min-width: 851px), (max-width: 420px) {
   .document-row {
     grid-template-columns: 42px minmax(0, 1fr);
+  }
+}
+/* Barre du haut : cloche des notifications, avec le nombre de non lues. */
+.notification-bell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  margin-left: auto;
+  color: var(--blue);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: white;
+}
+.notification-bell:hover,
+.notification-bell[aria-current="page"] {
+  background: var(--pale);
+}
+.notification-bell:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+}
+.notification-bell svg {
+  width: 21px;
+  height: 21px;
+  color: inherit;
+}
+.notification-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 12px;
+  background: var(--blue);
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  border: 2px solid white;
+}
+/* Sur mobile, le menu du compte suit directement la cloche. */
+.notification-bell ~ .mobile-account {
+  margin-left: 0;
+}
+.connected-help {
+  padding: 22px 34px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+}
+.connected-help a {
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.connected-help a:hover {
+  color: var(--blue);
+}
+@media (max-width: 440px) {
+  .notification-bell {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+  }
+  .connected-help {
+    padding: 20px;
+  }
+}
+/* Documents récents (vue d’ensemble), mobile et tablette : icône et texte côte à côte, actions sur une ligne en dessous. */
+@media (max-width: 1024px) {
+  .recent-documents .document-row {
+    grid-template-columns: 42px minmax(0, 1fr);
+    row-gap: 10px;
+  }
+  /* Les actions passent sous le texte, alignées sur lui. */
+  .recent-documents .doc-actions {
+    grid-column: 2;
+    justify-self: start;
+    margin-left: -6px;
   }
 }

@@ -1,0 +1,317 @@
+/* Pages secondaires (notifications, contact) : elles reprennent la présentation du profil. */
+.secondary-page {
+  max-width: 1100px;
+}
+.secondary-page .profile-page {
+  max-width: none;
+}
+.secondary-page .settings-tabs {
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+/* Notifications */
+.notification-toolbar {
+  display: flex;
+  gap: 18px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin: 28px 0 20px;
+}
+.notification-tabs {
+  display: flex;
+  gap: 6px;
+  background: white;
+  padding: 5px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.notification-tabs button {
+  border: 0;
+  border-radius: 7px;
+  padding: 11px 15px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.notification-tabs button[aria-pressed="true"] {
+  color: var(--blue);
+  background: var(--pale);
+}
+.notification-tabs button:focus-visible,
+.notification-item-actions a:focus-visible,
+.notification-item-actions button:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+}
+.notification-category {
+  margin-right: auto;
+}
+.notification-category label {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.notification-category select {
+  font: inherit;
+  font-size: 13px;
+  padding: 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--navy);
+  background: white;
+}
+.notification-list {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  overflow: hidden;
+}
+.notification-item {
+  display: flex;
+  gap: 18px;
+  padding: 25px;
+  border-bottom: 1px solid var(--border);
+}
+.notification-item:last-child {
+  border-bottom: 0;
+}
+.notification-item.unread {
+  background: #f5f8fe;
+  box-shadow: inset 3px 0 var(--blue);
+}
+.notification-item-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 42px;
+  background: var(--pale);
+  border-radius: 50%;
+  color: var(--blue);
+}
+.notification-item-icon svg {
+  width: 21px;
+  height: 21px;
+  stroke-width: 1.7;
+}
+.notification-item-body {
+  min-width: 0;
+  flex: 1;
+}
+.notification-item h2 {
+  font-size: 18px;
+  margin: 5px 0 7px;
+}
+.notification-item p {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0;
+}
+.notification-item .notification-meta {
+  font-size: 12px;
+}
+.notification-item-actions {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 15px;
+}
+.notification-item-actions a,
+.notification-item-actions button {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--blue);
+  background: none;
+  border: 0;
+  padding: 6px 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.empty-notifications {
+  padding: 40px 20px;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  text-align: center;
+}
+
+/* Contact et informations */
+.contact-grid {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.8fr) minmax(0, 1.5fr);
+  gap: 34px;
+}
+.contact-guidance {
+  padding: 12px 0;
+}
+.contact-guidance > p {
+  color: var(--muted);
+}
+.contact-note {
+  background: #fff6df;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 25px 0;
+}
+.contact-note p {
+  font-size: 13px;
+  margin: 8px 0 0;
+}
+.contact-guidance h3 {
+  font-size: 17px;
+}
+.contact-guidance details {
+  padding: 15px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.contact-guidance summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+.contact-guidance a {
+  color: var(--blue);
+  text-decoration: underline;
+}
+.profile-page .contact-grid .field {
+  margin-top: 20px;
+}
+.profile-page .contact-grid label {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.profile-page .contact-grid input,
+.profile-page .contact-grid select,
+.profile-page .contact-grid textarea {
+  font: inherit;
+  font-size: 14px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #c5d2e6;
+  border-radius: 8px;
+  background: white;
+  color: var(--navy);
+}
+.profile-page .contact-grid textarea {
+  resize: vertical;
+  min-height: 140px;
+}
+.profile-page .contact-grid [aria-invalid="true"] {
+  border-color: #a52b38;
+}
+.profile-page .contact-grid input:focus,
+.profile-page .contact-grid select:focus,
+.profile-page .contact-grid textarea:focus {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+.contact-grid .button {
+  margin-top: 15px;
+}
+.service-features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
+  margin-top: 28px;
+}
+.service-features h3 {
+  font-size: 17px;
+}
+.service-features p {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* Contact sans session : en-tête du site au lieu de la barre latérale. */
+.service-public {
+  min-height: 100vh;
+  background: #f4f7fc;
+}
+.service-public-header {
+  display: flex;
+  max-width: 1200px;
+  margin: auto;
+  padding: 22px 34px;
+  align-items: center;
+  gap: 25px;
+}
+.service-public-header .brand img {
+  width: 78px;
+  height: 69px;
+  object-fit: contain;
+}
+.service-public-header nav {
+  display: flex;
+  gap: 25px;
+  margin-left: auto;
+  font-size: 14px;
+}
+.service-public-header a:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 4px;
+}
+.service-public .app-content {
+  padding-top: 45px;
+}
+
+@media (max-width: 760px) {
+  .contact-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  .service-features {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .service-public-header {
+    padding: 16px 20px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .service-public-header nav {
+    gap: 15px;
+  }
+  .service-public-header .button {
+    font-size: 12px;
+  }
+  .service-public .app-content {
+    padding-top: 25px;
+  }
+  .secondary-page .settings-tabs button {
+    font-size: 14px;
+  }
+}
+@media (max-width: 620px) {
+  .notification-item {
+    padding: 20px 16px;
+    gap: 12px;
+  }
+  .notification-item-icon {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+  }
+  .notification-toolbar {
+    align-items: stretch;
+  }
+  .notification-category,
+  .notification-category select {
+    width: 100%;
+  }
+  .secondary-page .welcome {
+    flex-wrap: wrap;
+  }
+  .secondary-page .welcome > .button {
+    max-width: none;
+  }
+}

@@ -35,27 +35,29 @@ Une fiche publique utilise un jeton imprévisible. Désactivation : 410 sans inf
 
 ## Routes métier
 
-| Méthode              | Route                      | Usage                                                            |
-| -------------------- | -------------------------- | ---------------------------------------------------------------- |
-| GET                  | /api/health                | État du serveur                                                  |
-| GET                  | /api/dashboard             | Foyer, animaux, rappels, documents, événements, fiches d’urgence |
-| GET / POST           | /api/animals               | Liste / création                                                 |
-| GET / PATCH / DELETE | /api/animals/:id           | Carnet complet / profil / retrait                                |
-| GET                  | /api/animals/:id/photo     | Photo JPEG ou PNG                                                |
-| GET / PUT / DELETE   | /api/animals/:id/emergency | Fiche sauvegardée / génération / retrait                         |
-| POST                 | /api/events                | Ajouter un événement                                             |
-| PATCH / DELETE       | /api/events/:id            | Modifier / retirer un événement                                  |
-| POST                 | /api/reminders             | Ajouter un rappel                                                |
-| PATCH / DELETE       | /api/reminders/:id         | Modifier nom, date, fréquence ou statut / retirer                |
-| POST                 | /api/documents             | Ajouter un fichier                                               |
-| PATCH / DELETE       | /api/documents/:id         | Modifier ou remplacer / retirer                                  |
-| GET                  | /api/documents/:id/file    | Télécharger le fichier                                           |
-| GET                  | /api/sharing               | Personnes et partages avec statut calculé                        |
-| POST                 | /api/people                | Créer une personne de confiance                                  |
-| PATCH / DELETE       | /api/people/:id            | Modifier / supprimer et révoquer ses partages                    |
-| POST                 | /api/associations          | Associer ou retirer plusieurs personnes de plusieurs animaux     |
-| POST                 | /api/shares                | Créer des partages simulés                                       |
-| DELETE               | /api/shares/:id            | Révoquer un partage simulé                                       |
+| Méthode              | Route                       | Usage                                                            |
+| -------------------- | --------------------------- | ---------------------------------------------------------------- |
+| GET                  | /api/health                 | État du serveur                                                  |
+| GET                  | /api/dashboard              | Foyer, animaux, rappels, documents, événements, fiches d’urgence |
+| GET / POST           | /api/animals                | Liste / création                                                 |
+| GET / PATCH / DELETE | /api/animals/:id            | Carnet complet / profil / retrait                                |
+| GET                  | /api/animals/:id/photo      | Photo JPEG ou PNG                                                |
+| GET / PUT / DELETE   | /api/animals/:id/emergency  | Fiche sauvegardée / génération / retrait                         |
+| POST                 | /api/events                 | Ajouter un événement                                             |
+| PATCH / DELETE       | /api/events/:id             | Modifier / retirer un événement                                  |
+| POST                 | /api/reminders              | Ajouter un rappel                                                |
+| PATCH / DELETE       | /api/reminders/:id          | Modifier nom, date, fréquence ou statut / retirer                |
+| POST                 | /api/documents              | Ajouter un fichier                                               |
+| PATCH / DELETE       | /api/documents/:id          | Modifier ou remplacer / retirer                                  |
+| GET                  | /api/documents/:id/file     | Télécharger le fichier                                           |
+| GET                  | /api/sharing                | Personnes et partages avec statut calculé                        |
+| POST                 | /api/people                 | Créer une personne de confiance                                  |
+| PATCH / DELETE       | /api/people/:id             | Modifier / supprimer et révoquer ses partages                    |
+| POST                 | /api/associations           | Associer ou retirer plusieurs personnes de plusieurs animaux     |
+| POST                 | /api/shares                 | Créer des partages simulés                                       |
+| DELETE               | /api/shares/:id             | Révoquer un partage simulé                                       |
+| PATCH                | /api/notifications/:id      | `read: boolean` : marquer comme lue ou non lue                   |
+| POST                 | /api/notifications/read-all | Tout marquer comme lu ; renvoie la liste                         |
 
 Création : 201. Lecture/modification : 200. Suppression : 204. Erreurs : `{ "error": "Message", "field": "name" }`, avec `field` facultatif.
 
@@ -85,6 +87,8 @@ Ces accès sont une simulation locale : aucune invitation, URL publique ou autor
 Fiche d’urgence (PUT) : `{ "active": true, "photo": true, "details": true, "notes": false, "contact": true, "vet": false }`. Tous les choix sont booléens. Le serveur sauvegarde les choix, une copie des informations sélectionnées et un QR SVG. Identifiant complet et documents restent exclus. Le QR contient le lien vers la fiche publique. Les informations affichées suivent la dernière configuration sauvegardée et active. Les changements du profil sont repris lors du prochain enregistrement de la fiche.
 
 La route `POST /api/animals/:id/emergency/preview` accepte les mêmes options que PUT et renvoie le QR recalculé sans publier ni sauvegarder les choix (le jeton public peut être réservé en base). React annule les requêtes précédentes quand les options changent ; seule la configuration sauvegardée est affichée dans le dashboard.
+
+Notifications : `GET /api/dashboard` inclut `notifications`, de la plus récente à la plus ancienne : `{ "id", "category", "title", "text", "href", "action", "date", "read" }`. Catégories : `reminders`, `reservations`, `shares`, `documents`, `account`. `href` est un lien interne de l’application (par exemple `#rappels`). Chaque compte reçoit une notification de bienvenue ; le compte de démonstration a aussi des exemples. Aucune notification n’est envoyée à l’extérieur.
 
 ## Persistance
 

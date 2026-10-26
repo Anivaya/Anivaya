@@ -14,6 +14,7 @@ import type {
   Dashboard,
   EmergencySettings,
   EmergencySheet,
+  Notification,
 } from "../../../../shared/models.ts";
 import type {
   AuthUser,
@@ -156,6 +157,10 @@ export const api = {
     send<Person[]>("/associations", "POST", body),
   share: (body: ShareInput) => send<ShareResult>("/shares", "POST", body),
   revoke: (id: string) => remove(`/shares/${id}`),
+  setNotification: (id: string, read: boolean) =>
+    send<Notification>(`/notifications/${id}`, "PATCH", { read }),
+  readAllNotifications: () =>
+    send<Notification[]>("/notifications/read-all", "POST", {}),
 };
 export function readFile(file: File): Promise<string> {
   return new Promise((resolve, reject) => {

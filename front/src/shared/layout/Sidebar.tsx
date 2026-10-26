@@ -7,7 +7,7 @@ const navigation = [
   ["annuaire", "medical", "Professionnels"],
   ["animaux", "paw", "Mes animaux"],
   ["documents", "file", "Documents"],
-  ["rappels", "bell", "Rappels"],
+  ["rappels", "reminder", "Rappels"],
   ["partage", "share", "Partage"],
 ];
 export default function Sidebar({

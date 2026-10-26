@@ -2,6 +2,13 @@ import type { Animal, PageProps } from "../../shared/types.ts";
 import AnimalRecordPage from "./AnimalRecordPage.tsx";
 import PageHeading from "../../shared/layout/PageHeading.tsx";
 import Icon from "../../shared/ui/Icon.tsx";
+import type { CSSProperties } from "react";
+import { useEffect, useState } from "react";
+
+const OVERVIEW_SIZE = 2;
+const PAGE_SIZE = 6;
+/** Au-delà de la durée du glissement (450 ms dans animals.css). */
+const SLIDE_TIMEOUT_MS = 1000;
 
 export default function AnimalsPage({
   data,
@@ -51,6 +58,7 @@ export function AnimalsSection({
   onOpen: (animal: Animal) => void;
   onAdd: () => void;
 }) {
+  const scrollable = animals.length > (overview ? OVERVIEW_SIZE : PAGE_SIZE);
   return (
     <section aria-labelledby="animals-title">
       <div className="section-head">
@@ -68,19 +76,133 @@ export function AnimalsSection({
             Ajouter un animal
           </button>
         </div>
+      ) : scrollable ? (
+        <AnimalCarousel animals={animals} overview={overview} onOpen={onOpen} />
       ) : (
-        <div className="animal-grid">
-          {animals.map((animal) => (
-            <AnimalCard
-              key={animal.id}
-              animal={animal}
-              onOpen={onOpen}
-              overview={overview}
-            />
-          ))}
-        </div>
+        <AnimalGrid animals={animals} overview={overview} onOpen={onOpen} />
       )}
     </section>
+  );
+}
+
+function AnimalGrid({
+  animals,
+  overview,
+  onOpen,
+}: {
+  animals: Animal[];
+  overview?: boolean;
+  onOpen: (animal: Animal) => void;
+}) {
+  return (
+    <div className="animal-grid">
+      {animals.map((animal) => (
+        <AnimalCard
+          key={animal.id}
+          animal={animal}
+          onOpen={onOpen}
+          overview={overview}
+        />
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Rail de fiches qui glisse dans le sens de la flèche, en boucle.
+ * Vue d’ensemble : deux fiches visibles, une fiche par clic.
+ * Mes animaux : une page de six fiches par clic.
+ */
+function AnimalCarousel({
+  animals,
+  overview,
+  onOpen,
+}: {
+  animals: Animal[];
+  overview?: boolean;
+  onOpen: (animal: Animal) => void;
+}) {
+  const [position, setPosition] = useState(0);
+  // Pendant un glissement, le rail contient aussi l’élément qui sort.
+  const [slide, setSlide] = useState<{
+    first: number;
+    direction: "next" | "previous";
+  } | null>(null);
+  useEffect(() => {
+    // Sécurité si la fin d’animation n’est jamais signalée (onglet masqué) : les flèches restent utilisables.
+    if (!slide) return;
+    const timer = setTimeout(() => setSlide(null), SLIDE_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [slide]);
+  const perView = overview ? OVERVIEW_SIZE : 1;
+  const units = overview
+    ? animals.length
+    : Math.ceil(animals.length / PAGE_SIZE);
+  const current = position % units;
+  function move(step: 1 | -1) {
+    if (slide) return;
+    const target = (current + step + units) % units;
+    setSlide({
+      first: step > 0 ? current : target,
+      direction: step > 0 ? "next" : "previous",
+    });
+    setPosition(target);
+  }
+  const first = slide ? slide.first : current;
+  const leaving = slide && (slide.direction === "next" ? 0 : perView);
+  const slides = Array.from(
+    { length: perView + (slide ? 1 : 0) },
+    (_, offset) => (first + offset) % units,
+  );
+  const unit = overview ? "Fiche" : "Page";
+  return (
+    <div className="animal-carousel">
+      <button
+        type="button"
+        className="carousel-arrow previous"
+        onClick={() => move(-1)}
+        aria-label={`${unit} précédente`}
+      >
+        <Icon name="chevron-left" />
+      </button>
+      <div className="carousel-viewport">
+        <div
+          className={`carousel-track${slide ? ` slide-${slide.direction}` : ""}`}
+          style={{ "--per-view": perView } as CSSProperties}
+          onAnimationEnd={(event) => {
+            if (event.target === event.currentTarget) setSlide(null);
+          }}
+        >
+          {slides.map((index, offset) => (
+            <div
+              key={index}
+              className="carousel-slide"
+              inert={offset === leaving}
+            >
+              {overview ? (
+                <AnimalCard animal={animals[index]} onOpen={onOpen} overview />
+              ) : (
+                <AnimalGrid
+                  animals={animals.slice(
+                    index * PAGE_SIZE,
+                    (index + 1) * PAGE_SIZE,
+                  )}
+                  onOpen={onOpen}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+      <button
+        type="button"
+        className="carousel-arrow next"
+        onClick={() => move(1)}
+        aria-label={`${unit} suivante`}
+      >
+        <Icon name="chevron-right" />
+      </button>
+    </div>
   );
 }
 

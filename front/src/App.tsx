@@ -28,6 +28,12 @@ import DocumentsPage from "./pages/documents/DocumentsPage.tsx";
 import SharingPage from "./pages/sharing/SharingPage.tsx";
 import ProfilePage from "./pages/profile/ProfilePage.tsx";
 import DirectoryPage from "./pages/directory/DirectoryPage.tsx";
+import NotificationsPage from "./pages/notifications/NotificationsPage.tsx";
+import ContactPage, {
+  PublicContactPage,
+} from "./pages/contact/ContactPage.tsx";
+import ResetPasswordPage from "./pages/auth/ResetPasswordPage.tsx";
+import Icon from "./shared/ui/Icon.tsx";
 import {
   AnimalDetails,
   AnimalForm,
@@ -57,7 +63,11 @@ const workspacePages: Record<
   annuaire: { title: "Professionnels" },
   reservations: { title: "Professionnels" },
   profil: { title: "Gestion de profil" },
+  notifications: { title: "Notifications", Page: NotificationsPage },
+  contact: { title: "Contact et informations" },
 };
+/** Pages secondaires, plus étroites que le tableau de bord. */
+const secondaryPages = new Set(["notifications", "contact"]);
 
 export default function App() {
   const sessionVersion = useRef(0);
@@ -131,6 +141,15 @@ export default function App() {
       <PublicEmergencyPage key={route} token={params[0]?.split("?")[0] || ""} />
     );
   if (page === "accueil") return <HomePage />;
+  if (page === "reinitialisation")
+    return (
+      <ResetPasswordPage
+        // Recréée quand la session arrive, pour proposer l’e-mail du compte.
+        key={`${route}-${user?.id ?? ""}`}
+        fromProfile={params[0] === "profil"}
+        email={user?.profile.email}
+      />
+    );
   if (page === "connexion" || page === "inscription")
     return (
       <AuthPage
@@ -154,7 +173,11 @@ export default function App() {
       </div>
     );
   if (!user)
-    return <AuthPage register={false} onAuthenticated={authenticated} />;
+    return page === "contact" ? (
+      <PublicContactPage tab={params[0]} />
+    ) : (
+      <AuthPage register={false} onAuthenticated={authenticated} />
+    );
   return (
     <Workspace
       key={user.id}
@@ -196,7 +219,7 @@ function Workspace({
     return () => clearTimeout(timer);
   }, [notice]);
   /** Recharge l’espace après une modification, ferme la fenêtre et confirme. */
-  async function refresh(message: string) {
+  async function refresh(message = "") {
     await reload().catch(() => {});
     setModal(null);
     setNotice(message);
@@ -232,6 +255,7 @@ function Workspace({
     toggleReminder,
   };
   const { title, Page } = workspacePages[page];
+  const unread = data?.notifications.filter((n) => !n.read).length ?? 0;
   return (
     <>
       <a
@@ -250,10 +274,29 @@ function Workspace({
           <header className="app-top">
             <strong>Mon espace</strong>
             <small>/ {title}</small>
+            <a
+              href="#notifications"
+              className="notification-bell"
+              title="Centre de notifications"
+              aria-label={
+                "Notifications" + (unread ? `, ${unread} non lues` : "")
+              }
+              aria-current={page === "notifications" ? "page" : undefined}
+            >
+              <Icon name="bell" />
+              {unread > 0 && (
+                <span className="notification-count" aria-hidden="true">
+                  {unread > 99 ? "99+" : unread}
+                </span>
+              )}
+            </a>
             <AccountMenu profile={user.profile} onLogout={onLogout} mobile />
           </header>
           <main
-            className="app-content"
+            className={
+              "app-content" +
+              (secondaryPages.has(page) ? " secondary-page" : "")
+            }
             id="dashboard-content"
             tabIndex={-1}
             aria-busy={loading}
@@ -285,11 +328,15 @@ function Workspace({
             {page === "profil" && (
               <ProfilePage
                 profile={user.profile}
+                initialTab={params[0]}
                 onSaved={async (profile) => {
                   await onProfileChanged(profile);
                   await reload();
                 }}
               />
+            )}
+            {page === "contact" && (
+              <ContactPage profile={user.profile} initialTab={params[0]} />
             )}
             {data && (page === "annuaire" || page === "reservations") && (
               <DirectoryPage
@@ -298,14 +345,10 @@ function Workspace({
                 reservations={page === "reservations"}
               />
             )}
-            <p className="app-foot">
-              {user.id === "demo"
-                ? "Compte de démonstration · Données fictives. "
-                : "Votre espace personnel. "}
-              Vos modifications sont conservées. Les notifications et les
-              paiements ne sont pas envoyés à un service externe.
-            </p>
           </main>
+          <footer className="connected-help">
+            <a href="#contact">Contact et informations du service</a>
+          </footer>
         </div>
       </div>
       {modal && data && (

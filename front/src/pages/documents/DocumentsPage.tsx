@@ -93,7 +93,7 @@ export function DocumentsSection({
           ]}
         />
       )}
-      <div className="documents-list">
+      <div className={"documents-list" + (overview ? " recent-documents" : "")}>
         {filtered.map((document) => {
           const owner = animalName(animals, document.animal);
           const activeShares = shares.filter(

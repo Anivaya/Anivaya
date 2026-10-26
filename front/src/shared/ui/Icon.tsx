@@ -76,8 +76,8 @@ const shapes: Record<string, { viewBox: string; body: ReactNode }> = {
     viewBox: "0 0 24 24",
     body: (
       <>
-        <path d="m9 3-.7 3-3 .8-2.1 3 2 2.2-.2 3 2.6 2 1.4 3h6l1.4-3 2.6-2-.2-3 2-2.2-2.1-3-3-.8L15 3z" />
-        <circle cx="12" cy="12" r="3" />
+        <path d="M10.16 4.63L10.23 1.95A10.2 10.2 0 0 1 13.77 1.95L13.84 4.63A7.6 7.6 0 0 1 15.91 5.49L17.85 3.64A10.2 10.2 0 0 1 20.36 6.15L18.51 8.09A7.6 7.6 0 0 1 19.37 10.16L22.05 10.23A10.2 10.2 0 0 1 22.05 13.77L19.37 13.84A7.6 7.6 0 0 1 18.51 15.91L20.36 17.85A10.2 10.2 0 0 1 17.85 20.36L15.91 18.51A7.6 7.6 0 0 1 13.84 19.37L13.77 22.05A10.2 10.2 0 0 1 10.23 22.05L10.16 19.37A7.6 7.6 0 0 1 8.09 18.51L6.15 20.36A10.2 10.2 0 0 1 3.64 17.85L5.49 15.91A7.6 7.6 0 0 1 4.63 13.84L1.95 13.77A10.2 10.2 0 0 1 1.95 10.23L4.63 10.16A7.6 7.6 0 0 1 5.49 8.09L3.64 6.15A10.2 10.2 0 0 1 6.15 3.64L8.09 5.49A7.6 7.6 0 0 1 10.16 4.63z" />
+        <circle cx="12" cy="12" r="3.2" />
       </>
     ),
   },
@@ -107,6 +107,16 @@ const shapes: Record<string, { viewBox: string; body: ReactNode }> = {
       <>
         <rect x="4" y="7" width="24" height="22" rx="3" />
         <path d="M10 3v8M22 3v8M4 15h24M10 20h2M20 20h2M10 25h2" />
+      </>
+    ),
+  },
+  // Calendrier dont le coin bas droit laisse la place à une clochette.
+  reminder: {
+    viewBox: "0 0 32 32",
+    body: (
+      <>
+        <path d="M17 27H6a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3h16a3 3 0 0 1 3 3v6M9 3v6M19 3v6M3 13h22M8 18h2M13 18h2M8 22h2" />
+        <path d="M18.5 27.5h11l-1.6-2.4V21a3.9 3.9 0 0 0-7.8 0v4.1zM22.5 29.6a1.5 1.5 0 0 0 3 0M24 15.8v1.3" />
       </>
     ),
   },
@@ -174,6 +184,8 @@ const shapes: Record<string, { viewBox: string; body: ReactNode }> = {
   },
   check: { viewBox: "0 0 24 24", body: <path d="m4 12 5 5L20 6" /> },
   arrow: { viewBox: "0 0 24 24", body: <path d="M4 12h16m-6-6 6 6-6 6" /> },
+  "chevron-left": { viewBox: "0 0 24 24", body: <path d="m15 5-7 7 7 7" /> },
+  "chevron-right": { viewBox: "0 0 24 24", body: <path d="m9 5 7 7-7 7" /> },
   close: { viewBox: "0 0 24 24", body: <path d="m6 6 12 12M18 6 6 18" /> },
 };
 export default function Icon({ name }: { name: string }) {

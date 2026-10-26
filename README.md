@@ -1,6 +1,6 @@
 # Anivaya
 
-Application React et TypeScript reproduite à partir des neuf maquettes : accueil public, connexion, inscription, espace connecté, carnet, partage, profil, annuaire et fiche d’urgence publique. API Node.js et bases SQLite locales.
+Application React et TypeScript reproduite à partir des douze maquettes : accueil public, connexion, inscription, réinitialisation du mot de passe, espace connecté, carnet, partage, profil, annuaire, notifications, contact et informations, et fiche d’urgence publique. API Node.js et bases SQLite locales.
 
 ## Démarrer
 
@@ -23,7 +23,7 @@ L’inscription crée un vrai compte avec un espace vide. Le mot de passe doit c
 
 Chaque nouveau compte dispose d’une base dans `back/database/data/accounts/`. La base principale conserve les données du compte de démonstration, les comptes, les sessions et les jetons des fiches publiques. L’API choisit la base depuis la session, jamais depuis un identifiant de compte envoyé par le client. Les bases et les fichiers importés qu’elles contiennent sont exclus de Git.
 
-La récupération de mot de passe par e-mail n’est pas configurée. Les notifications, les invitations de partage et les paiements ne sont pas envoyés à un service externe. Les professionnels et leurs disponibilités sont fictifs ; les réservations sont enregistrées pour tester les parcours, sans engager un prestataire ni débiter une carte.
+La récupération de mot de passe par e-mail n’est pas configurée : le parcours de réinitialisation est simulé et ne modifie aucun mot de passe. Le formulaire de contact n’envoie ni ne conserve les messages. Les notifications, les invitations de partage et les paiements ne sont pas envoyés à un service externe. Les professionnels et leurs disponibilités sont fictifs ; les réservations sont enregistrées pour tester les parcours, sans engager un prestataire ni débiter une carte.
 
 ## Structure et ordre de lecture
 
@@ -36,20 +36,22 @@ front-back/
 │       ├── App.tsx                # Session, routes, espace connecté et choix des fenêtres
 │       ├── pages/
 │       │   ├── home/              # Accueil public
-│       │   ├── auth/              # Connexion et inscription
+│       │   ├── auth/              # Connexion, inscription et réinitialisation simulée du mot de passe
 │       │   ├── profile/           # Profil, photo et préférences
 │       │   ├── directory/         # Annuaire, réservations et parcours de réservation
 │       │   ├── dashboard/         # Vue d’ensemble et panneaux
 │       │   ├── animals/           # AnimalsPage, AnimalDialogs, carnet, fiche d’urgence et fiche publique
 │       │   ├── reminders/         # RemindersPage et ReminderDialogs
 │       │   ├── documents/         # DocumentsPage et DocumentDialogs
-│       │   └── sharing/           # SharingPage et SharingDialogs (contacts, associations, partages simulés)
+│       │   ├── sharing/           # SharingPage et SharingDialogs (contacts, associations, partages simulés)
+│       │   ├── notifications/     # Centre de notifications (filtres, lu / non lu)
+│       │   └── contact/           # Contact et informations, publique ou dans l’espace
 │       ├── shared/
 │       │   ├── services/api.ts    # Tous les appels à l’API
 │       │   ├── hooks.ts           # useDashboard et useDialogAction
 │       │   ├── forms/             # Formulaire, champs et messages d’erreur
 │       │   ├── layout/            # Barre latérale, menu du compte, en-têtes
-│       │   ├── ui/                # Fenêtre modale, icônes, filtres
+│       │   ├── ui/                # Fenêtre modale, onglets, icônes, filtres
 │       │   ├── utils/format.ts    # Dates, montants, recherche et libellés
 │       │   └── types.ts           # Types communs du frontend
 │       └── css/                   # Tous les styles
@@ -63,6 +65,7 @@ front-back/
 │   │   ├── animals.ts             # Animaux, profils, photos et événements
 │   │   ├── emergency.ts           # Choix de visibilité et génération des QR
 │   │   ├── sharing.ts             # Contacts et partages
+│   │   ├── notifications.ts       # Notifications : liste, lu / non lu
 │   │   ├── validation.ts          # Erreurs API, validation des champs, dates, e-mails et fichiers
 │   │   └── server.ts              # Démarrage
 │   ├── database/
@@ -88,7 +91,9 @@ Côté API, chaque route est une ligne de `back/api/app.ts`, par exemple `api.pa
 ## Fonctionnalités
 
 - Accueil responsive, sections interactives et FAQ ; connexion, inscription et déconnexion réelles.
-- Profil : photo JPG/PNG/WebP jusqu’à 5 Mo, coordonnées, préférences de notification, confirmation avant de perdre les modifications.
+- Profil : photo JPG/PNG/WebP jusqu’à 5 Mo, coordonnées, préférences de notification, accès au changement de mot de passe, confirmation avant de perdre les modifications.
+- Notifications : cloche avec le nombre de non lues dans la barre du haut, filtres Toutes / Non lues et par catégorie, lu / non lu, tout marquer comme lu. Enregistrées par compte, sans envoi externe.
+- Contact et informations : formulaire simulé, présentation du service et données, accessible sans compte ou depuis l’espace.
 - Annuaire : six professionnels fictifs, filtres et favoris privés. Réservation en trois étapes, créneaux, paiement accepté/refusé simulé, déplacement et annulation persistants.
 - Ajout, modification et suppression d’un animal ; photo JPEG/PNG jusqu’à 2 Mo.
 - Carnet en sept onglets : vue d’ensemble, identité, suivi, documents, rappels, habitudes et personnes de confiance.
@@ -121,7 +126,7 @@ Le typage strict couvre le frontend, le backend et les tests. Node exécute dire
 
 Les tests utilisent des bases temporaires isolées. Ils couvrent les données métier, les fichiers, les partages, les sessions, l’isolation de deux comptes, le profil, les conflits de réservation et la révocation des QR. Ils ne modifient pas la base de développement.
 
-Les migrations sont appliquées automatiquement et conservent les données existantes. `004_profile_directory.sql` ajoute le profil, l’annuaire, les favoris et les réservations. Le module natif `node:sqlite` émet un avertissement expérimental sur Node 22 : c’est attendu.
+Les migrations sont appliquées automatiquement et conservent les données existantes. `004_profile_directory.sql` ajoute le profil, l’annuaire, les favoris et les réservations ; `005_notifications.sql` ajoute les notifications. Le module natif `node:sqlite` émet un avertissement expérimental sur Node 22 : c’est attendu.
 
 ## Git et fichiers générés
 

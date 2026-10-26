@@ -1135,7 +1135,7 @@ dialog:has(.record-form-grid) {
 @media print {
   body:has(.qr-print) .sidebar,
   body:has(.qr-print) .app-top,
-  body:has(.qr-print) .app-foot {
+  body:has(.qr-print) .connected-help {
     display: none !important;
   }
   body:has(.qr-print) .record-page > * {

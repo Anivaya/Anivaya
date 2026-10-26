@@ -13,6 +13,7 @@ import type {
   AnimalEvent,
   Household,
   Dashboard,
+  Notification,
 } from "../../shared/models.ts";
 export type {
   Animal,
@@ -23,6 +24,7 @@ export type {
   AnimalEvent,
   Household,
   Dashboard,
+  Notification,
 };
 export type Input = Record<string, unknown>;
 /** Types des projections SQL : chaque requête précise la forme de ses colonnes. */

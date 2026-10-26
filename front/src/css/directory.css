@@ -636,15 +636,6 @@
 .directory-dialog .booking-tail .badge {
   margin-bottom: 12px;
 }
-.directory-page .app-foot,
-.directory-dialog .app-foot {
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 32px;
-  padding-top: 19px;
-  border-top: 1px solid var(--border);
-  line-height: 1.7;
-}
 .directory-page dialog,
 .directory-dialog {
   width: min(720px, calc(100% - 30px));

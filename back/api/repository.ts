@@ -19,6 +19,7 @@ import {
 import { createAnimalRepository } from "./animals.ts";
 import { emergencyRepository } from "./emergency.ts";
 import { sharingRepository } from "./sharing.ts";
+import { notificationsRepository } from "./notifications.ts";
 
 const repeats = ["Aucune", "Chaque semaine", "Chaque mois", "Chaque année"];
 const notices = [
@@ -51,6 +52,7 @@ export function createRepository(
   const records = createAnimalRepository(db);
   const emergency = emergencyRepository(db, records.allAnimals, publicURL);
   const sharing = sharingRepository(db);
+  const notifications = notificationsRepository(db);
 
   /** Animal choisi dans un formulaire : il doit exister et ne pas être supprimé. */
   function animal(id: unknown) {
@@ -111,6 +113,7 @@ export function createRepository(
       emergencySheets: emergency.all(),
       people: sharing.allPeople(),
       shares: sharing.allShares(),
+      notifications: notifications.all(),
       reminders: db
         .prepare(
           "SELECT r.* FROM reminders r JOIN animals a ON a.id=r.animal WHERE r.deleted_at IS NULL AND a.deleted_at IS NULL ORDER BY r.date,r.rowid",
@@ -130,6 +133,7 @@ export function createRepository(
     ...records,
     emergency,
     sharing,
+    notifications,
     dashboard,
     /** Carnet d’un animal : le dashboard filtré sur cet animal. */
     animalRecord(id: string) {

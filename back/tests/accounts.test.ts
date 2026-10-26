@@ -160,6 +160,10 @@ test("Comptes réels : sessions, isolation, profil, annuaire, réservations et Q
           d.emergencySheets,
         ])
           assert.equal(values.length, 0);
+        assert.deepEqual(
+          d.notifications.map((n) => [n.id, n.read]),
+          [["bienvenue", false]],
+        );
       }
       assert.notEqual(
         db

@@ -6,6 +6,7 @@ import { api, readFile } from "../../shared/services/api.ts";
 import { errorMessage, errorField } from "../../shared/types.ts";
 import type { FormError } from "../../shared/types.ts";
 import Modal from "../../shared/ui/Modal.tsx";
+import Tabs from "../../shared/ui/Tabs.tsx";
 import { initials } from "../../shared/utils/format.ts";
 const notices = {
   reminders: [
@@ -21,18 +22,29 @@ const notices = {
     "Les nouveautés concernant vos documents et les accès de vos proches.",
   ],
 };
+const profileTabs = [
+  ["profile", "Profil"],
+  ["notifications", "Notifications"],
+] as const;
+type ProfileTab = (typeof profileTabs)[number][0];
+
 export default function ProfilePage({
   profile,
+  initialTab,
   onSaved,
 }: {
   profile: Profile;
+  /** `notifications` ouvre directement les préférences (lien « Mes préférences »). */
+  initialTab?: string;
   onSaved: (profile: Profile) => Promise<void>;
 }) {
   const [photoLoading, setPhotoLoading] = useState(false);
   const logoutAction = useRef<(() => Promise<void>) | null>(null);
   const [form, setForm] = useState(profile),
     [photo, setPhoto] = useState<UploadedFile | null | undefined>(),
-    [tab, setTab] = useState("profile"),
+    [tab, setTab] = useState<ProfileTab>(
+      initialTab === "notifications" ? "notifications" : "profile",
+    ),
     [busy, setBusy] = useState(false),
     [error, setError] = useState<FormError | null>(null),
     [message, setMessage] = useState(""),
@@ -117,43 +129,12 @@ export default function ProfilePage({
           <p>Votre profil et vos préférences, au même endroit.</p>
         </div>
       </div>
-      <div
-        className="settings-tabs"
-        role="tablist"
-        aria-label="Gestion de profil"
-      >
-        {[
-          ["profile", "Profil"],
-          ["notifications", "Notifications"],
-        ].map(([key, label]) => (
-          <button
-            key={key}
-            id={"tab-" + key}
-            role="tab"
-            aria-controls={"panel-" + key}
-            aria-selected={tab === key}
-            tabIndex={tab === key ? 0 : -1}
-            onClick={() => setTab(key)}
-            onKeyDown={(e) => {
-              if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) {
-                e.preventDefault();
-                const next =
-                  e.key === "Home"
-                    ? "profile"
-                    : e.key === "End"
-                      ? "notifications"
-                      : tab === "profile"
-                        ? "notifications"
-                        : "profile";
-                setTab(next);
-                document.getElementById("tab-" + next)?.focus();
-              }
-            }}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <Tabs
+        label="Gestion de profil"
+        tabs={profileTabs}
+        active={tab}
+        onChange={setTab}
+      />
       <form noValidate onSubmit={save} aria-busy={busy || photoLoading}>
         <fieldset className="profile-fieldset" disabled={busy || photoLoading}>
           <div
@@ -303,6 +284,20 @@ export default function ProfilePage({
                   </div>
                 ))}
               </div>
+            </section>
+            <section className="profile-panel">
+              <h2>Mot de passe</h2>
+              <p className="muted">
+                Demandez un lien par e-mail pour choisir un nouveau mot de
+                passe.
+              </p>
+              <a className="button outline" href="#reinitialisation/profil">
+                Demander un changement de mot de passe
+              </a>
+              <p className="field-help security-note">
+                L’envoi d’e-mails n’est pas encore configuré : cette demande est
+                simulée.
+              </p>
             </section>
           </div>
           <section

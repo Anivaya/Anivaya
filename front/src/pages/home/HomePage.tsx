@@ -515,6 +515,7 @@ export default function HomePage() {
           </p>
         </div>
         <nav aria-label="Navigation de pied de page">
+          <a href="#contact">Contact et informations</a>
           <a
             href="#quotidien"
             onClick={(event) => {

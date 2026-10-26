@@ -8,6 +8,7 @@ const migrations = [
   "002_animal_records.sql",
   "003_sharing.sql",
   "004_profile_directory.sql",
+  "005_notifications.sql",
 ];
 const sql = (file: string) =>
   readFileSync(new URL(file, import.meta.url), "utf8");
@@ -67,7 +68,10 @@ export function openDatabase(path = databasePath(), demo = true): Database {
     for (const migration of migrations)
       applyOnce(migration, `./migrations/${migration}`);
     database.exec(sql("./seeds/professionals.sql"));
-    if (demo) applyOnce("directory_demo_bookings", "./seeds/bookings.sql");
+    if (demo) {
+      applyOnce("directory_demo_bookings", "./seeds/bookings.sql");
+      applyOnce("demo_notifications", "./seeds/notifications.sql");
+    }
   } catch (error) {
     database.close();
     throw error;

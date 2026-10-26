@@ -92,3 +92,105 @@
 dialog:has(.animal-add-fields) {
   max-height: calc(100dvh - 40px);
 }
+/* Flèches de défilement : vue d’ensemble (2 fiches) et Mes animaux (6 par page). */
+.animal-carousel {
+  position: relative;
+}
+.carousel-arrow {
+  position: absolute;
+  /* Alignées sur la première rangée : elles ne bougent pas d’une page à l’autre. */
+  top: min(50%, 135px);
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--navy);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
+}
+.carousel-arrow.previous {
+  left: -20px;
+}
+.carousel-arrow.next {
+  right: -20px;
+}
+.carousel-arrow svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2.2;
+  color: inherit;
+}
+.carousel-arrow:hover,
+.carousel-arrow:focus-visible {
+  background: var(--navy);
+  color: var(--white);
+}
+@media (max-width: 620px) {
+  .carousel-arrow {
+    width: 34px;
+    height: 34px;
+  }
+  .carousel-arrow.previous {
+    left: -12px;
+  }
+  .carousel-arrow.next {
+    right: -12px;
+  }
+}
+/* Rail : les fiches glissent dans le sens de la flèche. */
+.carousel-viewport {
+  /* Coupe seulement à gauche et à droite ; la marge laisse voir le zoom et l’ombre des fiches. */
+  overflow-x: clip;
+  padding-inline: 16px;
+  margin-inline: -16px;
+}
+.carousel-track {
+  --gap: 18px;
+  display: flex;
+  gap: var(--gap);
+}
+.carousel-slide {
+  flex: 0 0 calc((100% - (var(--per-view) - 1) * var(--gap)) / var(--per-view));
+  min-width: 0;
+}
+.carousel-slide > .animal-card {
+  height: 100%;
+}
+.carousel-track.slide-next {
+  animation: carousel-next 450ms ease-in-out both;
+}
+.carousel-track.slide-previous {
+  animation: carousel-previous 450ms ease-in-out both;
+}
+/* Un pas = la largeur d’un élément du rail et l’écart qui le suit. */
+@keyframes carousel-next {
+  to {
+    transform: translateX(calc((-100% - var(--gap)) / var(--per-view)));
+  }
+}
+@keyframes carousel-previous {
+  from {
+    transform: translateX(calc((-100% - var(--gap)) / var(--per-view)));
+  }
+}
+@media (max-width: 620px) {
+  .carousel-track {
+    --gap: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Fin quasi immédiate : l’événement de fin d’animation est quand même émis. */
+  .carousel-track.slide-next,
+  .carousel-track.slide-previous {
+    animation-duration: 1ms;
+  }
+}
