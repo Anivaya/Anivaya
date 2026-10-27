@@ -1,5 +1,5 @@
 import type { ValidationState, DialogProps } from "../../shared/types.ts";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import SubmissionForm, { Field } from "../../shared/forms/SubmissionForm.tsx";
 import { CloseDialogButton } from "../../shared/ui/Modal.tsx";
 import { api } from "../../shared/services/api.ts";
@@ -24,9 +24,11 @@ export default function SharingDialog({
   const [documents, setDocuments] = useState(
     kind === "share-document"
       ? [item.id!]
-      : data.documents
-          .filter((d) => item.animal && d.animal === item.animal)
-          .map((d) => d.id),
+      : item.documents
+        ? item.documents
+        : data.documents
+            .filter((d) => item.animal && d.animal === item.animal)
+            .map((d) => d.id),
   );
   const [recipient, setRecipient] = useState("");
   const [until] = useState(() => addDays(data.today, 7));
@@ -197,7 +199,10 @@ export default function SharingDialog({
               Révoquer
             </button>
           )}
-          <button className="button outline" onClick={props.onClose}>
+          <button
+            className="button outline close-action"
+            onClick={props.onClose}
+          >
             Fermer
           </button>
         </div>
@@ -483,22 +488,32 @@ function SelectionGroup({
   help?: string;
 }) {
   const enabled = items.filter((item) => !item.disabled).map((item) => item.id);
+  const count = enabled.filter((id) => selected.includes(id)).length;
+  const all = enabled.length > 0 && count === enabled.length;
+  const master = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (master.current) master.current.indeterminate = count > 0 && !all;
+  }, [count, all]);
   return (
     <fieldset className="selection-group">
       <legend>{title}</legend>
       {help && <p className="selection-help">{help}</p>}
       {enabled.length > 0 && (
-        <button
-          type="button"
-          className="pick-all"
-          onClick={() =>
-            onChange(
-              enabled.every((id) => selected.includes(id)) ? [] : enabled,
-            )
-          }
-        >
-          Tout sélectionner / désélectionner
-        </button>
+        <label className="pick-all">
+          <input
+            ref={master}
+            type="checkbox"
+            checked={all}
+            onChange={(e) =>
+              onChange(
+                e.target.checked
+                  ? [...new Set([...selected, ...enabled])]
+                  : selected.filter((id) => !enabled.includes(id)),
+              )
+            }
+          />
+          <span>{all ? "Tout désélectionner" : "Tout sélectionner"}</span>
+        </label>
       )}
       <div className="pick-list">
         {items.map((item) => (

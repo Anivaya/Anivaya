@@ -1,0 +1,372 @@
+/* Import assisté par IA : mêmes couleurs, champs et boutons que les carnets. */
+.heading-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.ai-launch,
+.welcome .button.ai-launch {
+  gap: 8px;
+}
+.ai-launch svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+}
+.panel-head:has(.ai-launch) {
+  flex-wrap: wrap;
+}
+
+dialog.ai-import {
+  width: min(1040px, calc(100% - 28px));
+  max-height: 90dvh;
+  border-radius: 18px;
+}
+.ai-import svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+.ai-import .close svg {
+  width: 18px;
+  height: 18px;
+}
+.ai-import h2 {
+  font-size: 25px;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+.ai-import h2:focus {
+  outline: none;
+}
+.ai-import h3 {
+  font-size: 17px;
+  margin: 20px 0 12px;
+}
+.ai-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+.ai-heading .close {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.ai-eyebrow {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+
+.ai-stepper {
+  position: relative;
+  margin: 24px 0;
+}
+.ai-steps {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid var(--border);
+}
+.ai-steps li {
+  min-width: 0;
+  font-size: 12px;
+  color: var(--muted);
+  padding: 0 0 12px;
+  text-align: center;
+}
+.ai-steps [aria-current] {
+  font-weight: 700;
+  color: var(--blue);
+}
+.ai-step-indicator {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 0;
+  border-radius: 3px;
+  background: var(--gold);
+  pointer-events: none;
+  transition:
+    transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ai-muted {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin: 12px 0;
+}
+.ai-muted:empty {
+  display: none;
+}
+.ai-notice {
+  background: var(--pale);
+  border-radius: 9px;
+  padding: 15px 17px;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.ai-notice p {
+  margin: 5px 0 0;
+}
+.ai-upload {
+  border: 1px dashed #8ca5c9;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 20px 0;
+  text-align: center;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+}
+.ai-upload.dragover {
+  background: var(--pale);
+  border-color: var(--blue);
+}
+.ai-upload p {
+  margin: 0;
+}
+.ai-upload input {
+  max-width: 100%;
+  font-size: 13px;
+}
+.ai-upload svg {
+  color: var(--blue);
+}
+.ai-file-label {
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--blue);
+}
+.ai-example {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+}
+.ai-example .field {
+  flex: 1;
+  margin: 0;
+}
+.ai-example .button {
+  flex-shrink: 0;
+}
+
+.ai-import .field {
+  margin: 16px 0 0;
+}
+.ai-import .field label {
+  font-size: 13px;
+  display: block;
+  margin: 0 0 7px;
+  font-weight: 600;
+}
+.ai-import .field input,
+.ai-import .field select,
+.ai-import .field textarea {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #bdc9dc;
+  border-radius: 7px;
+  background: white;
+  padding: 10px 12px;
+  color: var(--navy);
+  font: inherit;
+  font-size: 13px;
+}
+.ai-import .field textarea {
+  resize: none;
+  min-height: 110px;
+}
+.ai-import [aria-invalid="true"] {
+  border-color: #a52b38 !important;
+  outline: 2px solid #a52b38;
+  outline-offset: 2px;
+}
+
+.ai-review-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 28px;
+  align-items: start;
+}
+.ai-source-panel {
+  min-width: 0;
+  position: sticky;
+  top: 0;
+  background: white;
+}
+.ai-filename {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+}
+.ai-preview {
+  width: 100%;
+  height: 350px;
+  object-fit: contain;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.ai-pdf {
+  height: 410px;
+}
+.ai-paper {
+  padding: 24px;
+  background: #fffcf4;
+  border: 1px solid #eadfc5;
+  border-radius: 8px;
+  line-height: 1.8;
+  font-size: 13px;
+}
+.ai-paper h3 {
+  margin-top: 6px;
+}
+.ai-paper small {
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+.ai-paper dt {
+  color: var(--muted);
+}
+.ai-paper dd {
+  margin: 0 0 12px;
+  overflow-wrap: anywhere;
+}
+.ai-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 14px;
+}
+
+.ai-option {
+  border-top: 1px solid var(--border);
+  padding-top: 19px;
+  margin-top: 23px;
+}
+.ai-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  font-size: 13px;
+  line-height: 1.6;
+  cursor: pointer;
+}
+.ai-check input {
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  flex-shrink: 0;
+  accent-color: var(--blue);
+}
+.ai-check small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
+.ai-confirm {
+  margin-top: 25px;
+  background: var(--pale);
+  padding: 14px;
+  border-radius: 8px;
+}
+.ai-confirm:has([aria-invalid="true"]) {
+  outline: 2px solid #a52b38;
+}
+.ai-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+.ai-error {
+  font-size: 13px;
+  color: #a52b38;
+  line-height: 1.6;
+  margin: 12px 0 0;
+}
+.ai-error:empty {
+  display: none;
+}
+.ai-warning {
+  padding: 18px;
+  margin-top: 22px;
+  background: #fff7e3;
+  border-radius: 9px;
+}
+.ai-warning p {
+  margin: 0;
+  font-size: 13px;
+}
+.ai-success {
+  padding: 20px 0;
+}
+.ai-success > svg {
+  color: #23804c;
+  width: 42px;
+  height: 42px;
+}
+.ai-success li {
+  font-size: 14px;
+  line-height: 1.8;
+  margin-bottom: 8px;
+}
+
+@media (max-width: 700px) {
+  dialog.ai-import {
+    padding: 20px;
+  }
+  .ai-review-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .ai-source-panel {
+    position: static;
+  }
+  .ai-preview,
+  .ai-pdf {
+    height: 240px;
+  }
+  .ai-example {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .ai-steps {
+    gap: 8px;
+  }
+  .ai-steps li {
+    font-size: 11px;
+  }
+  .ai-fields {
+    grid-template-columns: 1fr;
+  }
+  .ai-actions .button {
+    flex: 1;
+  }
+  .ai-heading h2 {
+    font-size: 22px;
+  }
+  .heading-actions {
+    justify-content: flex-start;
+  }
+}

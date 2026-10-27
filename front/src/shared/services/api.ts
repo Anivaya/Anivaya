@@ -15,6 +15,7 @@ import type {
   EmergencySettings,
   EmergencySheet,
   Notification,
+  ReceivedShare,
 } from "../../../../shared/models.ts";
 import type {
   AuthUser,
@@ -23,7 +24,19 @@ import type {
   DirectoryData,
   Booking,
   BookingInput,
+  DemoAccount,
+  ExportCategory,
 } from "../../../../shared/account.ts";
+import type {
+  SocialData,
+  CommunityInput,
+  EventInput,
+  ThreadInput,
+  MessageInput,
+  FriendAction,
+  ReportInput,
+  ThreadUpdate,
+} from "../../../../shared/social.ts";
 class RequestError extends Error {
   field?: string;
 }
@@ -81,7 +94,7 @@ export const api = {
   // Compte et session
   session: (signal?: AbortSignal) =>
     request<AuthUser | null>("/auth/session", { signal }),
-  demo: () => request<{ email: string; password: string }>("/auth/demo"),
+  demo: () => request<DemoAccount[]>("/auth/demo"),
   login: (body: { email: string; password: string; remember: boolean }) =>
     send<AuthUser>("/auth/login", "POST", body),
   register: (body: {
@@ -92,6 +105,13 @@ export const api = {
   }) => send<AuthUser>("/auth/register", "POST", body),
   logout: () => send<void>("/auth/logout", "POST", {}),
   saveProfile: (body: ProfileInput) => send<Profile>("/profile", "PATCH", body),
+  exportData: (categories: ExportCategory[]) =>
+    request<unknown>(`/export?categories=${categories.join(",")}`),
+  deleteAccount: (confirmation: string) =>
+    request<void>("/account", {
+      method: "DELETE",
+      body: JSON.stringify({ confirmation }),
+    }),
 
   // Annuaire et réservations
   directory: (signal?: AbortSignal) =>
@@ -157,6 +177,48 @@ export const api = {
     send<Person[]>("/associations", "POST", body),
   share: (body: ShareInput) => send<ShareResult>("/shares", "POST", body),
   revoke: (id: string) => remove(`/shares/${id}`),
+  // Communautés, événements et messagerie (données partagées entre comptes)
+  social: (signal?: AbortSignal) => request<SocialData>("/social", { signal }),
+  saveCommunity: (id: string | undefined, body: CommunityInput) =>
+    save<{ id: string }>("/social/communities", id, body),
+  deleteCommunity: (id: string) => remove(`/social/communities/${id}`),
+  joinCommunity: (id: string, join: boolean) =>
+    send<void>(
+      `/social/communities/${id}/${join ? "join" : "leave"}`,
+      "POST",
+      {},
+    ),
+  saveSocialEvent: (id: string | undefined, body: EventInput) =>
+    save<{ id: string }>("/social/events", id, body),
+  cancelSocialEvent: (id: string) =>
+    send<void>(`/social/events/${id}/cancel`, "POST", {}),
+  attendSocialEvent: (id: string, join: boolean) =>
+    send<void>(`/social/events/${id}/participation`, "POST", { join }),
+  createThread: (body: ThreadInput) =>
+    send<{ id: string }>("/social/threads", "POST", body),
+  inviteToThread: (id: string, people: string[]) =>
+    send<void>(`/social/threads/${id}/members`, "POST", { people }),
+  updateThread: (id: string, body: ThreadUpdate) =>
+    send<void>(`/social/threads/${id}`, "PATCH", body),
+  leaveThread: (id: string) =>
+    send<void>(`/social/threads/${id}/leave`, "POST", {}),
+  sendMessage: (id: string, body: MessageInput) =>
+    send<void>(`/social/threads/${id}/messages`, "POST", body),
+  deleteMessage: (thread: string, message: string) =>
+    remove(`/social/threads/${thread}/messages/${message}`),
+  markThreadRead: (id: string) =>
+    send<void>(`/social/threads/${id}/read`, "POST", {}),
+  friend: (person: string, action: FriendAction) =>
+    send<void>(`/social/friends/${encodeURIComponent(person)}`, "PUT", {
+      action,
+    }),
+  block: (person: string, blocked: boolean) =>
+    send<void>(`/social/blocks/${encodeURIComponent(person)}`, "PUT", {
+      blocked,
+    }),
+  report: (body: ReportInput) => send<void>("/social/reports", "POST", body),
+  respondReceived: (id: string, status: "accepted" | "declined") =>
+    send<ReceivedShare>(`/received-shares/${id}`, "PATCH", { status }),
   setNotification: (id: string, read: boolean) =>
     send<Notification>(`/notifications/${id}`, "PATCH", { read }),
   readAllNotifications: () =>

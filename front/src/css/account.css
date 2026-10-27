@@ -105,6 +105,9 @@
 .account-actions .account-signout {
   color: #a52b38;
 }
+.account-actions .account-signout svg {
+  color: inherit;
+}
 .mobile-account {
   display: none;
   margin-left: auto;
@@ -119,25 +122,73 @@
   padding: 30px;
   color: var(--navy);
 }
-.auth-page .demo-credentials {
-  display: block;
-  width: 100%;
-  padding: 15px;
-  margin-top: 14px;
-  background: #edf4fc;
-  border: 1px solid #bdc9dc;
-  border-radius: 9px;
-  color: #132e5c;
-  text-align: left;
-  cursor: pointer;
+/* Connexion : liste des comptes de démonstration. */
+.auth-page .demo-accounts {
+  margin-top: 26px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  line-height: 1.6;
 }
-.auth-page .demo-credentials span,
-.auth-page .demo-credentials strong {
+.auth-page .demo-accounts h2 {
+  font-size: 18px;
+  margin: 0 0 8px;
+}
+.auth-page .demo-accounts p {
+  color: var(--muted);
+  margin: 0 0 16px;
+}
+.auth-page .demo-accounts ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.auth-page .demo-account {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--line);
+}
+.auth-page .demo-account div {
+  min-width: 0;
+}
+.auth-page .demo-account strong,
+.auth-page .demo-account span {
   display: block;
 }
-.auth-page .demo-credentials small {
-  display: block;
-  margin-top: 6px;
+.auth-page .demo-account span {
+  overflow-wrap: anywhere;
+}
+.auth-page .demo-account strong {
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+.auth-page .demo-account b {
+  font-weight: 600;
+}
+.auth-page .demo-account code {
+  font-family: inherit;
+  font-weight: 700;
+}
+.auth-page .demo-account .text-button {
+  flex-shrink: 0;
+  font-size: 12px;
+}
+.auth-page .demo-accounts .demo-disclaimer {
+  margin-top: 16px;
+  font-size: 11px;
+}
+@media (max-width: 500px) {
+  .auth-page .demo-account {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .auth-page .demo-account .text-button {
+    padding: 4px 0;
+  }
 }
 .profile-page .profile-tabs {
   display: flex;
@@ -226,7 +277,7 @@
 
 @media (max-width: 620px) {
   .workspace .side-nav {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
   .side-nav a {
     font-size: 11px;

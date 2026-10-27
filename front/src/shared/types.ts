@@ -19,6 +19,10 @@ export type {
   Dashboard,
   FormError,
   Notification,
+  ReceivedShare,
+  ReceivedShareState,
+  ReceivedAnimal,
+  ReceivedDocument,
   EmergencySettings,
   EmergencySheet,
 } from "../../../shared/models.ts";
@@ -40,6 +44,8 @@ export type DialogKind =
   | "add-document"
   | "edit-document"
   | "delete-document"
+  | "download-documents"
+  | "delete-documents"
   | "add-person"
   | "edit-person"
   | "delete-person"
@@ -48,7 +54,8 @@ export type DialogKind =
   | "share-document"
   | "share-documents"
   | "share-details"
-  | "revoke-share";
+  | "revoke-share"
+  | "ai-import";
 export type DialogItem = Partial<
   Omit<Animal, "photo"> &
     Reminder &
@@ -61,6 +68,8 @@ export type DialogItem = Partial<
   photo?: string | null;
   person?: string | null;
   entity?: "animal" | "event" | "reminder" | "emergency" | "document";
+  /** Documents sélectionnés pour une action groupée. */
+  documents?: string[];
 };
 export interface DialogState {
   kind: DialogKind;

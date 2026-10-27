@@ -7,6 +7,7 @@ import { errorMessage, errorField } from "../../shared/types.ts";
 import type { FormError } from "../../shared/types.ts";
 import Modal from "../../shared/ui/Modal.tsx";
 import Tabs from "../../shared/ui/Tabs.tsx";
+import { ExportPanel, DeletionPanel } from "./AccountPanels.tsx";
 import { initials } from "../../shared/utils/format.ts";
 const notices = {
   reminders: [
@@ -25,25 +26,31 @@ const notices = {
 const profileTabs = [
   ["profile", "Profil"],
   ["notifications", "Notifications"],
+  ["exportation", "Exportation"],
+  ["suppression", "Suppression du compte"],
 ] as const;
 type ProfileTab = (typeof profileTabs)[number][0];
 
 export default function ProfilePage({
   profile,
+  demo,
   initialTab,
   onSaved,
+  onDeleted,
 }: {
   profile: Profile;
-  /** `notifications` ouvre directement les préférences (lien « Mes préférences »). */
+  demo: boolean;
+  /** Onglet ouvert d’emblée, par exemple `notifications` (lien « Mes préférences »). */
   initialTab?: string;
   onSaved: (profile: Profile) => Promise<void>;
+  onDeleted: () => void;
 }) {
   const [photoLoading, setPhotoLoading] = useState(false);
   const logoutAction = useRef<(() => Promise<void>) | null>(null);
   const [form, setForm] = useState(profile),
     [photo, setPhoto] = useState<UploadedFile | null | undefined>(),
     [tab, setTab] = useState<ProfileTab>(
-      initialTab === "notifications" ? "notifications" : "profile",
+      profileTabs.find(([key]) => key === initialTab)?.[0] ?? "profile",
     ),
     [busy, setBusy] = useState(false),
     [error, setError] = useState<FormError | null>(null),
@@ -135,7 +142,12 @@ export default function ProfilePage({
         active={tab}
         onChange={setTab}
       />
-      <form noValidate onSubmit={save} aria-busy={busy || photoLoading}>
+      <form
+        noValidate
+        onSubmit={save}
+        aria-busy={busy || photoLoading}
+        hidden={tab === "exportation" || tab === "suppression"}
+      >
         <fieldset className="profile-fieldset" disabled={busy || photoLoading}>
           <div
             id="panel-profile"
@@ -380,6 +392,34 @@ export default function ProfilePage({
           </div>
         </fieldset>
       </form>
+      <section
+        id="panel-exportation"
+        role="tabpanel"
+        aria-labelledby="tab-exportation"
+        hidden={tab !== "exportation"}
+      >
+        <ExportPanel />
+      </section>
+      <section
+        id="panel-suppression"
+        role="tabpanel"
+        aria-labelledby="tab-suppression"
+        hidden={tab !== "suppression"}
+      >
+        <DeletionPanel
+          demo={demo}
+          onExportFirst={() => {
+            setTab("exportation");
+            // Après l’affichage de l’onglet Exportation.
+            setTimeout(() => document.getElementById("export-all")?.focus());
+          }}
+          onDeleted={() => {
+            // Le compte n’existe plus : aucune confirmation de départ à demander.
+            allowLeave.current = true;
+            onDeleted();
+          }}
+        />
+      </section>
       {leave && (
         <Modal busy={busy} onClose={() => setLeave(null)}>
           <h2 id="action-title">Quitter sans enregistrer ?</h2>

@@ -56,13 +56,6 @@ export function ReminderDetails({
       <FormAlert message={error} />
       <div className="dialog-actions">
         <button
-          className="button outline"
-          disabled={busy}
-          onClick={() => onOpenDialog("edit-reminder", item)}
-        >
-          Modifier
-        </button>
-        <button
           className="button"
           disabled={busy}
           onClick={() =>
@@ -80,7 +73,19 @@ export function ReminderDetails({
               ? "Remettre à faire"
               : "Marquer comme fait"}
         </button>
-        <button className="button outline" disabled={busy} onClick={onClose}>
+        <button
+          className="button outline"
+          disabled={busy}
+          onClick={() => onOpenDialog("edit-reminder", item)}
+        >
+          Modifier
+        </button>
+        {/* Marge automatique : les deux actions restent à gauche, Fermer à droite. */}
+        <button
+          className="button outline close-action push-end"
+          disabled={busy}
+          onClick={onClose}
+        >
           Fermer
         </button>
       </div>

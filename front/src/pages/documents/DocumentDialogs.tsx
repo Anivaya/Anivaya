@@ -1,4 +1,5 @@
 import type { Document, DialogProps } from "../../shared/types.ts";
+import { errorMessage } from "../../shared/types.ts";
 import SubmissionForm, {
   Field,
   AnimalSelectField,
@@ -7,6 +8,7 @@ import SubmissionForm, {
 import { useDialogAction } from "../../shared/hooks.ts";
 import { api, fieldError, readFile } from "../../shared/services/api.ts";
 import { animalName } from "../../shared/utils/format.ts";
+import { downloadDocuments } from "./download.ts";
 
 export function DocumentDetails({
   item,
@@ -66,7 +68,7 @@ export function DocumentDetails({
         >
           Partager ce document
         </button>
-        <button className="button outline" onClick={onClose}>
+        <button className="button outline close-action" onClick={onClose}>
           Fermer
         </button>
       </div>
@@ -209,6 +211,154 @@ export function DeleteDocument({
           }
         >
           {busy ? "Suppression…" : "Supprimer le document"}
+        </button>
+      </div>
+    </>
+  );
+}
+
+/** Liste des documents concernés par une action groupée. */
+function BatchList({
+  documents,
+  data,
+}: { documents: Document[] } & Pick<DialogProps, "data">) {
+  return (
+    <ul className="batch-doc-list">
+      {documents.map((d) => (
+        <li key={d.id}>
+          {d.name} · {animalName(data.animals, d.animal)}
+        </li>
+      ))}
+    </ul>
+  );
+}
+const selectedDocuments = (
+  item: DialogProps["item"],
+  data: DialogProps["data"],
+) => data.documents.filter((d) => item.documents?.includes(d.id));
+
+export function DownloadDocuments({
+  item,
+  data,
+  onClose,
+  busy,
+  setBusy,
+}: DialogProps) {
+  const { error, run } = useDialogAction(setBusy);
+  const documents = selectedDocuments(item, data);
+  const available = documents.filter((d) => d.hasFile);
+  const missing = documents.filter((d) => !d.hasFile);
+  return (
+    <>
+      <h2 id="action-title" className="dialog-title">
+        Télécharger les documents
+      </h2>
+      {available.length > 0 && (
+        <>
+          <p className="dialog-copy">
+            {available.length} fichier(s) disponible(s)
+            {available.length > 1 ? " réunis dans une archive ZIP" : ""}.
+          </p>
+          <BatchList documents={available} data={data} />
+        </>
+      )}
+      {missing.length > 0 && (
+        <div className="batch-unavailable">
+          <strong>{missing.length} fichier(s) non disponible(s)</strong>
+          <ul>
+            {missing.map((d) => (
+              <li key={d.id}>
+                {d.name} —{" "}
+                {d.example ? "exemple sans fichier" : "fichier à associer"}
+              </li>
+            ))}
+          </ul>
+          <p>
+            Fermez cette fenêtre et utilisez « Modifier » pour associer un
+            fichier à ces documents.
+          </p>
+        </div>
+      )}
+      <FormAlert message={error} />
+      <div className="dialog-actions">
+        <button
+          className="button outline close-action"
+          onClick={onClose}
+          disabled={busy}
+        >
+          Fermer
+        </button>
+        {available.length > 0 && (
+          <button
+            className="button"
+            disabled={busy}
+            onClick={() =>
+              run(async () => {
+                await downloadDocuments(available);
+                onClose();
+              })
+            }
+          >
+            {busy
+              ? "Préparation…"
+              : `Télécharger ${missing.length ? "les fichiers disponibles" : "les fichiers"} (${available.length})`}
+          </button>
+        )}
+      </div>
+    </>
+  );
+}
+
+export function DeleteDocuments({
+  item,
+  data,
+  onClose,
+  onSaved,
+  busy,
+  setBusy,
+}: DialogProps) {
+  const { error, run } = useDialogAction(setBusy);
+  const documents = selectedDocuments(item, data);
+  return (
+    <>
+      <h2 id="action-title" className="dialog-title">
+        Supprimer {documents.length} document(s) ?
+      </h2>
+      <BatchList documents={documents} data={data} />
+      <p className="dialog-copy">
+        Ils seront retirés de Documents et des carnets associés. Les partages de
+        ces documents seront révoqués. Les fichiers d’origine sur votre appareil
+        sont conservés.
+      </p>
+      <FormAlert message={error} />
+      <div className="dialog-actions">
+        <button className="button outline" onClick={onClose} disabled={busy}>
+          Annuler
+        </button>
+        <button
+          className="button danger"
+          disabled={busy || !documents.length}
+          onClick={() =>
+            run(async () => {
+              let deleted = 0;
+              try {
+                for (const d of documents) {
+                  await api.deleteDocument(d.id);
+                  deleted++;
+                }
+              } catch (failure) {
+                if (!deleted) throw failure;
+                // Suppression partielle : l’espace est rechargé et l’échec signalé.
+                await onSaved(
+                  `${deleted} document(s) supprimé(s). ${errorMessage(failure)}`,
+                );
+                return;
+              }
+              await onSaved(`${deleted} document(s) supprimé(s).`);
+            })
+          }
+        >
+          {busy ? "Suppression…" : "Supprimer les documents sélectionnés"}
         </button>
       </div>
     </>

@@ -2,6 +2,7 @@ import type { PageProps, Actions, Animal, Person } from "../../shared/types.ts";
 import { useState } from "react";
 import PageHeading from "../../shared/layout/PageHeading.tsx";
 import Icon from "../../shared/ui/Icon.tsx";
+import ReceivedShares from "./ReceivedShares.tsx";
 import {
   animalName,
   fullDate,
@@ -15,6 +16,10 @@ export default function SharingPage({
   params: [section, animal = ""],
 }: PageProps) {
   const peopleTab = section === "personnes";
+  const receivedTab = section === "recus";
+  const pending = data.receivedShares.filter(
+    (s) => s.state === "pending",
+  ).length;
   return (
     <div className="sharing-page">
       <PageHeading
@@ -29,33 +34,52 @@ export default function SharingPage({
       <nav className="sharing-tabs" aria-label="Sections du partage">
         {[
           ["partages", "Documents partagés"],
+          ["recus", "Partage avec moi" + (pending ? ` (${pending})` : "")],
           ["personnes", "Personnes de confiance"],
         ].map(([key, label]) => (
           <a
             key={key}
-            href={`#partage/${key}${animal ? `/${animal}` : ""}`}
+            href={`#partage/${key}${animal && key !== "recus" ? `/${animal}` : ""}`}
             aria-current={
-              peopleTab === (key === "personnes") ? "page" : undefined
+              (receivedTab ? "recus" : peopleTab ? "personnes" : "partages") ===
+              key
+                ? "page"
+                : undefined
             }
           >
             {label}
           </a>
         ))}
       </nav>
-      <div className="sharing-summary">
-        <span>{data.people.length} personne(s)</span>
-        <span>
-          {data.shares.filter((s) => s.status === "active").length} partage(s)
-          actif(s)
-        </span>
-      </div>
-      <SharingContent
-        key={`${peopleTab}-${animal}`}
-        data={data}
-        actions={actions}
-        peopleTab={peopleTab}
-        initialAnimal={animal}
-      />
+      {receivedTab ? (
+        <>
+          <div className="sharing-summary">
+            <span>{pending} invitation(s) en attente</span>
+            <span>
+              {data.receivedShares.filter((s) => s.state === "accepted").length}{" "}
+              accès actif(s)
+            </span>
+          </div>
+          <ReceivedShares shares={data.receivedShares} actions={actions} />
+        </>
+      ) : (
+        <>
+          <div className="sharing-summary">
+            <span>{data.people.length} personne(s)</span>
+            <span>
+              {data.shares.filter((s) => s.status === "active").length}{" "}
+              partage(s) actif(s)
+            </span>
+          </div>
+          <SharingContent
+            key={`${peopleTab}-${animal}`}
+            data={data}
+            actions={actions}
+            peopleTab={peopleTab}
+            initialAnimal={animal}
+          />
+        </>
+      )}
       <p className="share-note">
         Partages en lecture seule simulés, conservés dans votre espace local.
         Aucun accès réel ni invitation n’est envoyé.

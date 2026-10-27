@@ -14,6 +14,8 @@ import "./css/record.css";
 import "./css/sharing.css";
 import "./css/collections.css";
 import "./css/secondary.css";
+import "./css/communities.css";
+import "./css/ai-import.css";
 import App from "./App.tsx";
 
 createRoot(document.getElementById("root")!).render(

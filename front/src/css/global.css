@@ -238,3 +238,27 @@ dialog::backdrop {
     scrollbar-color: auto;
   }
 }
+/* Boutons « Fermer » et croix de fermeture : en rouge partout. */
+.button.close-action {
+  background: white;
+  color: #a52b38;
+  border-color: #e8c2c8;
+}
+.button.close-action:hover {
+  background: #fff0f2;
+}
+.close,
+.close svg,
+.social-icon.close-icon,
+.social-icon.close-icon svg {
+  color: #a52b38;
+}
+/* Fermer à droite, les autres actions restent à gauche. */
+.dialog-actions .push-end {
+  margin-left: auto;
+}
+/* Bouton avec « + » : le signe reste près du texte. */
+.button.with-plus,
+.welcome .button.with-plus {
+  gap: 8px;
+}

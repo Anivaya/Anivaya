@@ -59,7 +59,24 @@ export interface DirectoryData {
   today: string;
 }
 
+export interface DemoAccount {
+  name: string;
+  email: string;
+  password: string;
+}
+export const exportCategories = [
+  "profile",
+  "animals",
+  "documents",
+  "sharing",
+  "bookings",
+  "social",
+] as const;
+export type ExportCategory = (typeof exportCategories)[number];
+
 export interface AuthUser {
   id: string;
+  /** Compte de démonstration : sa suppression recrée un espace d’exemple. */
+  demo: boolean;
   profile: Profile;
 }

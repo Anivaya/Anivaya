@@ -388,7 +388,7 @@ export default function BookingDialog({
             est fictif ; aucun e-mail ni paiement réel n’a été envoyé.
           </p>
           <div className="dialog-actions">
-            <button className="button outline" onClick={onClose}>
+            <button className="button outline close-action" onClick={onClose}>
               Fermer
             </button>
             <a className="button" href="#reservations" onClick={onClose}>

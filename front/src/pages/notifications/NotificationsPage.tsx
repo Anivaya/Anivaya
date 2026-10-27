@@ -10,6 +10,7 @@ const categories = {
   shares: ["Partages", "Partage"],
   documents: ["Documents", "Document"],
   account: ["Compte", "Compte"],
+  social: ["Communautés", "Communautés"],
 } as const;
 type Category = keyof typeof categories;
 

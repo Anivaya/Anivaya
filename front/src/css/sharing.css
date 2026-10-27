@@ -207,12 +207,21 @@
   overflow: auto;
 }
 .pick-all {
-  border: 0;
-  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   color: var(--blue);
   font-size: 12px;
-  padding: 4px 0 10px;
+  font-weight: 700;
+  padding: 8px 0 12px;
   cursor: pointer;
+}
+.pick-all input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: var(--blue);
 }
 .share-note {
   margin-top: 20px;
@@ -332,4 +341,161 @@ dialog.sharing-modal select:focus-visible,
 .record-page .person-card .row-buttons svg {
   width: 18px;
   height: 18px;
+}
+/* Partage avec moi : invitations et accès reçus. */
+.sharing-tabs {
+  flex-wrap: wrap;
+}
+.received-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.6fr);
+  gap: 18px;
+  margin: 22px 0;
+}
+.received-filters label {
+  font-size: 12px;
+  color: var(--muted);
+}
+.received-filters input,
+.received-filters select {
+  display: block;
+  width: 100%;
+  font: inherit;
+  font-size: 14px;
+  color: var(--navy);
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 7px;
+}
+.received-filters :focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+.received-state {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #f0f2f5;
+  color: #65748b;
+}
+.received-state.pending {
+  background: #fff5dc;
+  color: #825500;
+}
+.received-state.accepted {
+  background: #e9f5ee;
+  color: #24633e;
+}
+.received-state.revoked,
+.received-state.declined {
+  background: #fff0f2;
+  color: #a52b38;
+}
+.received-preview {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px;
+  margin: 20px 0;
+  background: #fbfcfe;
+}
+.received-preview h3 {
+  margin: 20px 0 8px;
+}
+.received-preview p,
+.received-preview li {
+  font-size: 14px;
+  line-height: 1.7;
+}
+.received-unavailable {
+  padding: 22px;
+  background: var(--pale);
+  border-radius: 10px;
+  margin-top: 20px;
+}
+.received-animal-photo {
+  display: block;
+  width: 76px;
+  height: 76px;
+  flex: 0 0 76px;
+  border-radius: 50%;
+  background-image: url("/images/companions.png");
+  background-size: 240% auto;
+  background-color: var(--pale);
+}
+.received-row > .received-animal-photo {
+  width: 50px;
+  height: 50px;
+  flex-basis: 50px;
+}
+.received-animal-heading {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.received-animal-heading .received-animal-photo {
+  width: 100px;
+  height: 100px;
+  flex-basis: 100px;
+}
+.received-sheet-status {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: max-content;
+  max-width: 100%;
+  justify-self: end;
+  text-align: right;
+  line-height: 1.5;
+}
+.received-sheet-status span {
+  white-space: nowrap;
+}
+.received-animal-identity {
+  min-width: 0;
+}
+.received-animal-identity h3 {
+  margin: 0 0 8px;
+}
+.received-animal-identity p {
+  margin: 5px 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 620px) {
+  .received-filters {
+    grid-template-columns: 1fr;
+  }
+  .received-row {
+    flex-wrap: wrap;
+  }
+  .received-row .row-buttons {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+@media (max-width: 500px) {
+  .received-animal-heading {
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 10px 14px;
+  }
+  .received-animal-heading .received-animal-photo {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    width: 76px;
+    height: 76px;
+    flex-basis: 76px;
+  }
+  .received-sheet-status {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .received-animal-identity {
+    grid-column: 2;
+    grid-row: 2;
+  }
 }

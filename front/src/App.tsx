@@ -29,6 +29,7 @@ import SharingPage from "./pages/sharing/SharingPage.tsx";
 import ProfilePage from "./pages/profile/ProfilePage.tsx";
 import DirectoryPage from "./pages/directory/DirectoryPage.tsx";
 import NotificationsPage from "./pages/notifications/NotificationsPage.tsx";
+import CommunitiesPage from "./pages/communities/CommunitiesPage.tsx";
 import ContactPage, {
   PublicContactPage,
 } from "./pages/contact/ContactPage.tsx";
@@ -47,8 +48,11 @@ import {
   DocumentDetails,
   DocumentForm,
   DeleteDocument,
+  DownloadDocuments,
+  DeleteDocuments,
 } from "./pages/documents/DocumentDialogs.tsx";
 import SharingDialog from "./pages/sharing/SharingDialogs.tsx";
+import AiImport from "./pages/documents/AiImport.tsx";
 
 /** Pages de l’espace connecté : titre du fil d’Ariane et contenu tiré du dashboard. */
 const workspacePages: Record<
@@ -65,6 +69,7 @@ const workspacePages: Record<
   profil: { title: "Gestion de profil" },
   notifications: { title: "Notifications", Page: NotificationsPage },
   contact: { title: "Contact et informations" },
+  communautes: { title: "Communautés" },
 };
 /** Pages secondaires, plus étroites que le tableau de bord. */
 const secondaryPages = new Set(["notifications", "contact"]);
@@ -76,6 +81,7 @@ export default function App() {
   );
   const [user, setUser] = useState<AuthUser | null>(null),
     [loading, setLoading] = useState(true),
+    [deletedNotice, setDeletedNotice] = useState(false),
     [error, setError] = useState("");
   useEffect(() => {
     const navigate = () => {
@@ -136,11 +142,24 @@ export default function App() {
     setUser(null);
     window.location.hash = "connexion";
   };
+  /** Le serveur a déjà fermé la session : retour à l’accueil avec une confirmation. */
+  const accountDeleted = () => {
+    sessionVersion.current++;
+    setUser(null);
+    setDeletedNotice(true);
+    window.location.hash = "accueil";
+  };
   if (page === "urgence")
     return (
       <PublicEmergencyPage key={route} token={params[0]?.split("?")[0] || ""} />
     );
-  if (page === "accueil") return <HomePage />;
+  if (page === "accueil")
+    return (
+      <HomePage
+        accountDeleted={deletedNotice}
+        onDismiss={() => setDeletedNotice(false)}
+      />
+    );
   if (page === "reinitialisation")
     return (
       <ResetPasswordPage
@@ -186,6 +205,7 @@ export default function App() {
       params={params}
       onLogout={logout}
       onProfileChanged={async (profile) => setUser({ ...user, profile })}
+      onAccountDeleted={accountDeleted}
     />
   );
 }
@@ -196,12 +216,14 @@ function Workspace({
   params,
   onLogout,
   onProfileChanged,
+  onAccountDeleted,
 }: {
   user: AuthUser;
   page: string;
   params: string[];
   onLogout: () => Promise<void>;
   onProfileChanged: (profile: Profile) => Promise<void>;
+  onAccountDeleted: () => void;
 }) {
   const [modal, setModal] = useState<DialogState | null>(null);
   const [notice, setNotice] = useState("");
@@ -328,13 +350,16 @@ function Workspace({
             {page === "profil" && (
               <ProfilePage
                 profile={user.profile}
+                demo={user.demo}
                 initialTab={params[0]}
+                onDeleted={onAccountDeleted}
                 onSaved={async (profile) => {
                   await onProfileChanged(profile);
                   await reload();
                 }}
               />
             )}
+            {page === "communautes" && <CommunitiesPage params={params} />}
             {page === "contact" && (
               <ContactPage profile={user.profile} initialTab={params[0]} />
             )}
@@ -399,6 +424,10 @@ function ActionDialog({
 }) {
   const [busy, setBusy] = useState(false);
   const { kind } = modal;
+  if (kind === "ai-import")
+    return (
+      <AiImport data={data} animal={modal.item?.animal} onClose={onClose} />
+    );
   const props = {
     kind,
     onOpenRecord,
@@ -432,6 +461,12 @@ function ActionDialog({
       break;
     case "delete-document":
       content = <DeleteDocument {...props} item={item as Document} />;
+      break;
+    case "download-documents":
+      content = <DownloadDocuments {...props} item={item} />;
+      break;
+    case "delete-documents":
+      content = <DeleteDocuments {...props} item={item} />;
       break;
     case "add-document":
     case "edit-document":

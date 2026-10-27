@@ -8,7 +8,7 @@ Toutes les routes métier nécessitent une session, sauf la santé du serveur, l
 
 | Méthode     | Route                                        | Usage                                                                                |
 | ----------- | -------------------------------------------- | ------------------------------------------------------------------------------------ |
-| GET         | /api/auth/demo                               | Identifiants de démonstration affichés dans le formulaire                            |
+| GET         | /api/auth/demo                               | Liste des comptes de démonstration (name, email, password)                           |
 | GET         | /api/auth/session                            | Compte et profil, ou null                                                            |
 | POST        | /api/auth/register                           | name, email, password, confirmPassword ; compte vide et session                      |
 | POST        | /api/auth/login                              | email, password, remember facultatif ; cookie HttpOnly                               |
@@ -22,8 +22,10 @@ Toutes les routes métier nécessitent une session, sauf la santé du serveur, l
 | PATCH       | /api/bookings/:id                            | date et time pour déplacer, ou status: cancelled pour annuler                        |
 | GET         | /api/public/emergency/:token                 | Informations sélectionnées, sans session                                             |
 | GET         | /api/public/emergency/:token/photo           | Photo si autorisée sur la fiche active                                               |
+| DELETE      | /api/account                                 | confirmation: "SUPPRIMER" ; supprime le compte et ferme ses sessions (204)           |
+| GET         | /api/export?categories=profile,animals       | Export JSON : profile, animals, documents, sharing, bookings                         |
 
-Mot de passe : 12 à 256 caractères, hachage scrypt avec sel aléatoire. Jeton de session aléatoire, seul son SHA-256 est stocké. Durée maximale : 24 h, ou 7 jours avec remember=true. Connexion et inscription limitées à 30 tentatives par IP en 15 minutes. Le compte de démonstration conserve son adresse affichée.
+Mot de passe : 12 à 256 caractères, hachage scrypt avec sel aléatoire. Jeton de session aléatoire, seul son SHA-256 est stocké. Durée maximale : 24 h, ou 7 jours avec remember=true. Connexion et inscription limitées à 30 tentatives par IP en 15 minutes. Les comptes de démonstration conservent leur adresse affichée ; leur suppression recrée leur espace d’exemple.
 
 Chaque compte dispose de sa base SQLite, sélectionnée depuis la session. Les identifiants des ressources d’un autre compte ne donnent pas accès à ses données.
 
@@ -35,29 +37,30 @@ Une fiche publique utilise un jeton imprévisible. Désactivation : 410 sans inf
 
 ## Routes métier
 
-| Méthode              | Route                       | Usage                                                            |
-| -------------------- | --------------------------- | ---------------------------------------------------------------- |
-| GET                  | /api/health                 | État du serveur                                                  |
-| GET                  | /api/dashboard              | Foyer, animaux, rappels, documents, événements, fiches d’urgence |
-| GET / POST           | /api/animals                | Liste / création                                                 |
-| GET / PATCH / DELETE | /api/animals/:id            | Carnet complet / profil / retrait                                |
-| GET                  | /api/animals/:id/photo      | Photo JPEG ou PNG                                                |
-| GET / PUT / DELETE   | /api/animals/:id/emergency  | Fiche sauvegardée / génération / retrait                         |
-| POST                 | /api/events                 | Ajouter un événement                                             |
-| PATCH / DELETE       | /api/events/:id             | Modifier / retirer un événement                                  |
-| POST                 | /api/reminders              | Ajouter un rappel                                                |
-| PATCH / DELETE       | /api/reminders/:id          | Modifier nom, date, fréquence ou statut / retirer                |
-| POST                 | /api/documents              | Ajouter un fichier                                               |
-| PATCH / DELETE       | /api/documents/:id          | Modifier ou remplacer / retirer                                  |
-| GET                  | /api/documents/:id/file     | Télécharger le fichier                                           |
-| GET                  | /api/sharing                | Personnes et partages avec statut calculé                        |
-| POST                 | /api/people                 | Créer une personne de confiance                                  |
-| PATCH / DELETE       | /api/people/:id             | Modifier / supprimer et révoquer ses partages                    |
-| POST                 | /api/associations           | Associer ou retirer plusieurs personnes de plusieurs animaux     |
-| POST                 | /api/shares                 | Créer des partages simulés                                       |
-| DELETE               | /api/shares/:id             | Révoquer un partage simulé                                       |
-| PATCH                | /api/notifications/:id      | `read: boolean` : marquer comme lue ou non lue                   |
-| POST                 | /api/notifications/read-all | Tout marquer comme lu ; renvoie la liste                         |
+| Méthode              | Route                       | Usage                                                               |
+| -------------------- | --------------------------- | ------------------------------------------------------------------- |
+| GET                  | /api/health                 | État du serveur                                                     |
+| GET                  | /api/dashboard              | Foyer, animaux, rappels, documents, événements, fiches d’urgence    |
+| GET / POST           | /api/animals                | Liste / création                                                    |
+| GET / PATCH / DELETE | /api/animals/:id            | Carnet complet / profil / retrait                                   |
+| GET                  | /api/animals/:id/photo      | Photo JPEG ou PNG                                                   |
+| GET / PUT / DELETE   | /api/animals/:id/emergency  | Fiche sauvegardée / génération / retrait                            |
+| POST                 | /api/events                 | Ajouter un événement                                                |
+| PATCH / DELETE       | /api/events/:id             | Modifier / retirer un événement                                     |
+| POST                 | /api/reminders              | Ajouter un rappel                                                   |
+| PATCH / DELETE       | /api/reminders/:id          | Modifier nom, date, fréquence ou statut / retirer                   |
+| POST                 | /api/documents              | Ajouter un fichier                                                  |
+| PATCH / DELETE       | /api/documents/:id          | Modifier ou remplacer / retirer                                     |
+| GET                  | /api/documents/:id/file     | Télécharger le fichier                                              |
+| GET                  | /api/sharing                | Personnes et partages avec statut calculé                           |
+| POST                 | /api/people                 | Créer une personne de confiance                                     |
+| PATCH / DELETE       | /api/people/:id             | Modifier / supprimer et révoquer ses partages                       |
+| POST                 | /api/associations           | Associer ou retirer plusieurs personnes de plusieurs animaux        |
+| POST                 | /api/shares                 | Créer des partages simulés                                          |
+| DELETE               | /api/shares/:id             | Révoquer un partage simulé                                          |
+| PATCH                | /api/received-shares/:id    | `status` : `accepted` ou `declined`, pour une invitation en attente |
+| PATCH                | /api/notifications/:id      | `read: boolean` : marquer comme lue ou non lue                      |
+| POST                 | /api/notifications/read-all | Tout marquer comme lu ; renvoie la liste                            |
 
 Création : 201. Lecture/modification : 200. Suppression : 204. Erreurs : `{ "error": "Message", "field": "name" }`, avec `field` facultatif.
 
@@ -88,7 +91,33 @@ Fiche d’urgence (PUT) : `{ "active": true, "photo": true, "details": true, "no
 
 La route `POST /api/animals/:id/emergency/preview` accepte les mêmes options que PUT et renvoie le QR recalculé sans publier ni sauvegarder les choix (le jeton public peut être réservé en base). React annule les requêtes précédentes quand les options changent ; seule la configuration sauvegardée est affichée dans le dashboard.
 
+Partages reçus : `GET /api/dashboard` inclut `receivedShares` avec `state` (`pending`, `accepted`, `expired`, `revoked`, `declined`). `content` n’est renvoyé que pour un accès actif. Répondre à une invitation qui n’est plus en attente renvoie 409.
+
 Notifications : `GET /api/dashboard` inclut `notifications`, de la plus récente à la plus ancienne : `{ "id", "category", "title", "text", "href", "action", "date", "read" }`. Catégories : `reminders`, `reservations`, `shares`, `documents`, `account`. `href` est un lien interne de l’application (par exemple `#rappels`). Chaque compte reçoit une notification de bienvenue ; le compte de démonstration a aussi des exemples. Aucune notification n’est envoyée à l’extérieur.
+
+## Communautés
+
+Données partagées entre tous les comptes, dans la base centrale (tables `social_*`). Les personnes sont identifiées par l’identifiant de leur compte (`demo`, `demo-2`, `demo-3` pour les comptes de démonstration ; `claire-demo` et `samir-demo` sont fictifs). Sans authentification, ces routes répondent 404.
+
+| Méthode       | Route                                       | Usage                                                                                      |
+| ------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| GET           | /api/social                                 | Vue du compte : personnes, communautés, événements, discussions lisibles, amis, blocages   |
+| POST / PATCH  | /api/social/communities[/:id]               | name, city, topic, description ; modification réservée au créateur                         |
+| DELETE        | /api/social/communities/:id                 | Supprime la discussion et annule les événements à venir                                    |
+| POST          | /api/social/communities/:id/join, /leave    | Rejoindre ou quitter ; la gestion passe au membre suivant                                  |
+| POST / PATCH  | /api/social/events[/:id]                    | name, city, place, date (à venir), capacity (1 à 200), community, description              |
+| POST          | /api/social/events/:id/cancel               | Annulation par l’organisateur                                                              |
+| POST          | /api/social/events/:id/participation        | join: boolean ; 409 si complet, fermé ou communauté non rejointe                           |
+| POST          | /api/social/threads                         | people, name facultatif (groupe privé) ; renvoie l’id, réutilise un message privé existant |
+| POST          | /api/social/threads/:id/members, /leave     | Inviter (créateur d’un groupe privé) ou quitter                                            |
+| POST / DELETE | /api/social/threads/:id/messages[/:message] | text (3 000 caractères), photo {type, content} JPG/PNG/WebP 1 Mo ; supprimer ses messages  |
+| POST          | /api/social/threads/:id/read                | Marque lu ; alimente « Lu » chez les autres membres                                        |
+| GET           | /api/social/photos/:message                 | Photo jointe, réservée aux membres de la discussion                                        |
+| PUT           | /api/social/friends/:person                 | action : request, accept ou remove                                                         |
+| PUT           | /api/social/blocks/:person                  | blocked: boolean ; bloquer masque les messages et retire l’amitié                          |
+| POST          | /api/social/reports                         | type (person ou message), target, reason                                                   |
+
+Un nouveau message crée ou met à jour une notification par discussion chez les autres membres (`social-thread-<id>`) ; une demande d’ami crée `social-friend-<id>`. Lire la discussion marque sa notification comme lue. La suppression d’un compte le retire des communautés, des événements, des discussions et des relations.
 
 ## Persistance
 

@@ -184,9 +184,80 @@ const shapes: Record<string, { viewBox: string; body: ReactNode }> = {
   },
   check: { viewBox: "0 0 24 24", body: <path d="m4 12 5 5L20 6" /> },
   arrow: { viewBox: "0 0 24 24", body: <path d="M4 12h16m-6-6 6 6-6 6" /> },
+  download: {
+    viewBox: "0 0 24 24",
+    body: <path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5" />,
+  },
   "chevron-left": { viewBox: "0 0 24 24", body: <path d="m15 5-7 7 7 7" /> },
   "chevron-right": { viewBox: "0 0 24 24", body: <path d="m9 5 7 7-7 7" /> },
+  plus: { viewBox: "0 0 24 24", body: <path d="M12 5v14M5 12h14" /> },
+  search: {
+    viewBox: "0 0 24 24",
+    body: <path d="m21 21-5.2-5.2M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />,
+  },
+  user: {
+    viewBox: "0 0 24 24",
+    body: (
+      <>
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4 21a8 8 0 0 1 16 0" />
+      </>
+    ),
+  },
+  "group-add": {
+    viewBox: "0 0 24 24",
+    body: (
+      <>
+        <circle cx="9" cy="8" r="3.5" />
+        <path d="M2 20a7 7 0 0 1 12.5-4.3M19 13v7M15.5 16.5h7" />
+      </>
+    ),
+  },
   close: { viewBox: "0 0 24 24", body: <path d="m6 6 12 12M18 6 6 18" /> },
+  // Communautés
+  people: {
+    viewBox: "0 0 24 24",
+    body: (
+      <>
+        <circle cx="9" cy="7" r="4" />
+        <path d="M2 21v-2a7 7 0 0 1 14 0v2M16 3a4 4 0 0 1 0 8M22 21v-2a6 6 0 0 0-3-5" />
+      </>
+    ),
+  },
+  chat: {
+    viewBox: "0 0 24 24",
+    body: <path d="M21 11a9 9 0 0 1-9 9H3l1.6-4A9 9 0 1 1 21 11Z" />,
+  },
+  flag: {
+    viewBox: "0 0 24 24",
+    body: <path d="M5 22V3m0 1c4-4 10 4 15 0v11c-5 4-11-4-15 0" />,
+  },
+  block: {
+    viewBox: "0 0 24 24",
+    body: <path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM6 6l12 12" />,
+  },
+  friend: {
+    viewBox: "0 0 24 24",
+    body: (
+      <path d="M15 21H2v-2a6 6 0 0 1 12 0M12 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0M19 8v8m-4-4h8" />
+    ),
+  },
+  more: {
+    viewBox: "0 0 24 24",
+    body: <path d="M5 12h.01M12 12h.01M19 12h.01" />,
+  },
+  send: {
+    viewBox: "0 0 24 24",
+    body: <path d="m22 2-7 20-4-9L2 9 22 2ZM22 2 11 13" />,
+  },
+  image: {
+    viewBox: "0 0 24 24",
+    body: <path d="M3 3h18v18H3ZM3 16l5-5 5 5 3-3 5 5M7 7h.01" />,
+  },
+  "check-double": {
+    viewBox: "0 0 24 24",
+    body: <path d="m2 12 4 4L16 6m-5 8 3 3L24 7" />,
+  },
 };
 export default function Icon({ name }: { name: string }) {
   const icon = shapes[name] || shapes.paw;

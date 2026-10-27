@@ -1,6 +1,7 @@
 import type { Animal, PageProps } from "../../shared/types.ts";
 import AnimalRecordPage from "./AnimalRecordPage.tsx";
 import PageHeading from "../../shared/layout/PageHeading.tsx";
+import { AiImportButton } from "../documents/AiImport.tsx";
 import Icon from "../../shared/ui/Icon.tsx";
 import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
@@ -33,6 +34,9 @@ export default function AnimalsPage({
         description="Un carnet pour chacun de vos compagnons."
         actionLabel="Ajouter un animal"
         onAction={() => actions.add("animal")}
+        secondary={
+          <AiImportButton onClick={() => actions.openDialog("ai-import")} />
+        }
       />
       <div className="app-grid">
         <div className="app-left">

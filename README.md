@@ -1,6 +1,6 @@
 # Anivaya
 
-Application React et TypeScript reproduite à partir des douze maquettes : accueil public, connexion, inscription, réinitialisation du mot de passe, espace connecté, carnet, partage, profil, annuaire, notifications, contact et informations, et fiche d’urgence publique. API Node.js et bases SQLite locales.
+Application React et TypeScript reproduite à partir des treize maquettes : accueil public, connexion, inscription, réinitialisation du mot de passe, espace connecté, carnet, partage, profil, annuaire, notifications, communautés, contact et informations, et fiche d’urgence publique. API Node.js et bases SQLite locales.
 
 ## Démarrer
 
@@ -17,11 +17,11 @@ La commande démarre React sur http://127.0.0.1:5173 et l’API sur http://127.0
 
 ## Comptes
 
-Ouvrez [la connexion](http://127.0.0.1:5173/#connexion). Le bouton sous le formulaire affiche **test@gmail.com** / **Anivaya2026!** et remplit les champs en un clic. Ce compte conserve les données déjà présentes dans le projet.
+Ouvrez [la connexion](http://127.0.0.1:5173/#connexion). Trois comptes de démonstration y sont listés : **test@gmail.com**, **test2@gmail.com** et **test3@gmail.com**, tous avec le mot de passe **Anivaya2026!** ; « Utiliser ce compte » remplit les champs. Chacun a son propre espace d’exemple. Supprimer un compte de démonstration recrée son espace d’exemple au lieu de le faire disparaître.
 
 L’inscription crée un vrai compte avec un espace vide. Le mot de passe doit comporter 12 à 256 caractères ; il est haché avec scrypt et un sel aléatoire. La session est stockée côté serveur ; le navigateur reçoit un cookie HttpOnly et SameSite=Strict, valable au maximum 24 heures sans option de mémorisation.
 
-Chaque nouveau compte dispose d’une base dans `back/database/data/accounts/`. La base principale conserve les données du compte de démonstration, les comptes, les sessions et les jetons des fiches publiques. L’API choisit la base depuis la session, jamais depuis un identifiant de compte envoyé par le client. Les bases et les fichiers importés qu’elles contiennent sont exclus de Git.
+Chaque compte, y compris les comptes de démonstration, dispose d’une base dans `back/database/data/accounts/`. La base principale conserve les comptes, les sessions, les jetons des fiches publiques et les communautés, partagées entre comptes. L’ancien espace de démonstration, stocké dans la base principale, est copié une seule fois dans `accounts/demo.sqlite` au démarrage. L’API choisit la base depuis la session, jamais depuis un identifiant de compte envoyé par le client. Les bases et les fichiers importés qu’elles contiennent sont exclus de Git.
 
 La récupération de mot de passe par e-mail n’est pas configurée : le parcours de réinitialisation est simulé et ne modifie aucun mot de passe. Le formulaire de contact n’envoie ni ne conserve les messages. Les notifications, les invitations de partage et les paiements ne sont pas envoyés à un service externe. Les professionnels et leurs disponibilités sont fictifs ; les réservations sont enregistrées pour tester les parcours, sans engager un prestataire ni débiter une carte.
 
@@ -66,6 +66,9 @@ front-back/
 │   │   ├── emergency.ts           # Choix de visibilité et génération des QR
 │   │   ├── sharing.ts             # Contacts et partages
 │   │   ├── notifications.ts       # Notifications : liste, lu / non lu
+│   │   ├── received.ts            # Partages reçus : invitations, acceptation, refus
+│   │   ├── export.ts              # Export JSON des données du compte
+│   │   ├── social.ts              # Communautés, événements et messagerie partagés (base centrale)
 │   │   ├── validation.ts          # Erreurs API, validation des champs, dates, e-mails et fichiers
 │   │   └── server.ts              # Démarrage
 │   ├── database/
@@ -92,6 +95,10 @@ Côté API, chaque route est une ligne de `back/api/app.ts`, par exemple `api.pa
 
 - Accueil responsive, sections interactives et FAQ ; connexion, inscription et déconnexion réelles.
 - Profil : photo JPG/PNG/WebP jusqu’à 5 Mo, coordonnées, préférences de notification, accès au changement de mot de passe, confirmation avant de perdre les modifications.
+- Exportation de ses données en JSON, par catégorie (sans fichiers d’origine, mot de passe ni contenu d’autres propriétaires) ; suppression du compte confirmée par une case et la saisie de SUPPRIMER.
+- Partage avec moi : invitations reçues d’autres propriétaires (exemples sur les comptes de démonstration), acceptation ou refus, consultation en lecture seule des accès actifs, recherche et filtre par statut.
+- Communautés : communautés, événements et messagerie partagés entre tous les comptes (exemples communs aux comptes de démonstration, avec Claire et Samir, membres fictifs). Rejoindre ou quitter, créer et gérer ses communautés et événements, places limitées, discussions de groupe, messages privés et groupes privés, photos jointes (1 Mo), « Envoyé » / « Lu », amis, blocage et signalement. Chaque nouveau message ou demande d’ami crée une notification chez le destinataire.
+- Documents : téléchargement direct, et sur la page Documents sélection multiple pour partager, télécharger (archive ZIP) ou supprimer plusieurs documents.
 - Notifications : cloche avec le nombre de non lues dans la barre du haut, filtres Toutes / Non lues et par catégorie, lu / non lu, tout marquer comme lu. Enregistrées par compte, sans envoi externe.
 - Contact et informations : formulaire simulé, présentation du service et données, accessible sans compte ou depuis l’espace.
 - Annuaire : six professionnels fictifs, filtres et favoris privés. Réservation en trois étapes, créneaux, paiement accepté/refusé simulé, déplacement et annulation persistants.
@@ -126,7 +133,7 @@ Le typage strict couvre le frontend, le backend et les tests. Node exécute dire
 
 Les tests utilisent des bases temporaires isolées. Ils couvrent les données métier, les fichiers, les partages, les sessions, l’isolation de deux comptes, le profil, les conflits de réservation et la révocation des QR. Ils ne modifient pas la base de développement.
 
-Les migrations sont appliquées automatiquement et conservent les données existantes. `004_profile_directory.sql` ajoute le profil, l’annuaire, les favoris et les réservations ; `005_notifications.sql` ajoute les notifications. Le module natif `node:sqlite` émet un avertissement expérimental sur Node 22 : c’est attendu.
+Les migrations sont appliquées automatiquement et conservent les données existantes. `004_profile_directory.sql` ajoute le profil, l’annuaire, les favoris et les réservations ; `005_notifications.sql` ajoute les notifications ; `006_received_shares.sql` ajoute les partages reçus ; `007_social_notifications.sql` ajoute la catégorie de notification « social ». Les tables des communautés (`social_*`) sont créées dans la base centrale par `back/api/social.ts`. Le module natif `node:sqlite` émet un avertissement expérimental sur Node 22 : c’est attendu.
 
 ## Git et fichiers générés
 

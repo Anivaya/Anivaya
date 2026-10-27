@@ -100,10 +100,7 @@ export function AnimalDetails({
         <button className="button outline" onClick={() => onOpenRecord(pet)}>
           Carnet complet
         </button>
-        <button
-          className={`button ${saved?.settings.active ? "" : "outline"}`}
-          onClick={onClose}
-        >
+        <button className="button outline close-action" onClick={onClose}>
           Fermer
         </button>
       </div>
@@ -267,7 +264,7 @@ export function RecordAction({ kind, item, ...props }: DialogProps) {
         <h2 id="action-title">{item.type}</h2>
         <p>{fullDate(item.date!)}</p>
         <p>{item.note || "Aucune précision."}</p>
-        <button className="button" onClick={onClose}>
+        <button className="button outline close-action" onClick={onClose}>
           Fermer
         </button>
       </>

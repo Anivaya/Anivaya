@@ -95,7 +95,7 @@ export interface EmergencySheet {
   updatedAt?: string;
 }
 export type NotificationCategory =
-  "reminders" | "reservations" | "shares" | "documents" | "account";
+  "reminders" | "reservations" | "shares" | "documents" | "account" | "social";
 export interface Notification {
   id: string;
   category: NotificationCategory;
@@ -106,6 +106,38 @@ export interface Notification {
   action: string;
   date: string;
   read: boolean;
+}
+export type ReceivedShareState =
+  "pending" | "accepted" | "expired" | "revoked" | "declined";
+/** Informations confiées par un autre propriétaire, visibles une fois l’invitation acceptée. */
+export interface ReceivedAnimal {
+  name: string;
+  species: string;
+  breed: string;
+  sex: string;
+  identifier: string;
+  instructions: string;
+  contact: string;
+}
+export interface ReceivedDocument {
+  document: string;
+  description: string;
+  entries: string[];
+}
+export interface ReceivedShare {
+  id: string;
+  title: string;
+  kind: "animal" | "document";
+  animalName: string;
+  sender: string;
+  email: string;
+  permission: string;
+  until: string;
+  createdAt: string;
+  respondedAt: string | null;
+  state: ReceivedShareState;
+  /** Présent seulement quand l’accès est actif. */
+  content: ReceivedAnimal | ReceivedDocument | null;
 }
 export interface Household {
   firstName: string;
@@ -123,6 +155,7 @@ export interface Dashboard {
   shares: Share[];
   emergencySheets: EmergencySheet[];
   notifications: Notification[];
+  receivedShares: ReceivedShare[];
 }
 export interface UploadedFile {
   type: string;

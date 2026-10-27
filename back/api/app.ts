@@ -2,7 +2,10 @@ import { createServer } from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Database, Input } from "../database/types.ts";
 import type { Account, Authentication } from "./auth.ts";
-import { authentication, demoCredentials } from "./auth.ts";
+import { authentication, demoAccounts, DEMO_PASSWORD } from "./auth.ts";
+import { exportAccount } from "./export.ts";
+import { socialService } from "./social.ts";
+import type { SocialService } from "./social.ts";
 import { directoryRepository } from "./directory.ts";
 import { profileRepository } from "./profile.ts";
 import { createRepository } from "./repository.ts";
@@ -31,6 +34,8 @@ interface WorkspaceContext extends RequestContext {
   repository: ReturnType<typeof createRepository>;
   profile: ReturnType<typeof profileRepository>;
   directory: ReturnType<typeof directoryRepository>;
+  /** Communautés partagées entre comptes ; absentes sans authentification. */
+  social: SocialService | null;
 }
 type Handler<C> = (context: C) => unknown;
 interface Route<C> {
@@ -91,7 +96,13 @@ function requireAuth(auth: Authentication | null) {
 // Routes accessibles sans session.
 const open = router<RequestContext>();
 open.get("/api/health", () => ({ status: "ok" }));
-open.get("/api/auth/demo", () => demoCredentials);
+open.get("/api/auth/demo", () =>
+  demoAccounts.map(({ name, email }) => ({
+    name,
+    email,
+    password: DEMO_PASSWORD,
+  })),
+);
 open.post("/api/auth/login", async ({ auth, request, response, body }) =>
   requireAuth(auth).login(request, response, await body()),
 );
@@ -150,6 +161,159 @@ api.patch("/api/profile", async ({ auth, account, profile, body }) =>
 );
 api.get("/api/profile/photo", ({ profile }) => new FileReply(profile.photo()));
 
+api.delete(
+  "/api/account",
+  async ({ auth, account, social, response, body }) => {
+    const data = await body();
+    requireAuth(auth).deleteAccount(response, account!, data);
+    social?.removePerson(account!.id);
+  },
+);
+api.get("/api/export", (context) =>
+  exportAccount(
+    {
+      ...context,
+      socialExport: () =>
+        context.social && context.account
+          ? socialUser(context).social.exportFor(context.account.id)
+          : null,
+    },
+    context.query.get("categories"),
+  ),
+);
+
+/** Compte connecté dans les communautés, avec sa fiche (nom, ville, animaux) à jour. */
+function socialUser({
+  social,
+  account,
+  profile,
+  repository,
+}: WorkspaceContext) {
+  if (!social || !account)
+    throw new ApiError(404, "Cette route est introuvable.");
+  const { name, city } = profile.get();
+  social.ensurePerson(account.id, {
+    name,
+    city,
+    animal: repository
+      .allAnimals()
+      .map((a) => a.name)
+      .join(" et "),
+  });
+  return { social, me: account.id };
+}
+const bodyOf = (context: WorkspaceContext) => context.body();
+
+// Communautés, événements et messagerie.
+api.get("/api/social", (context) => {
+  const { social, me } = socialUser(context);
+  return social.view(me);
+});
+api.post(
+  "/api/social/communities",
+  async (context) => {
+    const { social, me } = socialUser(context);
+    return social.saveCommunity(me, null, await bodyOf(context));
+  },
+  201,
+);
+api.patch("/api/social/communities/:id", async (context) => {
+  const { social, me } = socialUser(context);
+  return social.saveCommunity(me, context.params[0], await bodyOf(context));
+});
+api.delete("/api/social/communities/:id", (context) => {
+  const { social, me } = socialUser(context);
+  social.deleteCommunity(me, context.params[0]);
+});
+api.post("/api/social/communities/:id/join", (context) => {
+  const { social, me } = socialUser(context);
+  social.joinCommunity(me, context.params[0], true);
+});
+api.post("/api/social/communities/:id/leave", (context) => {
+  const { social, me } = socialUser(context);
+  social.joinCommunity(me, context.params[0], false);
+});
+api.post(
+  "/api/social/events",
+  async (context) => {
+    const { social, me } = socialUser(context);
+    return social.saveEvent(me, null, await bodyOf(context));
+  },
+  201,
+);
+api.patch("/api/social/events/:id", async (context) => {
+  const { social, me } = socialUser(context);
+  return social.saveEvent(me, context.params[0], await bodyOf(context));
+});
+api.post("/api/social/events/:id/cancel", (context) => {
+  const { social, me } = socialUser(context);
+  social.cancelEvent(me, context.params[0]);
+});
+api.post("/api/social/events/:id/participation", async (context) => {
+  const { social, me } = socialUser(context);
+  social.attendEvent(me, context.params[0], (await bodyOf(context)).join);
+});
+api.post(
+  "/api/social/threads",
+  async (context) => {
+    const { social, me } = socialUser(context);
+    return social.createThread(me, await bodyOf(context));
+  },
+  201,
+);
+api.post("/api/social/threads/:id/members", async (context) => {
+  const { social, me } = socialUser(context);
+  social.invite(me, context.params[0], (await bodyOf(context)).people);
+});
+api.post("/api/social/threads/:id/leave", (context) => {
+  const { social, me } = socialUser(context);
+  social.leaveThread(me, context.params[0]);
+});
+api.post("/api/social/threads/:id/messages", async (context) => {
+  const { social, me } = socialUser(context);
+  social.sendMessage(me, context.params[0], await bodyOf(context));
+});
+api.delete("/api/social/threads/:id/messages/:message", (context) => {
+  const { social, me } = socialUser(context);
+  social.deleteMessage(me, context.params[0], context.params[1]);
+});
+api.patch("/api/social/threads/:id", async (context) => {
+  const { social, me } = socialUser(context);
+  social.updateThread(me, context.params[0], await bodyOf(context));
+});
+api.get("/api/social/threads/:id/photo", (context) => {
+  const { social, me } = socialUser(context);
+  return new FileReply(social.threadPhoto(me, context.params[0]));
+});
+api.post("/api/social/threads/:id/read", (context) => {
+  const { social, me } = socialUser(context);
+  social.markRead(me, context.params[0]);
+});
+api.get("/api/social/photos/:id", (context) => {
+  const { social, me } = socialUser(context);
+  return new FileReply(social.photo(me, context.params[0]));
+});
+api.put("/api/social/friends/:person", async (context) => {
+  const { social, me } = socialUser(context);
+  social.friend(
+    me,
+    decodeURIComponent(context.params[0]),
+    (await bodyOf(context)).action,
+  );
+});
+api.put("/api/social/blocks/:person", async (context) => {
+  const { social, me } = socialUser(context);
+  social.block(
+    me,
+    decodeURIComponent(context.params[0]),
+    (await bodyOf(context)).blocked,
+  );
+});
+api.post("/api/social/reports", async (context) => {
+  const { social, me } = socialUser(context);
+  social.report(me, await bodyOf(context));
+});
+
 api.get("/api/directory", ({ directory }) => directory.all());
 api.put(
   "/api/professionals/:id/favorite",
@@ -201,6 +365,9 @@ api.delete("/api/shares/:id", ({ repository, params }) => {
   repository.sharing.revoke(params[0]);
 });
 
+api.patch("/api/received-shares/:id", async ({ repository, params, body }) =>
+  repository.receivedShares.respond(params[0], (await body()).status),
+);
 api.patch("/api/notifications/:id", async ({ repository, params, body }) =>
   repository.notifications.setRead(params[0], (await body()).read),
 );
@@ -208,7 +375,10 @@ api.post("/api/notifications/read-all", ({ repository }) =>
   repository.notifications.readAll(),
 );
 
-api.get("/api/dashboard", async ({ repository }) => {
+api.get("/api/dashboard", async (context) => {
+  const { repository } = context;
+  // Les notifications des communautés d’exemple arrivent dès la première visite.
+  if (context.social) socialUser(context);
   await repository.emergency.upgradePublicLinks();
   return repository.dashboard();
 });
@@ -361,6 +531,12 @@ export function createApi(
     options.authentication === false
       ? null
       : authentication(db, options.userDatabaseDirectory);
+  const social =
+    auth &&
+    socialService(db, {
+      notify: auth.notify,
+      markRead: auth.markNotificationRead,
+    });
 
   /** Données de l’espace : la base vient de la session, jamais du client. */
   function workspace(request: IncomingMessage, account: Account | null) {
@@ -379,6 +555,7 @@ export function createApi(
       repository: createRepository(own, publicURL),
       profile: profileRepository(own),
       directory: directoryRepository(own),
+      social,
     };
   }
 

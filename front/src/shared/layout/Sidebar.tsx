@@ -5,10 +5,11 @@ import { initials } from "../utils/format.ts";
 const navigation = [
   ["espace", "home", "Vue d’ensemble"],
   ["annuaire", "medical", "Professionnels"],
+  ["rappels", "reminder", "Rappels"],
   ["animaux", "paw", "Mes animaux"],
   ["documents", "file", "Documents"],
-  ["rappels", "reminder", "Rappels"],
   ["partage", "share", "Partage"],
+  ["communautes", "people", "Communautés"],
 ];
 export default function Sidebar({
   page,

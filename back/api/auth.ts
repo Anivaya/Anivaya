@@ -7,11 +7,14 @@ import {
 } from "node:crypto";
 import { promisify } from "node:util";
 import { join, dirname } from "node:path";
+import { mkdirSync, rmSync } from "node:fs";
+import { DatabaseSync } from "node:sqlite";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Database, Input } from "../database/types.ts";
 import type { AuthUser } from "../../shared/account.ts";
 import { openDatabase, databasePath } from "../database/connection.ts";
 import { profileRepository } from "./profile.ts";
+import type { SocialNotice } from "./social.ts";
 import { ApiError, text, emailAddress } from "./validation.ts";
 
 const scrypt = promisify(derive);
@@ -25,9 +28,23 @@ export interface Account {
   password: string;
   workspace: string;
 }
+export const DEMO_PASSWORD = "Anivaya2026!";
+/** Comptes de démonstration : chacun a son propre espace d’exemple, recréé s’il est supprimé. */
+export const demoAccounts = [
+  { id: "demo", name: "test", email: "test@gmail.com" },
+  { id: "demo-2", name: "test2", email: "test2@gmail.com" },
+  { id: "demo-3", name: "test3", email: "test3@gmail.com" },
+] as const;
 export const demoCredentials = {
-  email: "test@gmail.com",
-  password: "Anivaya2026!",
+  email: demoAccounts[0].email,
+  password: DEMO_PASSWORD,
+};
+const isDemo = (account: Pick<Account, "id">) =>
+  demoAccounts.some((demo) => demo.id === account.id);
+const defaultNotifications = {
+  reminders: true,
+  reservations: true,
+  shares: true,
 };
 async function hash(password: string, salt = randomBytes(16).toString("hex")) {
   const key = (await scrypt(password, salt, 64)) as Buffer;
@@ -50,29 +67,78 @@ export function authentication(db: Database, directory?: string) {
   const root = directory || join(dirname(databasePath()), "accounts");
   const connections = new Map<string, Database>();
   const attempts = new Map<string, { count: number; until: number }>();
-  const ready = (async () => {
-    if (!db.prepare("SELECT id FROM accounts WHERE workspace='legacy'").get()) {
-      const password = await hash(demoCredentials.password);
-      db.prepare("INSERT OR IGNORE INTO accounts VALUES (?,?,?,?)").run(
-        "demo",
-        demoCredentials.email,
-        password,
-        "legacy",
-      );
-      db.prepare("UPDATE user_profile SET email=? WHERE id=1 AND email=''").run(
-        demoCredentials.email,
-      );
-    }
-  })();
+  const workspacePath = (name: string) => join(root, name + ".sqlite");
   function workspace(account: Account) {
-    if (account.workspace === "legacy") return db;
     let own = connections.get(account.id);
     if (!own) {
-      own = openDatabase(join(root, account.workspace + ".sqlite"), false);
+      own = openDatabase(workspacePath(account.workspace), isDemo(account));
       connections.set(account.id, own);
     }
     return own;
   }
+  /** Ferme et efface la base d’un espace. */
+  function dropWorkspace(account: Account) {
+    connections.get(account.id)?.close();
+    connections.delete(account.id);
+    for (const suffix of ["", "-wal", "-shm"])
+      rmSync(workspacePath(account.workspace) + suffix, { force: true });
+  }
+  /** Crée l’espace d’exemple d’un compte de démonstration avec son identité. */
+  function prepareDemoWorkspace(account: Account) {
+    const demo = demoAccounts.find((d) => d.id === account.id)!;
+    const profile = profileRepository(workspace(account));
+    profile.save({
+      // Le premier compte garde le foyer d’exemple (Camille Martin).
+      name: demo.id === "demo" ? profile.get().name : demo.name,
+      email: demo.email,
+      phone: "",
+      city: "",
+      notifications: defaultNotifications,
+    });
+  }
+  /**
+   * L’ancien compte de démonstration utilisait la base centrale : son espace est copié
+   * une fois dans sa propre base, sans les tables de comptes et de sessions.
+   */
+  function moveLegacyWorkspace(account: Account) {
+    const target = workspacePath(account.id);
+    mkdirSync(root, { recursive: true });
+    rmSync(target, { force: true });
+    db.exec(`VACUUM INTO '${target.replaceAll("'", "''")}'`);
+    const copy = new DatabaseSync(target);
+    copy.exec(
+      "DROP TABLE IF EXISTS sessions; DROP TABLE IF EXISTS public_sheets; DROP TABLE IF EXISTS accounts;",
+    );
+    copy.close();
+    db.prepare("UPDATE accounts SET workspace=? WHERE id=?").run(
+      account.id,
+      account.id,
+    );
+  }
+  const ready = (async () => {
+    for (const demo of demoAccounts) {
+      const existing = db
+        .prepare("SELECT * FROM accounts WHERE id=? OR email=?")
+        .get<Account>(demo.id, demo.email);
+      if (existing?.workspace === "legacy") moveLegacyWorkspace(existing);
+      // Une adresse de démonstration déjà prise par un compte personnel le reste.
+      if (existing) continue;
+      const account = {
+        id: demo.id,
+        email: demo.email,
+        password: await hash(DEMO_PASSWORD),
+        workspace: demo.id,
+      };
+      dropWorkspace(account);
+      prepareDemoWorkspace(account);
+      db.prepare("INSERT INTO accounts VALUES (?,?,?,?)").run(
+        account.id,
+        account.email,
+        account.password,
+        account.workspace,
+      );
+    }
+  })();
   function token(req: IncomingMessage) {
     return (
       req.headers.cookie
@@ -97,6 +163,7 @@ export function authentication(db: Database, directory?: string) {
   function user(account: Account): AuthUser {
     return {
       id: account.id,
+      demo: isDemo(account),
       profile: profileRepository(workspace(account)).get(),
     };
   }
@@ -128,6 +195,12 @@ export function authentication(db: Database, directory?: string) {
     res.setHeader(
       "Set-Cookie",
       `${SESSION_COOKIE}=${value}; HttpOnly; SameSite=Strict; Path=/api${remember ? `; Max-Age=${age}` : ""}${process.env.NODE_ENV === "production" ? "; Secure" : ""}`,
+    );
+  }
+  function clearCookie(res: ServerResponse) {
+    res.setHeader(
+      "Set-Cookie",
+      `${SESSION_COOKIE}=; HttpOnly; SameSite=Strict; Path=/api; Max-Age=0`,
     );
   }
   function rate(req: IncomingMessage) {
@@ -199,7 +272,7 @@ export function authentication(db: Database, directory?: string) {
         email,
         phone: "",
         city: "",
-        notifications: { reminders: true, reservations: true, shares: true },
+        notifications: defaultNotifications,
       });
       db.prepare("INSERT INTO accounts VALUES (?,?,?,?)").run(
         id,
@@ -212,19 +285,34 @@ export function authentication(db: Database, directory?: string) {
     },
     logout(req: IncomingMessage, res: ServerResponse) {
       db.prepare("DELETE FROM sessions WHERE token=?").run(digest(token(req)));
-      res.setHeader(
-        "Set-Cookie",
-        `${SESSION_COOKIE}=; HttpOnly; SameSite=Strict; Path=/api; Max-Age=0`,
-      );
+      clearCookie(res);
+    },
+    /**
+     * Supprime le compte et ses données, puis ferme toutes ses sessions.
+     * Un compte de démonstration retrouve un espace d’exemple neuf.
+     */
+    deleteAccount(res: ServerResponse, account: Account, data: Input) {
+      if (data.confirmation !== "SUPPRIMER")
+        throw new ApiError(
+          400,
+          "Saisissez SUPPRIMER pour confirmer.",
+          "confirmation",
+        );
+      dropWorkspace(account);
+      db.prepare("DELETE FROM public_sheets WHERE account=?").run(account.id);
+      db.prepare("DELETE FROM sessions WHERE account=?").run(account.id);
+      if (isDemo(account)) prepareDemoWorkspace(account);
+      else db.prepare("DELETE FROM accounts WHERE id=?").run(account.id);
+      clearCookie(res);
     },
     saveProfile(account: Account, data: Input) {
       const email = emailAddress(data.email);
       assertEmailAvailable(email, account.id);
-      // The public demo login stays usable with the advertised credentials.
-      if (account.workspace === "legacy" && email !== demoCredentials.email)
+      // Les comptes de démonstration gardent les identifiants affichés à la connexion.
+      if (isDemo(account) && email !== account.email)
         throw new ApiError(
           400,
-          "L’adresse du compte de démonstration reste test@gmail.com. Créez votre compte pour utiliser votre adresse.",
+          `L’adresse du compte de démonstration reste ${account.email}. Créez votre compte pour utiliser votre adresse.`,
           "email",
         );
       const p = profileRepository(workspace(account)).save(data);
@@ -233,6 +321,34 @@ export function authentication(db: Database, directory?: string) {
         account.id,
       );
       return p;
+    },
+    /** Dépose ou met à jour une notification « Communautés » dans l’espace d’un compte. */
+    notify(person: string, notice: SocialNotice) {
+      const account = db
+        .prepare("SELECT * FROM accounts WHERE id=?")
+        .get<Account>(person);
+      if (!account) return;
+      workspace(account)
+        .prepare(
+          "INSERT INTO notifications(id,category,title,text,href,action,created_at,read) VALUES (?,'social',?,?,?,?,?,0) ON CONFLICT(id) DO UPDATE SET title=excluded.title,text=excluded.text,href=excluded.href,action=excluded.action,created_at=excluded.created_at,read=0",
+        )
+        .run(
+          notice.id,
+          notice.title,
+          notice.text,
+          notice.href,
+          notice.action,
+          notice.date,
+        );
+    },
+    markNotificationRead(person: string, notification: string) {
+      const account = db
+        .prepare("SELECT * FROM accounts WHERE id=?")
+        .get<Account>(person);
+      if (account)
+        workspace(account)
+          .prepare("UPDATE notifications SET read=1 WHERE id=?")
+          .run(notification);
     },
     publicToken(account: Account, animal: string) {
       let row = db

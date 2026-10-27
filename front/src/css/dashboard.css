@@ -995,3 +995,94 @@
     margin-left: -6px;
   }
 }
+/* Page Documents : sélection et actions groupées. */
+.document-batch {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin: 12px 0;
+  padding: 8px 12px;
+}
+.document-batch label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+.document-batch input,
+.document-select {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: var(--blue);
+}
+.document-batch-actions {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.document-batch-actions button {
+  display: grid;
+  place-items: center;
+  width: 31px;
+  min-height: 36px;
+  padding: 6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--blue);
+  cursor: pointer;
+}
+.document-batch-actions button:hover:not(:disabled) {
+  background: var(--pale);
+}
+.document-batch-actions button:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+.document-batch-actions button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.document-row.selectable {
+  grid-template-columns: 18px 42px minmax(0, 1fr) auto;
+}
+/* La case reste cliquable au-dessus de la zone qui ouvre le document. */
+.document-select {
+  position: relative;
+  z-index: 2;
+}
+.batch-doc-list {
+  font-size: 14px;
+  line-height: 1.7;
+  padding-left: 20px;
+  max-height: 220px;
+  overflow: auto;
+}
+.batch-unavailable {
+  border: 1px solid #efdbb2;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin: 16px 0;
+  background: #fff8e8;
+  font-size: 13px;
+}
+.batch-unavailable ul {
+  padding-left: 18px;
+  margin: 8px 0;
+}
+.batch-unavailable p {
+  margin: 0;
+  color: var(--muted);
+}
+@media (max-width: 1100px) and (min-width: 851px), (max-width: 420px) {
+  .document-row.selectable {
+    grid-template-columns: 18px 42px minmax(0, 1fr);
+  }
+  .document-row.selectable .doc-actions {
+    grid-column: 3;
+  }
+}

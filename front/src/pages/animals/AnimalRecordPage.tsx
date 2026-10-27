@@ -18,6 +18,7 @@ import {
 } from "../../shared/utils/format.ts";
 import EmergencySheet, { QrDialog } from "./components/EmergencySheet.tsx";
 import { PeopleList } from "../sharing/SharingPage.tsx";
+import { AiImportButton } from "../documents/AiImport.tsx";
 
 const tabs: Record<string, string> = {
   apercu: "Vue d’ensemble",
@@ -261,6 +262,10 @@ export default function AnimalRecordPage({
             >
               Modifier le profil
             </button>
+            <AiImportButton
+              icon={false}
+              onClick={() => open("ai-import", {})}
+            />
             <button
               className="button danger"
               onClick={() =>
@@ -485,12 +490,18 @@ export default function AnimalRecordPage({
                   Partager et gérer les accès →
                 </a>
               </>,
-              <button
-                className="button"
-                onClick={() => actions.add("document", id)}
-              >
-                Ajouter un document
-              </button>,
+              <div className="heading-actions">
+                <AiImportButton
+                  icon={false}
+                  onClick={() => open("ai-import", {})}
+                />
+                <button
+                  className="button"
+                  onClick={() => actions.add("document", id)}
+                >
+                  Ajouter un document
+                </button>
+              </div>,
             )}
           {active === "rappels" &&
             panel(

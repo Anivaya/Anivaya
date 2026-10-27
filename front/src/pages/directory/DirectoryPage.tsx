@@ -598,7 +598,7 @@ export default function DirectoryPage({
             ) : (
               <>
                 <button
-                  className="button outline back"
+                  className="button outline back close-action"
                   onClick={() => setDetail(null)}
                 >
                   Fermer

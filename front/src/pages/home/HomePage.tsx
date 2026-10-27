@@ -1,7 +1,14 @@
 import PublicHeader from "../../shared/layout/PublicHeader.tsx";
 import { useState } from "react";
 import type { KeyboardEvent } from "react";
-export default function HomePage() {
+export default function HomePage({
+  accountDeleted = false,
+  onDismiss,
+}: {
+  /** Affiche la confirmation après la suppression du compte. */
+  accountDeleted?: boolean;
+  onDismiss?: () => void;
+}) {
   const [situation, setSituation] = useState("appointment");
   function changeTab(event: KeyboardEvent<HTMLButtonElement>) {
     const tabs = ["appointment", "away", "daily"];
@@ -32,6 +39,25 @@ export default function HomePage() {
       </a>
       <PublicHeader />
       <main id="contenu">
+        {accountDeleted && (
+          <section className="account-deleted-notice" role="status">
+            <div>
+              <strong>Votre compte a été supprimé.</strong>
+              <p>
+                Vos données ont été effacées et votre session est fermée. Les
+                comptes de démonstration retrouvent leur espace d’exemple à la
+                prochaine connexion.
+              </p>
+            </div>
+            <button
+              type="button"
+              aria-label="Fermer ce message"
+              onClick={onDismiss}
+            >
+              ×
+            </button>
+          </section>
+        )}
         <section className="hero wrap" aria-labelledby="titre">
           <div className="hero-copy">
             <h1 id="titre">

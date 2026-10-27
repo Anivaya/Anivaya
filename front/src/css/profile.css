@@ -525,3 +525,103 @@
 .profile-page .security-note {
   margin: 14px 0 0;
 }
+/* Exportation et suppression du compte */
+.profile-page .account-danger {
+  border-color: #edc4cb;
+}
+.profile-page .account-danger h2 {
+  color: #a52b38;
+}
+.profile-page .account-danger > p {
+  font-size: 14px;
+}
+.profile-page .delete-consent {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 24px 0;
+}
+.profile-page .delete-consent input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--blue);
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.profile-page #delete-word {
+  width: 100%;
+  font: inherit;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.profile-page .dialog-actions .button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.profile-page .export-choice {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 20px 0;
+  border-top: 1px solid var(--border);
+  cursor: pointer;
+}
+.profile-page .export-choice input {
+  width: 19px;
+  height: 19px;
+  accent-color: var(--blue);
+  margin-top: 3px;
+  flex: 0 0 19px;
+}
+.profile-page .export-choice strong {
+  display: block;
+  font-size: 15px;
+}
+.profile-page .export-choice small {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+  margin-top: 5px;
+}
+.profile-page .export-choice input:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+}
+.profile-page .export-notes {
+  padding-left: 20px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.8;
+}
+.profile-page .export-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 30px;
+}
+.profile-page .export-actions .button {
+  min-width: 0;
+  max-width: 48%;
+  white-space: normal;
+}
+.profile-page .export-actions #export-all {
+  margin-left: auto;
+}
+.profile-page .settings-tabs {
+  flex-wrap: wrap;
+  gap: 24px;
+}
+@media (max-width: 500px) {
+  .profile-page .export-actions {
+    gap: 10px;
+  }
+  .profile-page .export-actions .button {
+    font-size: 12px;
+    padding: 10px;
+  }
+}

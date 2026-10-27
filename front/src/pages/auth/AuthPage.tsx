@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
-import type { AuthUser } from "../../../../shared/account.ts";
+import type { AuthUser, DemoAccount } from "../../../../shared/account.ts";
 import { errorMessage, errorField } from "../../shared/types.ts";
 import type { FormError } from "../../shared/types.ts";
 import { api } from "../../shared/services/api.ts";
@@ -22,15 +22,13 @@ export default function AuthPage({
     [visible, setVisible] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState<FormError | null>(null),
-    [demo, setDemo] = useState<{ email: string; password: string } | null>(
-      null,
-    );
+    [demoAccounts, setDemoAccounts] = useState<DemoAccount[]>([]);
   useEffect(() => {
     let active = true;
     api
       .demo()
-      .then((d) => {
-        if (active) setDemo(d);
+      .then((accounts) => {
+        if (active) setDemoAccounts(accounts);
       })
       .catch(() => {});
     return () => {
@@ -180,33 +178,57 @@ export default function AuthPage({
           {register ? "Se connecter" : "Créer mon compte"}
         </a>
       </p>
-      <div className="demo-note">
-        <p>
-          <strong>Essayer avec le compte de démonstration.</strong> Ses données
-          sont fictives. Votre compte personnel possède son propre espace.
-        </p>
-        {demo && (
-          <button
-            type="button"
-            className="demo-credentials"
-            onClick={() => {
-              setError(null);
-              setForm({
-                name: "Camille Martin",
-                email: demo.email,
-                password: demo.password,
-                confirmPassword: demo.password,
-              });
-              if (register) window.location.hash = "connexion";
-              else document.getElementById("auth-email")?.focus();
-            }}
-          >
-            <span>{demo.email}</span>
-            <span>{demo.password}</span>
-            <small>Cliquer pour remplir les champs</small>
-          </button>
-        )}
-      </div>
+      {demoAccounts.length > 0 && (
+        <section
+          className="demo-accounts"
+          aria-labelledby="demo-accounts-title"
+        >
+          <h2 id="demo-accounts-title">Comptes de démonstration</h2>
+          <p>
+            Choisissez un compte pour explorer les fonctionnalités. Chacun
+            dispose de son propre espace d’exemple.
+          </p>
+          <ul>
+            {demoAccounts.map((account, index) => (
+              <li className="demo-account" key={account.email}>
+                <div>
+                  <strong>
+                    Compte {index + 1} · {account.name}
+                  </strong>
+                  <span>
+                    Identifiant : <b>{account.email}</b>
+                  </span>
+                  <span>
+                    Mot de passe : <code>{account.password}</code>
+                  </span>
+                </div>
+                <button
+                  className="text-button"
+                  type="button"
+                  aria-label={`Utiliser le compte ${account.name}`}
+                  onClick={() => {
+                    setError(null);
+                    setForm({
+                      name: account.name,
+                      email: account.email,
+                      password: account.password,
+                      confirmPassword: account.password,
+                    });
+                    if (register) window.location.hash = "connexion";
+                    else document.getElementById("auth-email")?.focus();
+                  }}
+                >
+                  Utiliser ce compte
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className="demo-disclaimer">
+            Leurs données sont fictives. Votre compte personnel possède son
+            propre espace.
+          </p>
+        </section>
+      )}
     </AuthLayout>
   );
 }

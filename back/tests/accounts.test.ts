@@ -7,7 +7,7 @@ import { join } from "node:path";
 import type { AddressInfo } from "node:net";
 import { openDatabase } from "../database/connection.ts";
 import { createApi } from "../api/app.ts";
-import { demoCredentials } from "../api/auth.ts";
+import { demoAccounts, demoCredentials } from "../api/auth.ts";
 import type {
   AuthUser,
   DirectoryData,
@@ -19,6 +19,8 @@ import type {
   Dashboard,
   EmergencySheet,
   Document,
+  ReceivedShare,
+  ReceivedAnimal,
 } from "../../shared/models.ts";
 
 test("Comptes réels : sessions, isolation, profil, annuaire, réservations et QR public", async (t) => {
@@ -78,7 +80,14 @@ test("Comptes réels : sessions, isolation, profil, annuaire, réservations et Q
     async () => {
       assert.equal((await request("/dashboard")).status, 401);
       assert.equal(await json("/auth/session"), null);
-      assert.deepEqual(await json("/auth/demo"), demoCredentials);
+      assert.deepEqual(
+        await json("/auth/demo"),
+        demoAccounts.map(({ name, email }) => ({
+          name,
+          email,
+          password: demoCredentials.password,
+        })),
+      );
       assert.equal(
         (
           await request("/auth/login", "POST", {
@@ -520,6 +529,141 @@ test("Comptes réels : sessions, isolation, profil, annuaire, réservations et Q
         401,
       );
       assert.equal(await json("/auth/session", "GET", undefined, alice), null);
+    },
+  );
+  await t.test(
+    "comptes de démonstration isolés, partages reçus, export et suppression",
+    async () => {
+      const login = async (email: string, password: string) => {
+        const response = await request("/auth/login", "POST", {
+          email,
+          password,
+        });
+        assert.equal(response.status, 200);
+        return response.headers.get("set-cookie")!.split(";")[0];
+      };
+      // test2 a son propre espace d’exemple, distinct de celui de test.
+      let second = await login(demoAccounts[1].email, demoCredentials.password);
+      const user = await json<AuthUser>(
+        "/auth/session",
+        "GET",
+        undefined,
+        second,
+      );
+      assert.equal(user.profile.name, "test2");
+      assert.equal(user.profile.email, "test2@gmail.com");
+      let d = await json<Dashboard>("/dashboard", "GET", undefined, second);
+      assert.equal(d.animals.length, 2);
+      assert.equal(d.receivedShares.length, 6);
+      assert.deepEqual(d.receivedShares.map((s) => s.state).sort(), [
+        "accepted",
+        "declined",
+        "expired",
+        "pending",
+        "pending",
+        "revoked",
+      ]);
+      // Le contenu n’est transmis qu’une fois l’accès actif.
+      assert.ok(
+        d.receivedShares.every((s) => (s.state === "accepted") === !!s.content),
+      );
+      const accepted = await json<ReceivedShare>(
+        "/received-shares/received-trusted",
+        "PATCH",
+        { status: "accepted" },
+        second,
+      );
+      assert.equal(accepted.state, "accepted");
+      assert.equal((accepted.content as ReceivedAnimal).name, "Luna");
+      for (const [id, status, code] of [
+        ["received-trusted", "declined", 409],
+        ["received-document", "maybe", 400],
+        ["absent", "accepted", 404],
+      ] as const)
+        assert.equal(
+          (await request("/received-shares/" + id, "PATCH", { status }, second))
+            .status,
+          code,
+        );
+      await json(
+        "/animals",
+        "POST",
+        { name: "Temporaire", species: "Chat" },
+        second,
+        201,
+      );
+      // Supprimer un compte de démonstration recrée son espace d’exemple.
+      assert.equal(
+        (await request("/account", "DELETE", { confirmation: "oui" }, second))
+          .status,
+        400,
+      );
+      assert.equal(
+        (
+          await request(
+            "/account",
+            "DELETE",
+            { confirmation: "SUPPRIMER" },
+            second,
+          )
+        ).status,
+        204,
+      );
+      assert.equal(
+        (await request("/dashboard", "GET", undefined, second)).status,
+        401,
+      );
+      second = await login(demoAccounts[1].email, demoCredentials.password);
+      d = await json<Dashboard>("/dashboard", "GET", undefined, second);
+      assert.equal(d.animals.length, 2);
+      assert.equal(
+        d.receivedShares.filter((s) => s.state === "pending").length,
+        2,
+      );
+
+      // Export : seulement les catégories demandées, sans fichiers ni contenu tiers.
+      const exported = await json<{
+        categories: string[];
+        originalFilesIncluded: boolean;
+        data: { profile?: Profile; animals?: unknown };
+      }>("/export?categories=profile,sharing", "GET", undefined, bob);
+      assert.deepEqual(exported.categories, ["profile", "sharing"]);
+      assert.equal(exported.data.profile!.email, "bob@example.test");
+      assert.equal(exported.data.animals, undefined);
+      assert.equal(exported.originalFilesIncluded, false);
+      assert.equal(
+        (await request("/export?categories=photos", "GET", undefined, bob))
+          .status,
+        400,
+      );
+
+      // Un compte personnel supprimé disparaît avec son espace.
+      assert.equal(
+        (
+          await request(
+            "/account",
+            "DELETE",
+            { confirmation: "SUPPRIMER" },
+            bob,
+          )
+        ).status,
+        204,
+      );
+      assert.equal(
+        (
+          await request("/auth/login", "POST", {
+            email: "bob@example.test",
+            password: "  Mon mot de passe 2026!  ",
+          })
+        ).status,
+        401,
+      );
+      assert.equal(
+        db
+          .prepare("SELECT id FROM accounts WHERE email=?")
+          .get("bob@example.test"),
+        undefined,
+      );
     },
   );
 });
