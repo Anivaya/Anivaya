@@ -214,6 +214,7 @@ const shapes: Record<string, { viewBox: string; body: ReactNode }> = {
     ),
   },
   close: { viewBox: "0 0 24 24", body: <path d="m6 6 12 12M18 6 6 18" /> },
+  menu: { viewBox: "0 0 24 24", body: <path d="M4 6h16M4 12h16M4 18h16" /> },
   // Communautés
   people: {
     viewBox: "0 0 24 24",

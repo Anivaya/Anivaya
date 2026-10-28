@@ -274,12 +274,3 @@
     font-size: 11px;
   }
 }
-
-@media (max-width: 620px) {
-  .workspace .side-nav {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-  .side-nav a {
-    font-size: 11px;
-  }
-}

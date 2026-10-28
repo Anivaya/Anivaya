@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import type { AuthUser, DemoAccount } from "../../../../shared/account.ts";
 import { errorMessage, errorField } from "../../shared/types.ts";
@@ -7,12 +7,66 @@ import { api } from "../../shared/services/api.ts";
 import PublicHeader from "../../shared/layout/PublicHeader.tsx";
 import Icon from "../../shared/ui/Icon.tsx";
 export default function AuthPage({
-  register,
+  register: requestedRegister,
   onAuthenticated,
 }: {
   register: boolean;
   onAuthenticated: (user: AuthUser) => void;
 }) {
+  const [register, setRegister] = useState(requestedRegister);
+  const previousMode = useRef(register);
+  const card = useRef<HTMLElement>(null);
+  const [opening] = useState(!requestedRegister);
+  const switching = register !== requestedRegister;
+  useLayoutEffect(() => {
+    const element = card.current;
+    if (!element) return;
+    const motion = matchMedia(
+      "(min-width:1024px) and (prefers-reduced-motion:no-preference)",
+    );
+    let cancelled = false;
+    let animation: Animation | undefined;
+    const direction = requestedRegister ? -1 : 1;
+    if (switching) {
+      const commit = () => {
+        if (!cancelled) setRegister(requestedRegister);
+      };
+      if (motion.matches) {
+        animation = element.animate(
+          [
+            { transform: "rotateY(0deg)", opacity: 1 },
+            { transform: `rotateY(${direction * 90}deg)`, opacity: 0.3 },
+          ],
+          {
+            duration: 250,
+            easing: "cubic-bezier(.4,0,.2,1)",
+            fill: "forwards",
+          },
+        );
+        void animation.finished.then(commit).catch(() => {});
+      } else commit();
+    } else if (previousMode.current !== register) {
+      if (motion.matches)
+        animation = element.animate(
+          [
+            { transform: `rotateY(${-direction * 90}deg)`, opacity: 0.3 },
+            { transform: "rotateY(0deg)", opacity: 1 },
+          ],
+          { duration: 250, easing: "cubic-bezier(.4,0,.2,1)" },
+        );
+      element
+        .querySelector<HTMLElement>('.auth-tabs [aria-current="page"]')
+        ?.focus({ preventScroll: true });
+    }
+    previousMode.current = register;
+    const finish = () => animation?.finish();
+    motion.addEventListener("change", finish);
+    return () => {
+      cancelled = true;
+      animation?.cancel();
+      motion.removeEventListener("change", finish);
+    };
+  }, [register, requestedRegister, switching]);
   const [form, setForm] = useState({
       name: "",
       email: "",
@@ -37,7 +91,7 @@ export default function AuthPage({
   }, []);
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (busy) return;
+    if (busy || switching) return;
     setError(null);
     setBusy(true);
     try {
@@ -63,7 +117,7 @@ export default function AuthPage({
     confirmPassword: "Confirmer le mot de passe",
   };
   return (
-    <AuthLayout>
+    <AuthLayout cardRef={card} opening={opening} switching={switching}>
       <nav className="auth-tabs" aria-label="Accéder à mon espace">
         <a
           href="#connexion"
@@ -234,9 +288,19 @@ export default function AuthPage({
 }
 
 /** Mise en page des pages de compte : en-tête public, logo en deux moitiés et carte centrale. */
-export function AuthLayout({ children }: { children: ReactNode }) {
+export function AuthLayout({
+  children,
+  cardRef,
+  opening = false,
+  switching = false,
+}: {
+  children: ReactNode;
+  cardRef?: React.RefObject<HTMLElement | null>;
+  opening?: boolean;
+  switching?: boolean;
+}) {
   return (
-    <div className="auth-page">
+    <div className={`auth-page${opening ? " auth-opening" : ""}`}>
       <a
         className="skip"
         href="#auth-content"
@@ -262,7 +326,12 @@ export function AuthLayout({ children }: { children: ReactNode }) {
           aria-hidden="true"
         />
         <main className="auth-layout" id="auth-content" tabIndex={-1}>
-          <section className="auth-card" aria-labelledby="auth-title">
+          <section
+            className="auth-card"
+            aria-labelledby="auth-title"
+            ref={cardRef}
+            inert={switching}
+          >
             {children}
           </section>
         </main>

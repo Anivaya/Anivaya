@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { AuthUser, Profile } from "../../shared/account.ts";
 import type {
   Actions,
@@ -16,7 +16,7 @@ import type {
 import { errorMessage } from "./shared/types.ts";
 import { api } from "./shared/services/api.ts";
 import { useDashboard } from "./shared/hooks.ts";
-import Sidebar, { AccountMenu } from "./shared/layout/Sidebar.tsx";
+import Sidebar, { AccountMenu, SIDEBAR_ID } from "./shared/layout/Sidebar.tsx";
 import Modal from "./shared/ui/Modal.tsx";
 import HomePage from "./pages/home/HomePage.tsx";
 import AuthPage from "./pages/auth/AuthPage.tsx";
@@ -121,14 +121,6 @@ export default function App() {
   }, []);
   const [page, ...params] = route.split("/");
   const homeSection = page === "accueil" ? params[0] : undefined;
-  useEffect(() => {
-    if (homeSection)
-      requestAnimationFrame(() =>
-        document
-          .getElementById(homeSection)
-          ?.scrollIntoView({ behavior: "smooth" }),
-      );
-  }, [homeSection]);
   const authenticated = (value: AuthUser) => {
     sessionVersion.current++;
     setLoading(false);
@@ -156,6 +148,7 @@ export default function App() {
   if (page === "accueil")
     return (
       <HomePage
+        section={homeSection}
         accountDeleted={deletedNotice}
         onDismiss={() => setDeletedNotice(false)}
       />
@@ -226,6 +219,8 @@ function Workspace({
   onAccountDeleted: () => void;
 }) {
   const [modal, setModal] = useState<DialogState | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
   const [notice, setNotice] = useState("");
   const [pending, setPending] = useState<string | null>(null);
   const { data, loading, error, reload } = useDashboard();
@@ -290,11 +285,35 @@ function Workspace({
       >
         Aller au contenu
       </a>
-      <div className={`workspace ${page !== "espace" ? "section-mode" : ""}`}>
-        <Sidebar page={page} profile={user.profile} onLogout={onLogout} />
+      <div className={`workspace ${page !== "espace" ? "section-mode" : ""} ${page === "documents" ? "documents-mode" : ""}`}>
+        <Sidebar
+          page={page}
+          profile={user.profile}
+          onLogout={onLogout}
+          open={menuOpen}
+          onClose={closeMenu}
+        />
         <div className="app-main">
           <header className="app-top">
-            <strong>Mon espace</strong>
+            {/* Sur mobile : bouton menu et logo à la place du fil d’Ariane. */}
+            <button
+              type="button"
+              className="menu-toggle"
+              aria-label="Ouvrir le menu de navigation"
+              aria-expanded={menuOpen}
+              aria-controls={SIDEBAR_ID}
+              onClick={() => setMenuOpen(true)}
+            >
+              <Icon name="menu" />
+            </button>
+            <a
+              className="top-brand"
+              href="#espace"
+              aria-label="Anivaya — Vue d’ensemble"
+            >
+              <img src="/images/logo.png" alt="" width="52" height="46" />
+            </a>
+            <strong className="top-title">Mon espace</strong>
             <small>/ {title}</small>
             <a
               href="#notifications"

@@ -1,4 +1,8 @@
-export default function PublicHeader() {
+export default function PublicHeader({
+  activeSection,
+}: {
+  activeSection?: string;
+}) {
   const links = [
     ["accueil", "Accueil"],
     ["accueil/quotidien", "Le quotidien"],
@@ -13,7 +17,15 @@ export default function PublicHeader() {
       </a>
       <nav aria-label="Navigation principale">
         {links.map(([href, label]) => (
-          <a key={href} href={"#" + href}>
+          <a
+            key={href}
+            href={"#" + href}
+            aria-current={
+              activeSection === (href.split("/")[1] || "accueil")
+                ? "location"
+                : undefined
+            }
+          >
             {label}
           </a>
         ))}

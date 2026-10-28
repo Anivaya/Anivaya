@@ -596,3 +596,47 @@
   gap: 22px;
   padding: 12px 0;
 }
+/* Connexion : ouverture du logo, puis retournement du formulaire vers l’inscription. */
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  .auth-page .auth-layout {
+    perspective: 1600px;
+  }
+  .auth-page .auth-card {
+    backface-visibility: hidden;
+    transform-origin: 50% 50%;
+  }
+  .auth-opening .brand-half.dog {
+    animation: auth-dog-open 1000ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+  .auth-opening .brand-half.cat {
+    animation: auth-cat-open 1000ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+  .auth-opening .auth-card {
+    animation: auth-card-reveal 1000ms ease both;
+  }
+}
+@keyframes auth-dog-open {
+  from {
+    transform: translateX(calc(241.5px + var(--art-width) * 36.5 / 1513));
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes auth-cat-open {
+  from {
+    transform: translateX(calc(-241.5px + var(--art-width) * 36.5 / 1513));
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes auth-card-reveal {
+  0%,
+  12% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}

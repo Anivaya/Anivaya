@@ -632,49 +632,46 @@
   .workspace {
     display: block;
   }
+  /* Navigation : panneau latéral ouvert par le bouton menu de l’en-tête. */
   .sidebar {
-    position: static;
-    height: auto;
-    padding: 12px 5%;
-    border-right: 0;
-    border-bottom: 1px solid var(--border);
+    position: fixed;
+    z-index: 60;
+    inset: 0 auto 0 0;
+    width: min(280px, 84vw);
+    height: 100dvh;
+    overflow-y: auto;
+    box-shadow: 0 0 40px #132e5c30;
+    transform: translateX(-105%);
+    visibility: hidden;
+    transition:
+      transform 0.25s ease,
+      visibility 0s 0.25s;
   }
-  .app-brand {
-    padding: 0 0 12px;
+  .sidebar.open {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.25s ease;
   }
-  .app-brand img {
-    width: 64px;
-    height: 55px;
-  }
-  .app-brand:after {
-    content: "Mon espace";
-    font-size: 13px;
-    color: var(--muted);
-    margin-left: auto;
-  }
-  .side-nav {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 4px;
-  }
-  .side-nav a {
-    flex-direction: column;
-    gap: 6px;
-    padding: 10px 2px;
-    font-size: 10px;
-    min-height: 62px;
-  }
-  .side-nav svg {
-    width: 20px;
-    height: 20px;
+  .sidebar-backdrop {
+    position: fixed;
+    z-index: 55;
+    inset: 0;
+    background: #132e5c55;
   }
   .side-bottom {
     display: none;
   }
   .app-top {
-    padding: 13px 5%;
-    min-height: 50px;
+    padding: 10px 5%;
+    min-height: 60px;
   }
+  .app-top .menu-toggle {
+    display: grid;
+  }
+  .app-top .top-brand {
+    display: flex;
+  }
+  .app-top .top-title,
   .app-top small {
     display: none;
   }
@@ -1085,4 +1082,36 @@
   .document-row.selectable .doc-actions {
     grid-column: 3;
   }
+}
+/* Bouton menu et logo de l’en-tête : affichés seulement sur mobile. */
+.menu-toggle {
+  display: none;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--navy);
+}
+.menu-toggle:hover {
+  background: var(--pale);
+}
+.menu-toggle svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.top-brand {
+  display: none;
+  align-items: center;
+}
+.top-brand img {
+  width: 52px;
+  height: 46px;
+  object-fit: contain;
 }

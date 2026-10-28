@@ -11,7 +11,103 @@ const navigation = [
   ["partage", "share", "Partage"],
   ["communautes", "people", "Communautés"],
 ];
+export const SIDEBAR_ID = "main-sidebar";
+
+/**
+ * Barre latérale. Sur mobile, elle devient un panneau ouvert par le bouton menu de
+ * l’en-tête (`open`), refermé par un lien, Échap ou un clic à côté.
+ */
 export default function Sidebar({
+  page,
+  profile,
+  onLogout,
+  open = false,
+  onClose,
+}: {
+  page: string;
+  profile: Profile;
+  onLogout: () => Promise<void>;
+  open?: boolean;
+  onClose: () => void;
+}) {
+  const panel = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const narrow = matchMedia("(max-width:620px)");
+    if (!narrow.matches) {
+      onClose();
+      return;
+    }
+    const trigger = document.activeElement;
+    const main =
+      panel.current?.parentElement?.querySelector<HTMLElement>(".app-main");
+    const wasInert = main?.inert ?? false;
+    const overflow = document.body.style.overflow;
+    if (main) main.inert = true;
+    document.body.style.overflow = "hidden";
+    panel.current?.querySelector<HTMLElement>("a")?.focus();
+    function key(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      }
+      if (e.key === "Tab") {
+        const items = Array.from(
+          panel.current?.querySelectorAll<HTMLElement>(
+            'a[href],button:not(:disabled),[tabindex="0"]',
+          ) || [],
+        ).filter((el) => el.getClientRects().length);
+        const first = items[0],
+          last = items.at(-1);
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }
+    }
+    const resized = () => {
+      if (!narrow.matches) onClose();
+    };
+    narrow.addEventListener("change", resized);
+    window.addEventListener("hashchange", onClose);
+    document.addEventListener("keydown", key);
+    return () => {
+      if (main) main.inert = wasInert;
+      document.body.style.overflow = overflow;
+      narrow.removeEventListener("change", resized);
+      window.removeEventListener("hashchange", onClose);
+      document.removeEventListener("keydown", key);
+      if (trigger instanceof HTMLElement && trigger.isConnected)
+        trigger.focus();
+    };
+  }, [open, onClose]);
+  return (
+    <>
+      {open && (
+        <div
+          className="sidebar-backdrop"
+          aria-hidden="true"
+          onClick={onClose}
+        />
+      )}
+      <aside
+        className={"sidebar" + (open ? " open" : "")}
+        id={SIDEBAR_ID}
+        ref={panel}
+        onClick={(e) => {
+          if (e.target instanceof Element && e.target.closest("a")) onClose();
+        }}
+      >
+        <SidebarContent page={page} profile={profile} onLogout={onLogout} />
+      </aside>
+    </>
+  );
+}
+
+function SidebarContent({
   page,
   profile,
   onLogout,
@@ -21,7 +117,7 @@ export default function Sidebar({
   onLogout: () => Promise<void>;
 }) {
   return (
-    <aside className="sidebar">
+    <>
       <a
         className="app-brand"
         href="#espace"
@@ -48,7 +144,7 @@ export default function Sidebar({
       <div className="side-bottom">
         <AccountMenu profile={profile} onLogout={onLogout} />
       </div>
-    </aside>
+    </>
   );
 }
 
