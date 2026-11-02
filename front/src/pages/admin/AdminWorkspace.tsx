@@ -307,7 +307,18 @@ export default function AdminWorkspace({
                     <Tabs
                       animated
                       label={config.title}
-                      tabs={tabs}
+                      // Les retours et imports en attente sont comptés sur leur onglet.
+                      tabs={tabs.map(([key, label]) => {
+                        const waiting = overview.attention.find(
+                          (a) => a.resource === key,
+                        )?.count;
+                        return [
+                          key,
+                          ["feedback", "imports"].includes(key) && waiting
+                            ? `${label} (${waiting})`
+                            : label,
+                        ] as const;
+                      })}
                       active={tab}
                       onChange={(next) => {
                         window.location.hash = `admin/${page}/${next}`;

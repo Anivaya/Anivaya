@@ -98,6 +98,8 @@ export interface AdminRecord {
   level?: ProLevel;
   /** Comptes : visibilité des fiches publiques (Visible ou Masqué). */
   visibility?: string;
+  /** Comptes : Particulier ou Professionnel. */
+  accountType?: string;
   /** Signalements : cible, décisions possibles et compte sanctionnable. */
   targetName?: string;
   targetStatus?: string;

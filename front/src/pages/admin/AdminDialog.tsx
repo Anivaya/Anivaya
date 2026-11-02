@@ -38,6 +38,7 @@ export function RecordBody({
       <dl>
         {[
           ["E-mail", row.email],
+          ["Type de compte", row.accountType],
           ["Rôle", row.role],
           ["Catégorie", row.category],
           ["Ville", row.city],
@@ -327,6 +328,11 @@ export default function AdminDialog({
           <>
             {field("name", "Nom affiché", row?.name)}
             {field("email", "Adresse e-mail", row?.email)}
+            {resource === "users" &&
+              field("accountType", "Type de compte", row?.accountType, [
+                "Particulier",
+                "Professionnel",
+              ])}
             <p className="admin-note">
               L’adresse sert à la connexion. Les comptes de démonstration
               conservent leur adresse d’origine. Les droits d’administration se

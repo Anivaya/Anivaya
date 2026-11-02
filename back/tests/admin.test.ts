@@ -469,8 +469,11 @@ test("Administration : rôles, dossiers réels, publication, modération, concur
         undefined,
         admin.cookie,
       );
-      assert.equal(actual.available, false);
       assert.equal(actual.source, "installation");
+      // Les comptes de démonstration forment déjà des foyers mesurables.
+      assert.equal(actual.available, true);
+      assert.ok(actual.channels.includes("Démonstration"));
+      assert.ok(actual.cohorts.reduce((n, c) => n + c.households, 0) >= 4);
       const demo = await json<AdminAnalytics>(
         "/admin/analytics?source=maquette",
         "GET",

@@ -152,12 +152,14 @@ export function actionsFor(
       ? [{ id: "decide", label: "Répondre au recours" }]
       : [];
   if (resource === "alerts")
-    return [
-      {
-        id: row.read ? "unread" : "read",
-        label: row.read ? "Marquer comme non lue" : "Marquer comme lue",
-      },
-    ];
+    return row.status === "Résolue"
+      ? []
+      : [
+          {
+            id: row.read ? "unread" : "read",
+            label: row.read ? "Marquer comme non lue" : "Marquer comme lue",
+          },
+        ];
   if (resource === "tickets" || resource === "feedback")
     return [
       {

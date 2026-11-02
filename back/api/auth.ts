@@ -33,6 +33,8 @@ export interface Account {
   email: string;
   password: string;
   workspace: string;
+  /** Date d’inscription ; les comptes antérieurs au suivi portent la date de sa mise en place. */
+  created_at?: string;
 }
 export const DEMO_PASSWORD = "Anivaya2026!";
 /** Comptes de démonstration : chacun a son propre espace d’exemple, recréé s’il est supprimé. */
@@ -85,6 +87,29 @@ export function authentication(db: Database, directory?: string) {
     db.exec(
       "ALTER TABLE account_controls ADD COLUMN public_visibility TEXT NOT NULL DEFAULT 'Visible'",
     );
+  if (
+    !db
+      .prepare("PRAGMA table_info(account_controls)")
+      .all<{ name: string }>()
+      .some((c) => c.name === "account_type")
+  )
+    db.exec(
+      "ALTER TABLE account_controls ADD COLUMN account_type TEXT NOT NULL DEFAULT 'Particulier'",
+    );
+  // Date d’inscription, pour les cohortes du pilotage ; les comptes antérieurs datent de la mise en place.
+  if (
+    !db
+      .prepare("PRAGMA table_info(accounts)")
+      .all<{ name: string }>()
+      .some((c) => c.name === "created_at")
+  ) {
+    db.exec(
+      "ALTER TABLE accounts ADD COLUMN created_at TEXT NOT NULL DEFAULT ''",
+    );
+    db.prepare("UPDATE accounts SET created_at=? WHERE created_at=''").run(
+      new Date().toISOString(),
+    );
+  }
   const root = directory || join(dirname(databasePath()), "accounts");
   const mfa = mfaService(db, join(root, "mfa.key"));
   /** Branchements de l’administration : alertes de sécurité et invitations acceptées. */
@@ -172,11 +197,14 @@ export function authentication(db: Database, directory?: string) {
       };
       dropWorkspace(account);
       prepareDemoWorkspace(account);
-      db.prepare("INSERT INTO accounts VALUES (?,?,?,?)").run(
+      db.prepare(
+        "INSERT INTO accounts(id,email,password,workspace,created_at) VALUES (?,?,?,?,?)",
+      ).run(
         account.id,
         account.email,
         account.password,
         account.workspace,
+        new Date().toISOString(),
       );
     }
     if (db.prepare("SELECT id FROM accounts WHERE id=?").get(DEMO_ADMIN.id))
@@ -385,12 +413,9 @@ export function authentication(db: Database, directory?: string) {
         city: "",
         notifications: defaultNotifications,
       });
-      db.prepare("INSERT INTO accounts VALUES (?,?,?,?)").run(
-        id,
-        email,
-        encoded,
-        id,
-      );
+      db.prepare(
+        "INSERT INTO accounts(id,email,password,workspace,created_at) VALUES (?,?,?,?,?)",
+      ).run(id, email, encoded, id, new Date().toISOString());
       hooks.login?.(account);
       session(req, res, account);
       return user(account);
@@ -441,6 +466,11 @@ export function authentication(db: Database, directory?: string) {
       return account;
     },
     publicVisibility,
+    isDemo,
+    /** Tous les comptes, pour les indicateurs de l’installation. */
+    accounts() {
+      return db.prepare("SELECT * FROM accounts").all<Account>();
+    },
     saveProfile(account: Account, data: Input) {
       const email = emailAddress(data.email);
       assertEmailAvailable(email, account.id);

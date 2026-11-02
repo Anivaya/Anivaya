@@ -26,3 +26,6 @@ Thumbs.db
 back/database/data/
 *.sqlite-wal
 *.sqlite-shm
+
+# Fichier de recette volumineux, régénéré par docs/recette/generer-fichiers.cjs
+docs/recette/fichiers/trop-volumineux.pdf

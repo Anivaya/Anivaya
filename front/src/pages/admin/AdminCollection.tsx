@@ -406,7 +406,7 @@ export default function AdminCollection({
                   <th scope="col">
                     {(
                       {
-                        users: "Rôle",
+                        users: "Type de compte",
                         team: "Rôle",
                         pros: "Spécialité / ville",
                         tickets: "Attribution",
@@ -471,17 +471,27 @@ export default function AdminCollection({
                                   ? row.email || "Compte supprimé"
                                   : resource === "security"
                                     ? row.kind
-                                    : row.role ||
-                                      row.category ||
-                                      row.audience ||
-                                      row.reference ||
-                                      row.priority ||
-                                      "—"}
+                                    : resource === "users"
+                                      ? row.accountType
+                                      : row.role ||
+                                        row.category ||
+                                        row.audience ||
+                                        row.reference ||
+                                        row.priority ||
+                                        "—"}
                         {row.city && <small>{row.city}</small>}
                         {resource === "tickets" && (
                           <small>{row.category}</small>
                         )}
                         {resource === "imports" && <small>{row.kind}</small>}
+                        {resource === "users" &&
+                          row.role &&
+                          row.role !== "Particulier" && (
+                            <small>Équipe : {row.role}</small>
+                          )}
+                        {resource === "alerts" && row.issue && (
+                          <small>État du dossier : {row.issue}</small>
+                        )}
                         {resource === "pros" && row.level && (
                           <small>{row.level}</small>
                         )}

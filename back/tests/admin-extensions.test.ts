@@ -418,6 +418,62 @@ test("Administration : invitations, suppressions, fiches publiques, imports, sé
   });
 
   await t.test(
+    "les notifications gardent les dossiers réglés et le type de compte se modifie",
+    async () => {
+      const resolved = (
+        await list("alerts", "?status=R%C3%A9solue&pageSize=50")
+      ).items;
+      assert.ok(
+        resolved.some(
+          (a) => a.resource === "deletions" && a.issue === "Traitée",
+        ),
+        "la demande de suppression traitée reste visible comme résolue",
+      );
+      assert.ok(resolved.every((a) => a.read));
+      const user = (await list("users", "?q=staying%40example.test")).items[0];
+      assert.equal(user.accountType, "Particulier");
+      const changed = await act("users", user, "edit", {
+        name: user.name,
+        email: user.email,
+        accountType: "Professionnel",
+      });
+      assert.equal(changed.accountType, "Professionnel");
+      await act(
+        "users",
+        changed,
+        "edit",
+        { name: user.name, email: user.email, accountType: "Autre" },
+        400,
+      );
+    },
+  );
+
+  await t.test("le pilotage lit l’activité réelle des carnets", async () => {
+    const pet = (
+      await json<Animal[]>("/animals", "GET", undefined, regular.cookie)
+    )[0];
+    await json(
+      "/reminders",
+      "POST",
+      { name: "Vermifuge", animal: pet.id, date: "2099-01-01" },
+      regular.cookie,
+      201,
+    );
+    const data = await json<{
+      available: boolean;
+      active: { count: number; total: number };
+      zones: string[];
+    }>("/admin/analytics", "GET", undefined, admin.cookie);
+    assert.equal(data.available, true);
+    assert.ok(data.active.total >= 1);
+    assert.ok(
+      data.active.count >= 1,
+      "l’animal avec un rappel à venir est suivi",
+    );
+    assert.ok(data.zones.length >= 1);
+  });
+
+  await t.test(
     "la diffusion d’une annonce compte ses destinataires",
     async () => {
       const draft = await json<AdminRecord>(

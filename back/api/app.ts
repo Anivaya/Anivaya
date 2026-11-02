@@ -449,7 +449,8 @@ api.get("/api/admin/overview", ({ admin, account }) =>
 api.get("/api/admin/analytics", ({ admin, account, query }) => {
   if (requireAdmin(admin).authorize(account!) !== "Administrateur")
     throw new ApiError(403, "Le pilotage est réservé à l’administrateur.");
-  return analytics(query);
+  // Les foyers réels ne sont lus que pour la source « installation ».
+  return analytics(query, () => requireAdmin(admin).households());
 });
 api.get(
   "/api/admin/pros/:id/documents/:document/file",

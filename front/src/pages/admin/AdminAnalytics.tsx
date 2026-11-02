@@ -88,9 +88,11 @@ export default function AdminAnalytics() {
           <p role="status">Chargement des indicateurs…</p>
         ) : (
           <p className="admin-analytics-description">
-            {data.available
-              ? `Photographie au ${new Date(data.asOf).toLocaleDateString("fr-FR")}. Les chiffres ci-dessous proviennent d’un jeu d’exemples, indépendant des comptes du tableau de bord.`
-              : "Les interactions historiques ne sont pas encore collectées. Ouvrez « Démonstration locale » pour consulter les exemples de la maquette."}
+            {!data.available
+              ? "Aucun foyer n’est encore inscrit. Ouvrez « Démonstration locale » pour consulter les exemples de la maquette."
+              : source === "maquette"
+                ? `Photographie au ${new Date(data.asOf).toLocaleDateString("fr-FR")}. Les chiffres ci-dessous proviennent d’un jeu d’exemples, indépendant des comptes du tableau de bord.`
+                : `Photographie au ${new Date(data.asOf).toLocaleDateString("fr-FR")} des comptes de cette installation. L’activité est mesurée depuis la mise en place du suivi : les carnets plus anciens comptent à partir de cette date.`}
           </p>
         )}
         <div className="admin-toolbar admin-metric-filters">

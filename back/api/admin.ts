@@ -23,6 +23,8 @@ import {
   documentFile,
 } from "./validation.ts";
 import { directoryRepository } from "./directory.ts";
+import { profileRepository } from "./profile.ts";
+import type { Household } from "./admin-analytics.ts";
 
 interface Row {
   id: string;
@@ -870,7 +872,7 @@ export function adminService(db: Database, auth: Authentication) {
   function accountRows(team = false): AdminRecord[] {
     return db
       .prepare(
-        `SELECT a.id,a.email,COALESCE(c.status,'Actif') AS status,COALESCE(c.version,1) AS version,COALESCE(c.public_visibility,'Visible') AS visibility,m.role,m.status AS memberStatus,m.version AS memberVersion,m.created_at AS createdAt FROM accounts a LEFT JOIN account_controls c ON c.account=a.id LEFT JOIN admin_members m ON m.account=a.id ${team ? "WHERE m.account IS NOT NULL" : ""}`,
+        `SELECT a.id,a.email,COALESCE(c.status,'Actif') AS status,COALESCE(c.version,1) AS version,COALESCE(c.public_visibility,'Visible') AS visibility,COALESCE(c.account_type,'Particulier') AS accountType,m.role,m.status AS memberStatus,m.version AS memberVersion,COALESCE(m.created_at,a.created_at,'') AS createdAt FROM accounts a LEFT JOIN account_controls c ON c.account=a.id LEFT JOIN admin_members m ON m.account=a.id ${team ? "WHERE m.account IS NOT NULL" : ""}`,
       )
       .all<{
         id: string;
@@ -878,6 +880,7 @@ export function adminService(db: Database, auth: Authentication) {
         status: string;
         version: number;
         visibility: string;
+        accountType: string;
         role: string | null;
         memberStatus: string;
         memberVersion: number;
@@ -892,6 +895,7 @@ export function adminService(db: Database, auth: Authentication) {
         role: row.role || "Particulier",
         status: team ? row.memberStatus : row.status,
         visibility: row.visibility,
+        accountType: row.accountType,
         version: team ? row.memberVersion : row.version,
         createdAt: row.createdAt || "",
         updatedAt: "",
@@ -997,7 +1001,7 @@ export function adminService(db: Database, auth: Authentication) {
         total: filtered.length,
         page,
         pageSize,
-        statuses: ["Lue", "Non lue"],
+        statuses: ["Non lue", "Lue", "Résolue"],
       };
     }
     const term = `%${q.replaceAll("\\", "\\\\").replaceAll("%", "\\%").replaceAll("_", "\\_")}%`;
@@ -1046,24 +1050,84 @@ export function adminService(db: Database, auth: Authentication) {
         .all<{ alert: string }>(account.id)
         .map((r) => r.alert),
     );
+    // Journal : les dossiers réglés depuis moins de 30 jours restent visibles, marqués « Résolue ».
+    const horizon = new Date(Date.now() - 30 * 86400000).toISOString();
     return visible
       .flatMap((resource) =>
         db
-          .prepare(`SELECT ${projection} FROM admin_records WHERE resource=?`)
-          .all<Row>(resource)
+          .prepare(
+            `SELECT ${projection} FROM admin_records WHERE resource=? AND (updated_at>=? OR status IN (${pendingStatuses[resource]!.map(() => "?").join(",")}))`,
+          )
+          .all<Row>(resource, horizon, ...pendingStatuses[resource]!)
           .map(unpack)
-          .filter((row) => pendingStatuses[resource]!.includes(row.status))
-          .map((row) => ({
-            ...row,
-            resource,
-            target: row.id,
-            targetType: resource,
-            category: labels[resource],
-            read: read.has(row.id),
-            status: read.has(row.id) ? "Lue" : "Non lue",
-          })),
+          // Un dossier réglé n’est journalisé que s’il a réellement été traité.
+          .filter(
+            (row) =>
+              pendingStatuses[resource]!.includes(row.status) ||
+              row.history?.length ||
+              row.firstResponseAt,
+          )
+          .map((row) => {
+            const pending = pendingStatuses[resource]!.includes(row.status);
+            return {
+              ...row,
+              resource,
+              target: row.id,
+              targetType: resource,
+              category: labels[resource],
+              issue: row.status,
+              read: !pending || read.has(row.id),
+              status: !pending
+                ? "Résolue"
+                : read.has(row.id)
+                  ? "Lue"
+                  : "Non lue",
+            };
+          }),
       )
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  }
+  /** Foyers réels de l’installation pour le pilotage : dates, zone et activité par animal. */
+  function households(): Household[] {
+    const today = now().slice(0, 10);
+    return auth.accounts().map((account) => {
+      const own = auth.workspace(account);
+      const profile = profileRepository(own).get();
+      const animals = own
+        .prepare("SELECT id FROM animals WHERE deleted_at IS NULL")
+        .all<{ id: string }>()
+        .map(({ id }) => {
+          const activity = own
+            .prepare("SELECT kind,at FROM activity WHERE animal=? ORDER BY at")
+            .all<{ kind: string; at: string }>(id);
+          const complete = own
+            .prepare(
+              "SELECT breed<>'' AND dob<>'' AND identifier<>'' AS done FROM animal_profiles WHERE animal=?",
+            )
+            .get<{ done: number }>(id)?.done;
+          const reminder = activity.find((a) => a.kind === "reminder-created");
+          return {
+            profileCompleteAt: complete
+              ? (activity.find((a) => a.kind === "profile")?.at ??
+                activity[0]?.at ??
+                null)
+              : null,
+            reminderCreatedAt: reminder?.at ?? "",
+            scheduledReminder: !!own
+              .prepare(
+                "SELECT id FROM reminders WHERE animal=? AND done=0 AND deleted_at IS NULL AND date>=? LIMIT 1",
+              )
+              .get(id, today),
+            interactions: activity.map((a) => a.at),
+          };
+        });
+      return {
+        createdAt: account.created_at || now(),
+        zone: profile.city.trim() || "Non renseignée",
+        channel: auth.isDemo(account) ? "Démonstration" : "Direct",
+        animals,
+      };
+    });
   }
   function detail(
     account: Account,
@@ -1487,11 +1551,16 @@ export function adminService(db: Database, auth: Authentication) {
             name: text(data.name, "name", 120),
             email: emailAddress(data.email),
           });
-          if (kind === "users")
+          if (kind === "users") {
+            const accountType = pick(
+              data.accountType ?? row.accountType,
+              ["Particulier", "Professionnel"],
+              "accountType",
+            );
             db.prepare(
-              "INSERT INTO account_controls(account,status,version) VALUES (?,?,2) ON CONFLICT(account) DO UPDATE SET version=account_controls.version+1",
-            ).run(id, row.status);
-          else
+              "INSERT INTO account_controls(account,status,version,account_type) VALUES (?,?,2,?) ON CONFLICT(account) DO UPDATE SET version=account_controls.version+1,account_type=excluded.account_type",
+            ).run(id, row.status, accountType);
+          } else
             db.prepare(
               "UPDATE admin_members SET version=version+1 WHERE account=?",
             ).run(id);
@@ -2260,6 +2329,7 @@ export function adminService(db: Database, auth: Authentication) {
     directory,
     requireAvailableProfessional,
     feedback,
+    households,
   };
 }
 export type AdminService = ReturnType<typeof adminService>;
