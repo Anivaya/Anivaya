@@ -148,10 +148,14 @@ export default function BookingDialog({
               >
                 {p.services.map((s, i) => (
                   <option key={s.name} value={i}>
-                    {s.name} — {s.duration} min · {money(s.price)}
+                    {s.name} · {money(s.price)}
                   </option>
                 ))}
               </select>
+              {/* La durée sort de la liste pour qu’elle reste lisible sur mobile. */}
+              <p className="field-help">
+                Durée : {p.services[form.service]?.duration} min
+              </p>
             </div>
             <div className="field">
               <label htmlFor="animal">Pour quel animal ?</label>

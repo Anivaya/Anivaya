@@ -64,7 +64,7 @@ dialog.ai-import {
   flex-shrink: 0;
 }
 .ai-eyebrow {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 1px;
   color: var(--muted);
   margin: 0 0 8px;
@@ -241,7 +241,7 @@ dialog.ai-import {
 }
 .ai-paper small {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 1px;
 }
 .ai-paper dt {
@@ -368,5 +368,49 @@ dialog.ai-import {
   }
   .heading-actions {
     justify-content: flex-start;
+  }
+}
+/*
+ * Zone de dépôt : le champ fichier natif est masqué (il reste accessible au clavier) ;
+ * l’étiquette sert de bouton. Mobile : Annuler et Continuer empilés en pleine largeur.
+ */
+.ai-upload {
+  position: relative;
+}
+.ai-upload input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.ai-file-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 1px solid var(--blue);
+  border-radius: 9px;
+  background: white;
+  font-weight: 700;
+}
+.ai-upload:focus-within .ai-file-label {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+}
+@media (max-width: 620px) {
+  .ai-actions .button {
+    flex: 1 1 100%;
+  }
+  /* Boutons du titre de page (Importer avec l’IA, Ajouter…) empilés, même largeur. */
+  .heading-actions {
+    display: grid;
+    justify-content: stretch;
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .heading-actions .button {
+    margin-top: 0;
   }
 }

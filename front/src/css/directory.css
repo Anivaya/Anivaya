@@ -77,8 +77,8 @@
 }
 .directory-page svg,
 .directory-dialog svg {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.7;
@@ -248,18 +248,26 @@
   border: 1px solid var(--border);
   padding: 0;
 }
-.directory-page .icon-button:hover,
-.directory-dialog .icon-button:hover {
-  background: var(--pale);
+/*
+ * Favori : rose quand il est activé. Le survol ne change que la bordure, et seulement
+ * avec une souris : sur mobile, l’icône redevient blanche dès qu’on retire le favori.
+ */
+@media (hover: hover) {
+  .directory-page .icon-button:hover,
+  .directory-dialog .icon-button:hover {
+    border-color: var(--blue);
+  }
 }
 .directory-page .icon-button[aria-pressed="true"],
 .directory-dialog .icon-button[aria-pressed="true"] {
-  color: var(--blue);
-  background: var(--pale);
+  color: #d6336c;
+  background: #fff0f5;
+  border-color: #f5c2d6;
 }
 .directory-page .icon-button[aria-pressed="true"] svg,
 .directory-dialog .icon-button[aria-pressed="true"] svg {
-  fill: #dbe7fc;
+  color: #d6336c;
+  fill: #f7a8c4;
 }
 .directory-page .intro-note,
 .directory-dialog .intro-note {
@@ -651,7 +659,7 @@
   align-items: center;
   gap: 15px;
   margin-bottom: 18px;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.8px;
   color: var(--muted);
 }
@@ -1214,3 +1222,17 @@
 }
 
 /* Menu du compte, commun aux pages connectées. */
+/* Mobile : un filtre par ligne, pour que « Tous les métiers » et « Toutes les villes » ne soient pas coupés. */
+@media (max-width: 620px) {
+  .directory-page .filters,
+  .directory-dialog .filters {
+    grid-template-columns: 1fr;
+  }
+  .directory-page .welcome > .button {
+    max-width: none;
+  }
+  .directory-page .favorite-filter input {
+    width: 24px;
+    height: 24px;
+  }
+}

@@ -911,7 +911,7 @@
   }
   .public-site .footer-bottom {
     display: block;
-    font-size: 10px;
+    font-size: 11px;
   }
   .public-site .footer-bottom span {
     display: block;
@@ -1149,7 +1149,7 @@
     font-size: 11px;
   }
   .public-site .hero-copy > .hero-demo-note {
-    font-size: 10px;
+    font-size: 11px;
     margin-top: 12px;
   }
   .public-site .moment-tabs {
@@ -1201,7 +1201,7 @@
 }
 @media (max-width: 380px) {
   .public-site .moment-tabs button {
-    font-size: 10px;
+    font-size: 11px;
     padding: 10px 8px;
   }
   .public-site .moments .life-photo img {
@@ -2068,5 +2068,15 @@
   }
   .home-page .situation-panel:not([hidden]) {
     animation: none;
+  }
+}
+/* Mobile : la colonne de points recouvrait le contenu ; les situations restent sur une ligne. */
+@media (max-width: 620px) {
+  .home-dot-nav {
+    display: none;
+  }
+  .moment-tabs button {
+    font-size: 12px;
+    white-space: nowrap;
   }
 }

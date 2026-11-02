@@ -48,8 +48,8 @@
   min-height: 47px;
 }
 .side-nav svg {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   color: inherit;
 }
 .side-nav a:hover {
@@ -302,7 +302,7 @@
   line-height: 1.1;
 }
 .date-tile small {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
 }
 .reminder-text {
@@ -711,7 +711,7 @@
     display: none;
   }
   .app-top .demo-label {
-    font-size: 10px;
+    font-size: 11px;
   }
   .app-content {
     padding: 26px 5%;
@@ -980,7 +980,7 @@
   border-radius: 12px;
   background: var(--blue);
   color: white;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
   display: grid;
   place-items: center;
@@ -1140,4 +1140,17 @@
   stroke: currentColor;
   stroke-width: 2;
   stroke-linecap: round;
+}
+/* Mobile : boutons des titres de page en pleine largeur, cases à cocher plus faciles à toucher. */
+@media (max-width: 620px) {
+  .welcome .button,
+  .heading-actions .button {
+    width: 100%;
+  }
+  .done-label input,
+  .document-batch input,
+  .document-select {
+    width: 24px;
+    height: 24px;
+  }
 }

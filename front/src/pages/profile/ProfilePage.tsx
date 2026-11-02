@@ -314,7 +314,7 @@ export default function ProfilePage({
                 passe.
               </p>
               <a className="button outline" href="#reinitialisation/profil">
-                Demander un changement de mot de passe
+                Changer mon mot de passe
               </a>
               <p className="field-help security-note">
                 L’envoi d’e-mails n’est pas encore configuré : cette demande est

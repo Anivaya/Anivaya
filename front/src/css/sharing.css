@@ -470,3 +470,16 @@ dialog.sharing-modal select:focus-visible,
     grid-row: 2;
   }
 }
+/* Mobile : « Associer aux animaux » et « Ajouter une personne » centrés sous le titre. */
+@media (max-width: 620px) {
+  .sharing-heading {
+    justify-content: center;
+  }
+  .sharing-heading h2 {
+    width: 100%;
+  }
+  .sharing-heading .row-buttons {
+    justify-content: center;
+    margin-left: 0;
+  }
+}

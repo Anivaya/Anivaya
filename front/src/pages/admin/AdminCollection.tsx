@@ -177,6 +177,7 @@ export default function AdminCollection({
         pros: "Établissement",
         announcements: "Annonce",
         library: "Contenu",
+        alerts: "Notification",
       } as Partial<Record<AdminResource, string>>
     )[resource] || "Élément";
   function sortHeading(label: string, key: string) {

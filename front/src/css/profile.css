@@ -593,3 +593,16 @@
     padding: 10px;
   }
 }
+/* Mobile : boutons d’enregistrement empilés en pleine largeur, sur une seule ligne. */
+@media (max-width: 620px) {
+  .profile-page .profile-save .button {
+    flex: 1 1 100%;
+  }
+}
+/* Mobile : « Supprimer mon compte » centré. */
+@media (max-width: 620px) {
+  .profile-page .account-danger > .button {
+    display: flex;
+    margin-inline: auto;
+  }
+}

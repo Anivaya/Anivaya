@@ -188,7 +188,7 @@
   background: var(--warm);
   border-radius: 5px;
   padding: 5px 9px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
 }
 .record-page .actions {
@@ -493,7 +493,7 @@
   margin-bottom: 20px;
 }
 .record-page .modal-top span {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 1.5px;
   color: var(--muted);
 }
@@ -614,7 +614,7 @@
   padding: 11px 12px;
 }
 .record-page .qr-payload {
-  font-size: 10px;
+  font-size: 11px;
   white-space: pre-wrap;
   word-break: break-word;
   text-align: left;
@@ -782,7 +782,7 @@
     gap: 3px;
   }
   .record-page .side-links a {
-    font-size: 10px;
+    font-size: 11px;
     flex-direction: column;
     gap: 7px;
     padding: 10px 2px;
@@ -833,7 +833,7 @@
     font-size: 13px;
   }
   .record-page .datum dt {
-    font-size: 10px;
+    font-size: 11px;
   }
   .record-page .row {
     gap: 10px;
@@ -869,7 +869,7 @@
     margin-top: 20px;
   }
   .record-page .public-brand small {
-    font-size: 10px;
+    font-size: 11px;
   }
   .record-page .qr-panel .actions {
     gap: 8px;
@@ -958,7 +958,7 @@
   margin: 0 auto 10px;
 }
 .record-page .inline-sheet-qr p {
-  font-size: 10px;
+  font-size: 11px;
   margin-bottom: 0;
 }
 @media (max-width: 1100px) {
@@ -1300,4 +1300,18 @@ dialog:has(.record-form-grid) {
 }
 .qr-dialog .dialog-actions {
   justify-content: center;
+}
+/* Mobile : titre de section et lien « Gérer… » chacun sur une ligne, cases à cocher en 22 px. */
+@media (max-width: 620px) {
+  .record-page .panel-head {
+    flex-wrap: wrap;
+    gap: 6px 12px;
+  }
+  .record-page .panel-head > :is(a, button) {
+    white-space: nowrap;
+  }
+  .record-page .done-check {
+    width: 24px;
+    height: 24px;
+  }
 }

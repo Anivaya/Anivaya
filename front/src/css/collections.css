@@ -104,6 +104,11 @@
 }
 
 @media (max-width: 620px) {
+  /* Case « fait » plus facile à toucher. */
+  .reminder-check {
+    width: 24px;
+    height: 24px;
+  }
   .collection-filters input {
     flex-basis: 100%;
   }

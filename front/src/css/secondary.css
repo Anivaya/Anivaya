@@ -308,3 +308,13 @@
     max-width: none;
   }
 }
+/* Mobile : « Tout marquer comme lu » en pleine largeur, actions des notifications plus hautes. */
+@media (max-width: 620px) {
+  .notification-toolbar > .button {
+    width: 100%;
+  }
+  .notification-item-actions a,
+  .notification-item-actions button {
+    padding: 10px 0;
+  }
+}
