@@ -7,11 +7,14 @@ export default function Tabs<K extends string>({
   tabs,
   active,
   onChange,
+  animated = false,
 }: {
   label: string;
   tabs: readonly (readonly [K, string])[];
   active: K;
   onChange: (key: K) => void;
+  /** Transition latérale du soulignement (désactivée en mouvement réduit). */
+  animated?: boolean;
 }) {
   const keys = tabs.map(([key]) => key);
   function select(key: K) {
@@ -19,7 +22,11 @@ export default function Tabs<K extends string>({
     document.getElementById("tab-" + key)?.focus();
   }
   return (
-    <div className="settings-tabs" role="tablist" aria-label={label}>
+    <div
+      className={"page-tabs" + (animated ? " animated" : "")}
+      role="tablist"
+      aria-label={label}
+    >
       {tabs.map(([key, text], index) => (
         <button
           key={key}

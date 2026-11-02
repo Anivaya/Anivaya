@@ -113,7 +113,7 @@ export default function CommunitiesPage({ params }: { params: string[] }) {
   return (
     <div className="social-page">
       <h1 className="sr-only">Communautés</h1>
-      <nav className="social-tabs" aria-label="Sections des communautés">
+      <nav className="page-tabs" aria-label="Sections des communautés">
         {socialTabs.map(([key, label]) => (
           <a
             key={key}

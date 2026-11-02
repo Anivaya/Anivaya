@@ -11,6 +11,7 @@ import { errorMessage } from "../../shared/types.ts";
 import Icon from "../../shared/ui/Icon.tsx";
 import Modal from "../../shared/ui/Modal.tsx";
 import BookingDialog from "./BookingDialog.tsx";
+import ReportDialog from "./ReportDialog.tsx";
 import {
   fullDate,
   matches,
@@ -46,6 +47,7 @@ export default function DirectoryPage({
     [error, setError] = useState(""),
     [retry, setRetry] = useState(0),
     [busy, setBusy] = useState<string | null>(null);
+  const [report, setReport] = useState<Professional | null>(null);
   const [filters, setFilters] = useState(noFilters),
     [bookingFilters, setBookingFilters] = useState({
       period: "upcoming",
@@ -148,7 +150,7 @@ export default function DirectoryPage({
           Mes réservations
         </a>
       </div>
-      <nav className="tabs" aria-label="Sections des professionnels">
+      <nav className="page-tabs" aria-label="Sections des professionnels">
         <a href="#annuaire" aria-current={!reservations ? "page" : undefined}>
           Annuaire des professionnels
         </a>
@@ -474,6 +476,22 @@ export default function DirectoryPage({
             </div>
           </div>
           <p>{view.about}</p>
+          <p>
+            <span className="admin-badge">
+              {view.verification === "Validé"
+                ? "Dossier vérifié"
+                : "Vérification en cours"}
+            </span>
+          </p>
+          <button
+            className="button outline"
+            onClick={() => {
+              setReport(view);
+              setView(null);
+            }}
+          >
+            Signaler cette fiche
+          </button>
           <dl className="detail-grid">
             <div>
               <dt>Adresse</dt>
@@ -505,6 +523,13 @@ export default function DirectoryPage({
             </div>
           ))}
         </Modal>
+      )}
+      {report && (
+        <ReportDialog
+          id={report.id}
+          name={report.name}
+          onClose={() => setReport(null)}
+        />
       )}
       {book && data && (
         <BookingDialog

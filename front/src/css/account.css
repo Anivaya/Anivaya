@@ -237,7 +237,7 @@
   font-size: 13px;
   color: var(--muted);
 }
-@media (max-width: 800px) {
+@media (max-width: 1024px) {
   .mobile-account {
     display: block;
   }

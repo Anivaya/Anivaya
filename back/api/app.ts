@@ -3,13 +3,16 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Database, Input } from "../database/types.ts";
 import type { Account, Authentication } from "./auth.ts";
 import { authentication, demoAccounts, DEMO_PASSWORD } from "./auth.ts";
+import { adminService } from "./admin.ts";
+import type { AdminService } from "./admin.ts";
+import { analytics } from "./admin-analytics.ts";
 import { exportAccount } from "./export.ts";
 import { socialService } from "./social.ts";
 import type { SocialService } from "./social.ts";
 import { directoryRepository } from "./directory.ts";
 import { profileRepository } from "./profile.ts";
 import { createRepository } from "./repository.ts";
-import { ApiError } from "./validation.ts";
+import { ApiError, text } from "./validation.ts";
 
 const MAX_BODY_BYTES = 14 * 1024 * 1024;
 const LOCAL_ORIGINS = [
@@ -24,6 +27,8 @@ interface RequestContext {
   request: IncomingMessage;
   response: ServerResponse;
   auth: Authentication | null;
+  /** Administration : dossiers de la base centrale ; absente sans authentification. */
+  admin: AdminService | null;
   params: string[];
   query: URLSearchParams;
   body: () => Promise<Input>;
@@ -92,6 +97,10 @@ function requireAuth(auth: Authentication | null) {
   if (!auth) throw new ApiError(404, "Cette route est introuvable.");
   return auth;
 }
+function requireAdmin(admin: AdminService | null) {
+  if (!admin) throw new ApiError(404, "Cette route est introuvable.");
+  return admin;
+}
 
 // Routes accessibles sans session.
 const open = router<RequestContext>();
@@ -120,10 +129,36 @@ open.get("/api/auth/session", ({ auth, request }) => {
   const account = sessions.current(request);
   return account ? sessions.user(account) : null;
 });
+// Guides validés et annonces publiées ; les annonces aux particuliers demandent une session.
+open.get("/api/public/resources", ({ admin, auth, request }) =>
+  requireAdmin(admin).publications(auth?.current(request)),
+);
+open.post(
+  "/api/public/contact",
+  async ({ admin, auth, request, body }) =>
+    requireAdmin(admin).contact(await body(), auth?.current(request)),
+  201,
+);
+// Signalement d’une fiche publique depuis son lien ; la session, si elle existe, identifie l’auteur.
+open.post(
+  "/api/public/emergency/:token/report",
+  async ({ admin, auth, request, params, body }) =>
+    requireAdmin(admin).reportPublicSheet(
+      params[0],
+      await body(),
+      auth?.current(request),
+    ),
+  201,
+);
 open.get(/^\/api\/public\/emergency\/(.+)$/, ({ auth, params }) => {
   const [, token, photo] = params[0].match(/^([a-f0-9]{48})(\/photo)?$/) ?? [];
   const owner = token ? auth?.publicOwner(token) : null;
   if (!owner) throw new ApiError(404, "Fiche indisponible.");
+  if (owner.hidden)
+    throw new ApiError(
+      451,
+      "Cette fiche a été masquée par l’équipe Anivaya après un signalement.",
+    );
   const record = createRepository(owner.db),
     sheet = record.emergency.get(owner.animal);
   if (!record.allAnimals().some((a) => a.id === owner.animal) || !sheet)
@@ -168,6 +203,43 @@ api.delete(
     requireAuth(auth).deleteAccount(response, account!, data);
     social?.removePerson(account!.id);
   },
+);
+api.get("/api/account/mfa", ({ auth, account }) =>
+  requireAuth(auth).mfa.status(account!.id),
+);
+api.post(
+  "/api/account/mfa",
+  async ({ auth, admin, account, request, body }) => {
+    const sessions = requireAuth(auth),
+      data = await body();
+    if (!(await sessions.verifyPassword(account!, data.password)))
+      throw new ApiError(400, "Mot de passe incorrect.", "password");
+    const action = text(data.action, "action", 20);
+    if (action === "setup")
+      return sessions.mfa.setup(account!.id, account!.email);
+    const result = sessions.mfa.change(account!.id, action, data.mfaCode);
+    // Un changement de seconde vérification ferme les autres sessions du compte.
+    sessions.revokeOtherSessions(request, account!);
+    if (action === "disable")
+      admin?.securityEvent(
+        "Double authentification désactivée",
+        `La seconde vérification a été retirée pour ${account!.email}.`,
+        account!.id,
+      );
+    return result;
+  },
+);
+api.post(
+  "/api/account/deletion-request",
+  async ({ admin, account, body }) =>
+    requireAdmin(admin).requestDeletion(account!, await body()),
+  201,
+);
+api.post(
+  "/api/imports",
+  async ({ admin, account, body }) =>
+    requireAdmin(admin).registerImport(account!, await body()),
+  201,
 );
 api.get("/api/export", (context) =>
   exportAccount(
@@ -314,24 +386,115 @@ api.post("/api/social/reports", async (context) => {
   social.report(me, await bodyOf(context));
 });
 
-api.get("/api/directory", ({ directory }) => directory.all());
+// L’annuaire reflète les décisions de l’administration : fiches suspendues ou refusées retirées.
+api.get("/api/directory", ({ directory, admin }) => {
+  const all = directory.all();
+  return admin ? { ...all, professionals: admin.directory() } : all;
+});
 api.put(
   "/api/professionals/:id/favorite",
-  async ({ directory, params, body }) => {
+  async ({ directory, admin, params, body }) => {
+    admin?.requireAvailableProfessional(params[0]);
     directory.favorite(params[0], (await body()).favorite);
   },
 );
-api.get("/api/professionals/:id/slots", ({ directory, params, query }) =>
-  directory.slots(
-    params[0],
-    query.get("date") || "",
-    query.get("ignore") || undefined,
-  ),
+api.get(
+  "/api/professionals/:id/slots",
+  ({ directory, admin, params, query }) => {
+    admin?.requireAvailableProfessional(params[0]);
+    return directory.slots(
+      params[0],
+      query.get("date") || "",
+      query.get("ignore") || undefined,
+    );
+  },
 );
 api.post(
   "/api/bookings",
-  async ({ directory, body }) => directory.create(await body()),
+  async ({ directory, admin, body }) => {
+    const data = await body();
+    admin?.requireAvailableProfessional(data.professional);
+    return directory.create(data);
+  },
   201,
+);
+
+// Signalements, recours, retours et suivi privé du compte connecté.
+api.post(
+  "/api/reports",
+  async ({ admin, account, body }) =>
+    requireAdmin(admin).submitReport(account!, await body()),
+  201,
+);
+api.post(
+  "/api/appeals",
+  async ({ admin, account, body }) =>
+    requireAdmin(admin).appeal(account!, await body()),
+  201,
+);
+api.post(
+  "/api/feedback",
+  async ({ admin, account, body }) =>
+    requireAdmin(admin).feedback(account!, await body()),
+  201,
+);
+api.get("/api/support", ({ admin, account }) =>
+  requireAdmin(admin).mine(account!),
+);
+
+// Administration : l’autorisation vient du rôle enregistré en base, jamais du client.
+api.get("/api/admin/overview", ({ admin, account }) =>
+  requireAdmin(admin).overview(account!),
+);
+api.get("/api/admin/analytics", ({ admin, account, query }) => {
+  if (requireAdmin(admin).authorize(account!) !== "Administrateur")
+    throw new ApiError(403, "Le pilotage est réservé à l’administrateur.");
+  return analytics(query);
+});
+api.get(
+  "/api/admin/pros/:id/documents/:document/file",
+  ({ admin, account, params }) => {
+    const file = requireAdmin(admin).proofFile(
+      account!,
+      decodeURIComponent(params[0]),
+      decodeURIComponent(params[1]),
+    );
+    return new FileReply(file, {
+      "Content-Disposition": `inline; filename*=UTF-8''${encodeURIComponent(file.name)}`,
+    });
+  },
+);
+api.get("/api/admin/:resource", ({ admin, account, params, query }) => {
+  const service = requireAdmin(admin);
+  return service.list(account!, service.resource(params[0]), query);
+});
+api.post(
+  "/api/admin/:resource",
+  async ({ admin, account, params, body }) => {
+    const service = requireAdmin(admin);
+    return service.create(account!, service.resource(params[0]), await body());
+  },
+  201,
+);
+api.get("/api/admin/:resource/:id", ({ admin, account, params }) => {
+  const service = requireAdmin(admin);
+  return service.detail(
+    account!,
+    service.resource(params[0]),
+    decodeURIComponent(params[1]),
+  );
+});
+api.post(
+  "/api/admin/:resource/:id/actions",
+  async ({ admin, account, params, body }) => {
+    const service = requireAdmin(admin);
+    return service.act(
+      account!,
+      service.resource(params[0]),
+      decodeURIComponent(params[1]),
+      await body(),
+    );
+  },
 );
 api.patch("/api/bookings/:id", async ({ directory, params, body }) =>
   directory.update(params[0], await body()),
@@ -537,6 +700,11 @@ export function createApi(
       notify: auth.notify,
       markRead: auth.markNotificationRead,
     });
+  const admin = auth && adminService(db, auth);
+  if (auth && admin) {
+    auth.hooks.security = admin.securityEvent;
+    auth.hooks.login = admin.acceptInvitation;
+  }
 
   /** Données de l’espace : la base vient de la session, jamais du client. */
   function workspace(request: IncomingMessage, account: Account | null) {
@@ -570,6 +738,7 @@ export function createApi(
         request,
         response,
         auth,
+        admin,
         query: url.searchParams,
         body: () => readJson(request),
       };

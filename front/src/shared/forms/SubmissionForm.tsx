@@ -21,6 +21,7 @@ export default function SubmissionForm({
   disabled = false,
   submitLabel = "Ajouter",
   danger = false,
+  headerAction,
 }: DialogControls & {
   title: string;
   description?: string;
@@ -33,6 +34,7 @@ export default function SubmissionForm({
   disabled?: boolean;
   submitLabel?: string;
   danger?: boolean;
+  headerAction?: ReactNode;
 }) {
   const [error, setError] = useState<FormError | null>(null);
   const ref = useRef<HTMLFormElement>(null);
@@ -67,9 +69,18 @@ export default function SubmissionForm({
   }
   return (
     <>
-      <h2 className="dialog-title" id="action-title">
-        {title}
-      </h2>
+      {headerAction ? (
+        <div className="admin-dialog-heading">
+          <h2 className="dialog-title" id="action-title">
+            {title}
+          </h2>
+          {headerAction}
+        </div>
+      ) : (
+        <h2 className="dialog-title" id="action-title">
+          {title}
+        </h2>
+      )}
       <p className="dialog-copy">{description}</p>
       <form ref={ref} noValidate onSubmit={submit} aria-busy={busy}>
         {children({ error, invalid })}

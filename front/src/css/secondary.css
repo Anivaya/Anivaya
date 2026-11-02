@@ -5,10 +5,6 @@
 .secondary-page .profile-page {
   max-width: none;
 }
-.secondary-page .settings-tabs {
-  flex-wrap: wrap;
-  gap: 20px;
-}
 
 /* Notifications */
 .notification-toolbar {
@@ -286,9 +282,6 @@
   }
   .service-public .app-content {
     padding-top: 25px;
-  }
-  .secondary-page .settings-tabs button {
-    font-size: 14px;
   }
 }
 @media (max-width: 620px) {

@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import type { ExportCategory } from "../../../../shared/account.ts";
 import { exportCategories } from "../../../../shared/account.ts";
 import { api } from "../../shared/services/api.ts";
+import { adminApi } from "../../shared/services/admin.ts";
 import { errorMessage } from "../../shared/types.ts";
 import Modal from "../../shared/ui/Modal.tsx";
 
@@ -219,6 +220,7 @@ export function DeletionPanel({
             : "La suppression est définitive : votre compte et votre espace ne pourront pas être récupérés."}
         </p>
       </section>
+      <DeletionRequestPanel />
       {open && (
         <Modal busy={busy} onClose={close}>
           <h2 id="action-title">Supprimer votre compte ?</h2>
@@ -285,6 +287,71 @@ export function DeletionPanel({
           </div>
         </Modal>
       )}
+    </>
+  );
+}
+
+/** Variante confiée à l’équipe : le compte reste actif jusqu’à la décision. */
+function DeletionRequestPanel() {
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [feedback, setFeedback] = useState<{ ok: boolean; text: string }>();
+  return (
+    <>
+      <section
+        className="profile-panel"
+        aria-labelledby="deletion-request-title"
+      >
+        <h2 id="deletion-request-title">Confier la suppression à l’équipe</h2>
+        <p>
+          Vous préférez qu’une personne vérifie votre demande avant l’effacement
+          ? L’équipe Anivaya l’examine et vous conservez l’accès à votre espace
+          jusqu’à sa décision.
+        </p>
+        <form
+          className="deletion-request"
+          onSubmit={async (event: FormEvent) => {
+            event.preventDefault();
+            setBusy(true);
+            setFeedback(undefined);
+            try {
+              await adminApi.requestDeletion(message.trim());
+              setMessage("");
+              setFeedback({
+                ok: true,
+                text: "Votre demande est transmise. Vous pouvez suivre son traitement dans Contact → Vos demandes.",
+              });
+            } catch (failure) {
+              setFeedback({ ok: false, text: errorMessage(failure) });
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          <div className="field">
+            <label htmlFor="deletion-message">Précisions (facultatif)</label>
+            <textarea
+              id="deletion-message"
+              maxLength={1000}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+            />
+          </div>
+          {feedback && (
+            <p
+              className={`profile-feedback ${feedback.ok ? "success" : "error"}`}
+              role={feedback.ok ? "status" : "alert"}
+            >
+              {feedback.text}
+            </p>
+          )}
+          <div>
+            <button className="button outline" type="submit" disabled={busy}>
+              {busy ? "Envoi…" : "Demander la suppression à l’équipe"}
+            </button>
+          </div>
+        </form>
+      </section>
     </>
   );
 }

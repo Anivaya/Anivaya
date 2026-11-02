@@ -1,0 +1,26 @@
+{
+  "profile": "product-admin",
+  "sourceRoots": ["front/src/pages/admin", "front/src/css/admin.css"],
+  "locale": "fr-FR",
+  "canonicalMap": "UX-CONTRACT.md",
+  "requiredCapabilities": [
+    "Select/Listbox",
+    "Date",
+    "Form",
+    "Scrollbar",
+    "Toast",
+    "CRUD"
+  ],
+  "ownership": { "Select/Listbox": "native", "Date": "native" },
+  "requiredCommands": ["typecheck", "lint", "test", "build"],
+  "commands": {
+    "typecheck": "npm run typecheck",
+    "lint": "npm run lint",
+    "test": "npm test",
+    "build": "npm run build"
+  },
+  "evidence": {
+    "crudFullFlow": "back/tests/admin.test.ts",
+    "failurePaths": "back/tests/admin.test.ts"
+  }
+}

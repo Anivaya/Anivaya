@@ -31,7 +31,7 @@ export default function SharingPage({
           actions.openDialog("share-documents", { animal: animal || undefined })
         }
       />
-      <nav className="sharing-tabs" aria-label="Sections du partage">
+      <nav className="page-tabs" aria-label="Sections du partage">
         {[
           ["partages", "Documents partagés"],
           ["recus", "Partage avec moi" + (pending ? ` (${pending})` : "")],

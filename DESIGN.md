@@ -1,0 +1,107 @@
+---
+version: alpha
+name: Anivaya
+description: Carnet animalier et administration, fidèles aux maquettes locales.
+colors:
+  primary: "#1b3b8e"
+  navy: "#132e5c"
+  accent: "#f0ab06"
+  muted: "#65748b"
+  pale: "#edf4fc"
+  border: "#e1e7f0"
+  surface: "#ffffff"
+  background: "#f4f7fc"
+  success: "#286348"
+  danger: "#a52b38"
+typography:
+  sans:
+    fontFamily: "Anivaya Nunito, Segoe UI, sans-serif"
+  mono:
+    fontFamily: "ui-monospace, monospace"
+rounded:
+  DEFAULT: "8px"
+  card: "14px"
+spacing:
+  sidebar: "220px"
+  page-max: "1500px"
+  page-padding: "34px"
+components:
+  button: {}
+  card: {}
+  dialog: {}
+  table: {}
+---
+
+# Anivaya Design System
+
+## Overview
+
+### Creative North Star
+
+Les maquettes HTML `maquette/admin`, `maquette/particulier` et `maquette/public` sont la référence confirmée par le propriétaire du projet. Conserver le logo chien/chat, Nunito, les bleus et les accents dorés. Les cartes blanches arrondies et les icônes au trait accompagnent les tâches quotidiennes sans changer l’identité existante.
+
+### Product context and register
+
+Interface française destinée aux propriétaires d’animaux et à l’équipe du service. Les écrans d’administration sont des outils de gestion, utilisables sur ordinateur et sur téléphone. Ils donnent priorité aux dossiers, décisions motivées et accès par rôle. Les pages publiques restent dans leur registre de présentation.
+
+Cette documentation décrit les tokens existants ; elle ne les génère pas. `front/src/css/global.css` est propriétaire des couleurs, de la police et des contrôles communs. `dashboard.css` possède la structure des espaces. `admin.css` étend cette structure et définit les tons succès/danger des badges admin. Aucun nouveau système CSS ni composant de bibliothèque n’est introduit.
+
+## Colors
+
+Bleu principal pour les actions et la sélection, bleu marine pour les titres, gris bleuté pour les indications. Le doré conserve son rôle de focus. Les badges portent toujours un libellé en plus de leur couleur. Thème clair ; les préférences de contraste du navigateur restent utilisables.
+
+## Typography
+
+Nunito locale, poids 600, 700 et 800, avec Segoe UI comme repli. Titres admin de 34 px sur ordinateur, 28 px sur petit écran. Texte de tableau 13 px ; libellés et métadonnées 12 px. Les longs noms et messages peuvent revenir à la ligne. Les codes techniques utilisent une police monospace.
+
+## Layout
+
+La barre latérale de 220 px et la navigation réutilisent `Sidebar`. Le contenu admin possède une largeur maximale de 1500 px et un retrait de 34 px, réduit à 16 px sur mobile. Sous 1024 px (tablette et mobile), la barre devient un panneau qui s’ouvre depuis la droite, par le bouton menu placé en haut à droite du header, juste à droite de la cloche. Les tableaux défilent horizontalement dans leur propre région ; les formulaires et les pages conservent le défilement naturel. Les cartes du tableau de bord s’adaptent à la largeur disponible.
+
+Exception demandée explicitement par l’utilisateur le 30 octobre : la liste des liens du sidebar admin possède son propre défilement invisible (`overflow-y: auto`, `scrollbar-width: none`) ; le logo et le nom ANIVAYA restent fixes. Le clavier, la molette et le tactile continuent à faire défiler les liens. Même exception pour les listes Signalements et Demandes du dashboard, limitées à 340 px. Les autres conteneurs conservent la baseline de `global.css`.
+
+Le menu du compte est fixé en bas du sidebar, sur ordinateur et dans le panneau mobile ; son popup s’ouvre vers le haut. Le header conserve la cloche, avec le badge de non-lus en bas. Le sidebar ne contient plus de titre Administration ni de retour à l’espace particulier, et le menu du compte ne propose plus de basculer entre l’espace particulier et l’administration (ni « Administration », ni « Mon espace »). Le logo utilise l’image transparente avec son lettrage ANIVAYA intégré (`logo-anivaya-wordmark.png`), sans titre HTML ajouté. Équipe précède Publications, et Pilotage précède Historique. Tous les onglets de page (`.page-tabs`, dans `global.css`) sont centrés et reprennent le style de la page Partage : texte gris de 14 px (12 px sur mobile), onglet actif bleu en gras souligné d’or. Les filtres, la recherche et les actions sont intégrés au panneau du tableau, au-dessus du compteur de résultats.
+
+## Elevation & Depth
+
+Surfaces blanches, bordures fines et ombre légère uniquement sur les éléments interactifs. Le tableau reste plat ; l’élévation distingue les dialogues des pages. Pas de décor ou d’animation qui concurrence les décisions.
+
+## Shapes
+
+Champs à rayon de 8 px, panneaux à 14 px, badges en capsule. Icônes au trait dans des carrés arrondis bleu pâle. Ces valeurs suivent les maquettes et la grammaire existante.
+
+## Components
+
+### Foundational visual states
+
+Chargement textuel dans une zone réservée, erreurs persistantes avec reprise, état vide explicatif, focus visible. Les contrôles occupés restent désactivés jusqu’à la réponse de l’API. Les états ne sont pas simulés par temporisation.
+
+### Buttons and actions
+
+Réutiliser `.button`, `.outline` et `.danger`. Les actions destructives ou modifiant un accès passent par un formulaire explicite avec motif. Le bouton secondaire annule ; les libellés décrivent l’action.
+
+À la demande de l’utilisateur, `AdminIconButton` possède les actions compactes des tableaux et leurs infobulles/noms accessibles. Le tri parcourt normal → croissant → décroissant → normal. Les fermetures en haut des dialogues utilisent un cercle rouge avec une croix ; les retours utilisent une flèche. Les boutons de confirmation des formulaires conservent un verbe explicite.
+
+### Navigation and data display
+
+`Tabs` possède la navigation clavier. `AdminCollection` possède les tableaux avec recherche, filtre d’état, tri, pagination et URL restaurable. Les résultats viennent de l’API et les états de concurrence sont vérifiés au serveur.
+
+### Forms and overlays
+
+`SubmissionForm`, `Field` et `Modal` sont les propriétaires partagés. Les champs select et date restent natifs : la géométrie des menus du système est acceptée, comme dans les pages existantes. Pas de double composant de sélection. Saisie conservée après erreur, champ invalide identifié, focus restauré après fermeture. Les brouillons admin préviennent avant abandon.
+
+### Iconography
+
+`shared/ui/Icon.tsx`, SVG au trait, généralement 22 px, accompagné de texte pour les actions métier.
+
+### Motion
+
+Pas d’animation de compteurs admin. Les réglages de réduction du mouvement existants s’appliquent ; les décisions et états changent immédiatement.
+
+Variante `Tabs.animated` : transition de panneau de 160 ms vers la droite ou la gauche selon l’ordre des onglets. `AdminDisclosure` possède les sections d’explication de Pilotage, avec ouverture et fermeture de 160 ms. Les deux effets respectent `prefers-reduced-motion`.
+
+### Content and data visualization
+
+Français simple, dates françaises. Les indicateurs sont calculés à partir des données présentes, sans faux taux d’activation ou de rétention. Les services externes absents sont indiqués dans les parcours concernés et la documentation.
+
+Les quatre cartes principales du dashboard et les deux compteurs d’état suivent la maquette. Les ajouts appréciés par l’utilisateur restent dans « Suivi complémentaire ». `AdminPreview` possède la fenêtre des cinq premiers résultats ; `AdminDialog` possède le dossier et ses actions. Pilotage reprend le panneau unique, les cinq cartes bleu pâle, les définitions et les cohortes de la maquette. La source synthétique se sélectionne dans « Démonstration locale » et reste distincte des mesures de l’installation. Les écarts fonctionnels restants sont recensés dans `back/docs/ADMIN-MAQUETTES.md`.

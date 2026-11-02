@@ -1,7 +1,94 @@
 import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import type { EmergencySnapshot } from "../../../../shared/models.ts";
+import { adminApi } from "../../shared/services/admin.ts";
+import { errorMessage } from "../../shared/types.ts";
 import Icon from "../../shared/ui/Icon.tsx";
 import Portrait from "./components/AnimalPortrait.tsx";
+
+/** Signalement d’une fiche publique à l’équipe de modération, sans compte. */
+function ReportForm({ token }: { token: string }) {
+  const [open, setOpen] = useState(false),
+    [message, setMessage] = useState(""),
+    [busy, setBusy] = useState(false),
+    [result, setResult] = useState<{ ok: boolean; text: string }>();
+  if (result?.ok)
+    return (
+      <p className="public-note" role="status">
+        {result.text}
+      </p>
+    );
+  if (!open)
+    return (
+      <p className="public-note">
+        <button
+          type="button"
+          className="text-button"
+          onClick={() => setOpen(true)}
+        >
+          Signaler cette fiche à l’équipe Anivaya
+        </button>
+      </p>
+    );
+  return (
+    <form
+      className="public-report"
+      onSubmit={async (event: FormEvent) => {
+        event.preventDefault();
+        if (message.trim().length < 10) {
+          setResult({
+            ok: false,
+            text: "Décrivez le problème en quelques mots (10 caractères minimum).",
+          });
+          return;
+        }
+        setBusy(true);
+        try {
+          const { reference } = await adminApi.reportPublic(token, {
+            name: "Fiche publique signalée",
+            message: message.trim(),
+          });
+          setResult({
+            ok: true,
+            text: `Merci, votre signalement est transmis (référence ${reference}). L’équipe l’examine sous 24 h.`,
+          });
+        } catch (failure) {
+          setResult({ ok: false, text: errorMessage(failure) });
+        } finally {
+          setBusy(false);
+        }
+      }}
+    >
+      <label htmlFor="public-report-message">
+        <strong>Signaler cette fiche</strong>
+      </label>
+      <textarea
+        id="public-report-message"
+        maxLength={3000}
+        placeholder="Contenu inapproprié, informations trompeuses…"
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        aria-describedby="public-report-error"
+      />
+      <p className="profile-inline-error" id="public-report-error" role="alert">
+        {result?.text}
+      </p>
+      <div className="dialog-actions">
+        <button
+          type="button"
+          className="button outline"
+          disabled={busy}
+          onClick={() => setOpen(false)}
+        >
+          Annuler
+        </button>
+        <button className="button" type="submit" disabled={busy}>
+          {busy ? "Envoi…" : "Envoyer le signalement"}
+        </button>
+      </div>
+    </form>
+  );
+}
 export default function PublicEmergencyPage({ token }: { token: string }) {
   const [data, setData] = useState<EmergencySnapshot | null>(null),
     [state, setState] = useState("loading"),
@@ -16,9 +103,11 @@ export default function PublicEmergencyPage({ token }: { token: string }) {
           setState(
             response.status === 410
               ? "disabled"
-              : response.status === 404
-                ? "unavailable"
-                : "error",
+              : response.status === 451
+                ? "masked"
+                : response.status === 404
+                  ? "unavailable"
+                  : "error",
           );
           return;
         }
@@ -55,6 +144,7 @@ export default function PublicEmergencyPage({ token }: { token: string }) {
                   loading: "Chargement…",
                   active: "Active",
                   disabled: "Désactivée",
+                  masked: "Masquée",
                   unavailable: "Indisponible",
                   error: "Indisponible",
                 }[state]
@@ -133,6 +223,7 @@ export default function PublicEmergencyPage({ token }: { token: string }) {
                     </p>
                   </section>
                 )}
+                <ReportForm token={token} />
               </>
             ) : (
               <div className="public-unavailable">
@@ -142,16 +233,20 @@ export default function PublicEmergencyPage({ token }: { token: string }) {
                 <h1>
                   {state === "disabled"
                     ? "Fiche désactivée"
-                    : state === "error"
-                      ? "Impossible de charger la fiche"
-                      : "Fiche indisponible"}
+                    : state === "masked"
+                      ? "Fiche masquée"
+                      : state === "error"
+                        ? "Impossible de charger la fiche"
+                        : "Fiche indisponible"}
                 </h1>
                 <p className="muted">
                   {state === "disabled"
                     ? "Le propriétaire a désactivé la consultation publique. Aucune information concernant l’animal ou ses contacts n’est affichée."
-                    : state === "error"
-                      ? "Vérifiez votre connexion et réessayez."
-                      : "Cette fiche n’existe pas ou a été supprimée."}
+                    : state === "masked"
+                      ? "L’équipe Anivaya a masqué cette fiche après un signalement. Son propriétaire peut contester cette décision depuis son espace."
+                      : state === "error"
+                        ? "Vérifiez votre connexion et réessayez."
+                        : "Cette fiche n’existe pas ou a été supprimée."}
                 </p>
                 <button
                   className="button outline"

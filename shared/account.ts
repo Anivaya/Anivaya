@@ -12,6 +12,7 @@ export type ProfileInput = Omit<Profile, "photo"> & {
 };
 export interface Professional {
   id: string;
+  verification?: string;
   name: string;
   category: string;
   city: string;
@@ -76,6 +77,7 @@ export type ExportCategory = (typeof exportCategories)[number];
 
 export interface AuthUser {
   id: string;
+  adminRole?: import("./admin.ts").AdminRole;
   /** Compte de démonstration : sa suppression recrée un espace d’exemple. */
   demo: boolean;
   profile: Profile;

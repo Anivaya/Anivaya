@@ -6,6 +6,7 @@
     "node": ">=22.18.0"
   },
   "scripts": {
+    "admin:grant": "node scripts/admin.ts",
     "dev": "node scripts/dev.ts",
     "dev:api": "node --watch back/api/server.ts",
     "dev:front": "npm --prefix front run dev",

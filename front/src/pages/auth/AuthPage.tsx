@@ -14,6 +14,11 @@ export default function AuthPage({
   onAuthenticated: (user: AuthUser) => void;
 }) {
   const [register, setRegister] = useState(requestedRegister);
+  const [mfaCode, setMfaCode] = useState(""),
+    [mfaRequired, setMfaRequired] = useState(false);
+  useEffect(() => {
+    if (mfaRequired) document.getElementById("auth-mfaCode")?.focus();
+  }, [mfaRequired]);
   const previousMode = useRef(register);
   const card = useRef<HTMLElement>(null);
   const [opening] = useState(!requestedRegister);
@@ -97,10 +102,11 @@ export default function AuthPage({
     try {
       const user = register
         ? await api.register(form)
-        : await api.login({ ...form, remember: false });
+        : await api.login({ ...form, remember: false, mfaCode });
       onAuthenticated(user);
     } catch (e) {
       const field = errorField(e);
+      if (field === "mfaCode") setMfaRequired(true);
       setError({ message: errorMessage(e), field });
       if (field) document.getElementById("auth-" + field)?.focus();
     } finally {
@@ -206,6 +212,25 @@ export default function AuthPage({
             <a className="text-button" href="#reinitialisation">
               Mot de passe oublié ?
             </a>
+          </div>
+        )}
+        {!register && mfaRequired && (
+          <div className="field">
+            <label htmlFor="auth-mfaCode">
+              Code de vérification ou code de secours
+            </label>
+            <input
+              id="auth-mfaCode"
+              name="mfaCode"
+              autoComplete="one-time-code"
+              maxLength={32}
+              value={mfaCode}
+              onChange={(e) => setMfaCode(e.target.value)}
+              aria-invalid={error?.field === "mfaCode" || undefined}
+              aria-describedby={
+                error?.field === "mfaCode" ? "auth-error" : undefined
+              }
+            />
           </div>
         )}
         {error && (

@@ -241,30 +241,6 @@
 .record-page .text-button:hover {
   text-decoration: underline;
 }
-.record-page .tabs {
-  display: flex;
-  gap: 23px;
-  overflow-x: auto;
-  border-bottom: 1px solid var(--line);
-  margin-bottom: 26px;
-  scrollbar-width: thin;
-}
-.record-page .tabs a {
-  white-space: nowrap;
-  padding: 15px 2px;
-  font-size: 13px;
-  color: var(--muted);
-  border-bottom: 3px solid transparent;
-}
-.record-page .tabs a[aria-current="page"] {
-  color: var(--blue);
-  border-color: var(--gold);
-  font-weight: 650;
-}
-.record-page .tabs a:hover {
-  text-decoration: none;
-  color: var(--blue);
-}
 .record-page .grid {
   display: grid;
   grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
@@ -759,9 +735,6 @@
   .record-page .panel {
     padding: 19px;
   }
-  .record-page .tabs {
-    gap: 20px;
-  }
   .record-page .row-actions {
     flex-wrap: wrap;
   }
@@ -782,9 +755,6 @@
   }
   .record-page .content {
     padding: 24px;
-  }
-  .record-page .tabs {
-    gap: 20px;
   }
   .record-page .row-actions {
     flex-wrap: nowrap;
@@ -852,12 +822,6 @@
   .record-page .button {
     font-size: 11px;
     padding: 10px 12px;
-  }
-  .record-page .tabs {
-    gap: 18px;
-  }
-  .record-page .tabs a {
-    font-size: 12px;
   }
   .record-page .panel {
     padding: 19px;
@@ -1117,9 +1081,6 @@ dialog:has(.record-form-grid) {
 }
 .record-page .back {
   font-size: 28px;
-}
-.record-page .tabs {
-  display: flex;
 }
 .qr-print {
   display: none;

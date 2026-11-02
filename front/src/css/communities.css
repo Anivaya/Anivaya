@@ -1,24 +1,5 @@
 /* Communautés : listes, fiches, messagerie et fenêtres (maquette communautes.html). */
 /* Même vocabulaire visuel que l’annuaire : Nunito, bleu Anivaya, or et surfaces claires. */
-.social-tabs {
-  display: flex;
-  gap: 28px;
-  border-bottom: 1px solid var(--border);
-  margin: 24px 0;
-  overflow-x: auto;
-}
-.social-tabs a {
-  padding: 12px 0 15px;
-  border-bottom: 3px solid transparent;
-  white-space: nowrap;
-  color: var(--muted);
-  font-weight: 700;
-  font-size: 14px;
-}
-.social-tabs a[aria-current="page"] {
-  color: var(--blue);
-  border-color: var(--blue);
-}
 .social-toolbar {
   display: flex;
   gap: 14px;
@@ -853,9 +834,6 @@
   cursor: not-allowed;
 }
 /* Ajustements des listes, fiches et fenêtres Communautés. */
-.social-tabs {
-  margin-top: 0;
-}
 /* Bouton « + » : créer une communauté, un événement ou une discussion. */
 .social-toolbar > .social-primary {
   flex-shrink: 0;
@@ -1062,13 +1040,6 @@ a.event-date:focus-visible {
     grid-template-columns: 1fr;
     gap: 18px;
   }
-  .social-tabs {
-    gap: 20px;
-    margin: 20px 0;
-  }
-  .social-tabs a {
-    font-size: 13px;
-  }
   .social-detail {
     padding: 20px;
   }
@@ -1227,7 +1198,6 @@ a.event-date:focus-visible {
   }
 }
 @media (forced-colors: active) {
-  .social-tabs a[aria-current="page"],
   .conversation-item.active {
     outline: 2px solid Highlight;
   }

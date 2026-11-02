@@ -261,27 +261,6 @@
 .directory-dialog .icon-button[aria-pressed="true"] svg {
   fill: #dbe7fc;
 }
-.directory-page .tabs,
-.directory-dialog .tabs {
-  display: flex;
-  gap: 25px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 25px;
-  overflow-x: auto;
-}
-.directory-page .tabs a,
-.directory-dialog .tabs a {
-  font-size: 14px;
-  padding: 0 0 15px;
-  border-bottom: 3px solid transparent;
-  white-space: nowrap;
-}
-.directory-page .tabs a[aria-current="page"],
-.directory-dialog .tabs a[aria-current="page"] {
-  color: var(--blue);
-  border-color: var(--blue);
-  font-weight: 800;
-}
 .directory-page .intro-note,
 .directory-dialog .intro-note {
   display: flex;
@@ -1146,14 +1125,6 @@
   .directory-dialog .service-row .button {
     font-size: 12px;
     padding: 8px 10px;
-  }
-  .directory-page .tabs,
-  .directory-dialog .tabs {
-    gap: 20px;
-  }
-  .directory-page .tabs a,
-  .directory-dialog .tabs a {
-    font-size: 13px;
   }
   .directory-page .toast,
   .directory-dialog .toast {

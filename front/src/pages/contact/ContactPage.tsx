@@ -2,11 +2,17 @@ import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import type { Profile } from "../../../../shared/account.ts";
 import Tabs from "../../shared/ui/Tabs.tsx";
+import { adminApi } from "../../shared/services/admin.ts";
+import { errorMessage } from "../../shared/types.ts";
+import ResourcesPanel from "./ResourcesPanel.tsx";
+import SupportPanel from "./SupportPanel.tsx";
 
 const contactTabs = [
   ["contact", "Contact"],
+  ["ressources", "Guides"],
   ["service", "Le service"],
   ["donnees", "Vos données"],
+  ["recours", "Vos demandes"],
 ] as const;
 type ContactTab = (typeof contactTabs)[number][0];
 const subjects = [
@@ -67,7 +73,10 @@ export default function ContactPage({
   };
   const [form, setForm] = useState(empty);
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
-  const [sent, setSent] = useState(false);
+  /** Référence de la demande enregistrée. */
+  const [sent, setSent] = useState("");
+  const [sending, setSending] = useState(false);
+  const [failure, setFailure] = useState("");
   // Élément à focaliser une fois le nouvel état affiché (succès, formulaire, message).
   const focusNext = useRef<string | null>(null);
   useEffect(() => {
@@ -80,8 +89,9 @@ export default function ContactPage({
     setForm({ ...form, [field]: value });
     setErrors({ ...errors, [field]: undefined });
   }
-  function submit(event: FormEvent) {
+  async function submit(event: FormEvent) {
     event.preventDefault();
+    if (sending) return;
     const found: Partial<Record<Field, string>> = {};
     if (!form.name.trim()) found.name = "Indiquez votre nom.";
     if (!EMAIL.test(form.email.trim()))
@@ -95,9 +105,18 @@ export default function ContactPage({
       document.getElementById("contact-" + first)?.focus();
       return;
     }
-    setSent(true);
-    setForm(empty);
-    focusNext.current = "contact-success";
+    setSending(true);
+    setFailure("");
+    try {
+      const { reference } = await adminApi.contact(form);
+      setSent(reference);
+      setForm(empty);
+      focusNext.current = "contact-success";
+    } catch (e) {
+      setFailure(errorMessage(e));
+    } finally {
+      setSending(false);
+    }
   }
   const invalid = (field: Field) => ({
     "aria-invalid": errors[field] ? true : undefined,
@@ -175,16 +194,18 @@ export default function ContactPage({
           <div className="profile-panel">
             {sent ? (
               <div id="contact-success" tabIndex={-1} role="status">
-                <h2>Votre demande est prête.</h2>
+                <h2>Votre demande est enregistrée.</h2>
                 <p>
-                  L’envoi a été simulé. Aucun message n’a été transmis à une
-                  équipe.
+                  Référence : <strong>{sent}</strong>.{" "}
+                  {profile
+                    ? "La réponse de l’équipe apparaîtra dans l’onglet « Vos demandes »."
+                    : "Connectez-vous avec cette adresse pour suivre la réponse dans « Vos demandes »."}
                 </p>
                 <button
                   className="button outline"
                   type="button"
                   onClick={() => {
-                    setSent(false);
+                    setSent("");
                     focusNext.current = "contact-name";
                   }}
                 >
@@ -256,16 +277,37 @@ export default function ContactPage({
                   {error("message")}
                 </div>
                 <p className="field-help">
-                  L’envoi de messages n’est pas encore configuré : votre message
-                  n’est ni envoyé ni conservé.
+                  Votre demande est transmise à l’équipe Anivaya ; aucun e-mail
+                  n’est envoyé pour le moment.
                 </p>
-                <button className="button" type="submit">
-                  Simuler l’envoi du message
+                {failure && (
+                  <p className="profile-inline-error" role="alert">
+                    {failure}
+                  </p>
+                )}
+                <button className="button" type="submit" disabled={sending}>
+                  {sending ? "Envoi…" : "Envoyer le message"}
                 </button>
               </form>
             )}
           </div>
         </div>
+      </section>
+      <section
+        id="panel-ressources"
+        role="tabpanel"
+        aria-labelledby="tab-ressources"
+        hidden={tab !== "ressources"}
+      >
+        {tab === "ressources" && <ResourcesPanel />}
+      </section>
+      <section
+        id="panel-recours"
+        role="tabpanel"
+        aria-labelledby="tab-recours"
+        hidden={tab !== "recours"}
+      >
+        {tab === "recours" && <SupportPanel authenticated={Boolean(profile)} />}
       </section>
       <section
         id="panel-service"
@@ -348,7 +390,7 @@ export default function ContactPage({
             className="button outline"
             onClick={() => {
               setTab("contact");
-              setSent(false);
+              setSent("");
               setForm({ ...form, subject: "Une autre question" });
               focusNext.current = "contact-message";
             }}

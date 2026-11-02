@@ -287,7 +287,7 @@ export default function AnimalRecordPage({
         />
       ) : (
         <>
-          <nav className="tabs" aria-label="Sections du carnet">
+          <nav className="page-tabs" aria-label="Sections du carnet">
             {Object.entries(tabs).map(([key, label]) => (
               <a
                 key={key}

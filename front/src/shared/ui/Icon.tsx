@@ -215,6 +215,42 @@ const shapes: Record<string, { viewBox: string; body: ReactNode }> = {
   },
   close: { viewBox: "0 0 24 24", body: <path d="m6 6 12 12M18 6 6 18" /> },
   menu: { viewBox: "0 0 24 24", body: <path d="M4 6h16M4 12h16M4 18h16" /> },
+  // Administration
+  shield: {
+    viewBox: "0 0 24 24",
+    body: <path d="M12 3 3 7v5c0 5 9 10 9 10s9-5 9-10V7zM8 12l3 3 5-6" />,
+  },
+  headset: {
+    viewBox: "0 0 24 24",
+    body: (
+      <path d="M4 13v-2a8 8 0 0 1 16 0v2M4 11H3v7h4v-7H4m16 0h1v7h-4v-7h3m0 7v1a2 2 0 0 1-2 2h-5M10 21h3" />
+    ),
+  },
+  clock: {
+    viewBox: "0 0 24 24",
+    body: <path d="M3 11a9 9 0 1 1 2 7M3 4v7h7M12 7v5l3 2" />,
+  },
+  chart: {
+    viewBox: "0 0 24 24",
+    body: <path d="M4 3v18h17M8 16v-5M13 16V7M18 16V4" />,
+  },
+  person: {
+    viewBox: "0 0 24 24",
+    body: (
+      <>
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4 21a8 8 0 0 1 16 0" />
+      </>
+    ),
+  },
+  // Arc continu aux extrémités arrondies.
+  refresh: {
+    viewBox: "0 0 24 24",
+    body: <path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5" />,
+  },
+  up: { viewBox: "0 0 24 24", body: <path d="m6 15 6-6 6 6" /> },
+  down: { viewBox: "0 0 24 24", body: <path d="m6 9 6 6 6-6" /> },
+  sort: { viewBox: "0 0 24 24", body: <path d="m8 10 4-4 4 4M8 14l4 4 4-4" /> },
   // Communautés
   people: {
     viewBox: "0 0 24 24",

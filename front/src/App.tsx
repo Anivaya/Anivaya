@@ -53,6 +53,7 @@ import {
 } from "./pages/documents/DocumentDialogs.tsx";
 import SharingDialog from "./pages/sharing/SharingDialogs.tsx";
 import AiImport from "./pages/documents/AiImport.tsx";
+import AdminWorkspace from "./pages/admin/AdminWorkspace.tsx";
 
 /** Pages de l’espace connecté : titre du fil d’Ariane et contenu tiré du dashboard. */
 const workspacePages: Record<
@@ -126,7 +127,8 @@ export default function App() {
     setLoading(false);
     setUser(value);
     setError("");
-    window.location.hash = "espace";
+    // Un membre de l’équipe arrive sur son tableau de bord d’administration.
+    window.location.hash = value.adminRole ? "admin/dashboard" : "espace";
   };
   const logout = async () => {
     await api.logout();
@@ -189,6 +191,17 @@ export default function App() {
       <PublicContactPage tab={params[0]} />
     ) : (
       <AuthPage register={false} onAuthenticated={authenticated} />
+    );
+  if (page === "admin")
+    return (
+      <AdminWorkspace
+        key={user.id}
+        user={user}
+        route={route}
+        onLogout={logout}
+        onProfileChanged={async (profile) => setUser({ ...user, profile })}
+        onAccountDeleted={accountDeleted}
+      />
     );
   return (
     <Workspace
@@ -285,7 +298,9 @@ function Workspace({
       >
         Aller au contenu
       </a>
-      <div className={`workspace ${page !== "espace" ? "section-mode" : ""} ${page === "documents" ? "documents-mode" : ""}`}>
+      <div
+        className={`workspace ${page !== "espace" ? "section-mode" : ""} ${page === "documents" ? "documents-mode" : ""}`}
+      >
         <Sidebar
           page={page}
           profile={user.profile}
@@ -295,17 +310,7 @@ function Workspace({
         />
         <div className="app-main">
           <header className="app-top">
-            {/* Sur mobile : bouton menu et logo à la place du fil d’Ariane. */}
-            <button
-              type="button"
-              className="menu-toggle"
-              aria-label="Ouvrir le menu de navigation"
-              aria-expanded={menuOpen}
-              aria-controls={SIDEBAR_ID}
-              onClick={() => setMenuOpen(true)}
-            >
-              <Icon name="menu" />
-            </button>
+            {/* Sur tablette et mobile : logo à gauche, bouton menu à droite de la cloche. */}
             <a
               className="top-brand"
               href="#espace"
@@ -331,6 +336,16 @@ function Workspace({
                 </span>
               )}
             </a>
+            <button
+              type="button"
+              className="menu-toggle"
+              aria-label="Ouvrir le menu de navigation"
+              aria-expanded={menuOpen}
+              aria-controls={SIDEBAR_ID}
+              onClick={() => setMenuOpen(true)}
+            >
+              <Icon name="menu" />
+            </button>
             <AccountMenu profile={user.profile} onLogout={onLogout} mobile />
           </header>
           <main
@@ -380,7 +395,11 @@ function Workspace({
             )}
             {page === "communautes" && <CommunitiesPage params={params} />}
             {page === "contact" && (
-              <ContactPage profile={user.profile} initialTab={params[0]} />
+              <ContactPage
+                key={params[0] ?? ""}
+                profile={user.profile}
+                initialTab={params[0]}
+              />
             )}
             {data && (page === "annuaire" || page === "reservations") && (
               <DirectoryPage

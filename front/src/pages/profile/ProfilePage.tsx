@@ -8,6 +8,7 @@ import type { FormError } from "../../shared/types.ts";
 import Modal from "../../shared/ui/Modal.tsx";
 import Tabs from "../../shared/ui/Tabs.tsx";
 import { ExportPanel, DeletionPanel } from "./AccountPanels.tsx";
+import MfaPanel from "./MfaPanel.tsx";
 import { initials } from "../../shared/utils/format.ts";
 const notices = {
   reminders: [
@@ -26,6 +27,7 @@ const notices = {
 const profileTabs = [
   ["profile", "Profil"],
   ["notifications", "Notifications"],
+  ["securite", "Sécurité"],
   ["exportation", "Exportation"],
   ["suppression", "Suppression du compte"],
 ] as const;
@@ -37,6 +39,7 @@ export default function ProfilePage({
   initialTab,
   onSaved,
   onDeleted,
+  embedded = false,
 }: {
   profile: Profile;
   demo: boolean;
@@ -44,7 +47,12 @@ export default function ProfilePage({
   initialTab?: string;
   onSaved: (profile: Profile) => Promise<void>;
   onDeleted: () => void;
+  /** Dans l’administration : sans titre de page, la sécurité étant gérée à côté. */
+  embedded?: boolean;
 }) {
+  const tabs = embedded
+    ? profileTabs.filter(([key]) => key !== "securite")
+    : profileTabs;
   const [photoLoading, setPhotoLoading] = useState(false);
   const logoutAction = useRef<(() => Promise<void>) | null>(null);
   const [form, setForm] = useState(profile),
@@ -130,15 +138,17 @@ export default function ProfilePage({
   }
   return (
     <div className="profile-page">
-      <div className="welcome">
-        <div>
-          <h1>Gestion de profil</h1>
-          <p>Votre profil et vos préférences, au même endroit.</p>
+      {!embedded && (
+        <div className="welcome">
+          <div>
+            <h1>Gestion de profil</h1>
+            <p>Votre profil et vos préférences, au même endroit.</p>
+          </div>
         </div>
-      </div>
+      )}
       <Tabs
         label="Gestion de profil"
-        tabs={profileTabs}
+        tabs={tabs}
         active={tab}
         onChange={setTab}
       />
@@ -146,7 +156,7 @@ export default function ProfilePage({
         noValidate
         onSubmit={save}
         aria-busy={busy || photoLoading}
-        hidden={tab === "exportation" || tab === "suppression"}
+        hidden={tab !== "profile" && tab !== "notifications"}
       >
         <fieldset className="profile-fieldset" disabled={busy || photoLoading}>
           <div
@@ -392,6 +402,16 @@ export default function ProfilePage({
           </div>
         </fieldset>
       </form>
+      {!embedded && (
+        <section
+          id="panel-securite"
+          role="tabpanel"
+          aria-labelledby="tab-securite"
+          hidden={tab !== "securite"}
+        >
+          {tab === "securite" && <MfaPanel />}
+        </section>
+      )}
       <section
         id="panel-exportation"
         role="tabpanel"

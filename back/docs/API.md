@@ -64,6 +64,38 @@ Une fiche publique utilise un jeton imprévisible. Désactivation : 410 sans inf
 
 Création : 201. Lecture/modification : 200. Suppression : 204. Erreurs : `{ "error": "Message", "field": "name" }`, avec `field` facultatif.
 
+## Administration, assistance et sécurité
+
+Les rôles d’équipe (Administrateur, Modérateur, Support, Vétérinaire référent) sont enregistrés dans `admin_members` de la base centrale, par `npm run admin:grant -- adresse "Rôle"` ou depuis Équipe. Le compte de démonstration `admin@anivaya.fr` est administrateur. Le rôle envoyé par le client n’est jamais pris en compte ; l’inscription l’ignore. Un compte suspendu (`account_controls`) ne peut plus se connecter (403) et ses sessions sont fermées. Un membre de l’équipe ne peut pas supprimer son propre compte (409).
+
+| Méthode    | Route                                        | Usage                                                                                                          |
+| ---------- | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| GET        | /api/admin/overview                          | Rôle, compteurs, indicateurs, dossiers en attente, actions récentes et notifications non lues                  |
+| GET        | /api/admin/analytics                         | Pilotage (administrateur) ; `source=maquette` pour le jeu d’exemples, `zone` et `channel` pour filtrer         |
+| GET        | /api/admin/:resource                         | Liste paginée : `q`, `status`, `scope=pending`, `category`, `sort=name\|date`, `direction`, `page`, `pageSize` |
+| POST       | /api/admin/:resource                         | Création : team (email, role), library (name, summary, body), announcements, tickets                           |
+| GET        | /api/admin/:resource/:id                     | Dossier complet avec historique                                                                                |
+| POST       | /api/admin/:resource/:id/actions             | `action`, `version` lue et `note` ; 409 si le dossier a changé ; 204 quand le dossier disparaît                |
+| GET        | /api/public/resources                        | Guides publiés après relecture et annonces diffusées (sans session)                                            |
+| POST       | /api/public/contact                          | name, email, subject, message : crée une demande d’assistance (sans session)                                   |
+| POST       | /api/reports                                 | targetType: "pros", target, name, message : signalement d’une fiche de l’annuaire                              |
+| POST       | /api/appeals                                 | reference (DEC-…), message : recours sur une décision concernant le compte                                     |
+| POST       | /api/feedback                                | name, category, message : retour sur un import assisté                                                         |
+| GET        | /api/support                                 | Demandes, signalements, recours et retours du compte connecté, réponses de l’équipe incluses                   |
+| GET / POST | /api/account/mfa                             | État de la double authentification / `action` setup, enable, renew ou disable avec `password` et `mfaCode`     |
+| POST       | /api/account/deletion-request                | message facultatif : demande de suppression examinée par l’équipe (409 si une demande est en cours)            |
+| POST       | /api/imports                                 | name, kind (Fichier ou Exemple intégré) : suivi d’un import assisté validé par l’utilisateur                   |
+| POST       | /api/public/emergency/:token/report          | name facultatif, message : signalement d’une fiche publique, avec ou sans session                              |
+| GET        | /api/admin/pros/:id/documents/:document/file | Pièce justificative reçue (PDF, JPEG ou PNG)                                                                   |
+
+Ressources : `users`, `deletions`, `pros`, `reports`, `appeals`, `tickets`, `imports`, `feedback`, `announcements`, `library`, `team`, `security`, `history`, `alerts`. Chaque rôle n’accède qu’aux siennes (403 sinon). Les actions sont journalisées dans `admin_audit` avec leur auteur et leur motif.
+
+Actions par ressource (`POST …/actions`) : `users` edit, save, reset ; `team` edit, save, et pour une invitation renew, cancel ; `deletions` delete, decline ; `pros` edit, save, proof, proof-file (`document`, `file`, `fileName`) ; `reports` decide (`status` parmi `choices`, `accountAction` Aucune sanction / Avertir le compte / Suspendre le compte), reopen, priority ; `appeals` decide ; `tickets` et `feedback` reply, feedback ticket ; `imports` retry, incident ; `announcements` save, publish, unpublish, delete ; `library` save, submit, review, publish, version, unpublish, delete ; `security` revoke (session) ou review (alerte) ; `alerts` read, unread, read-all.
+
+Une invitation (`team` avec une adresse inconnue) est valable 14 jours et s’applique à la première connexion ou inscription de l’adresse. Une fiche publique masquée par la modération répond 451. Les alertes de sécurité sont déposées automatiquement : cinq échecs de connexion en 15 minutes, limite de tentatives atteinte, double authentification désactivée. Le compte `admin@anivaya.fr` reçoit un jeu de démonstration (dossiers professionnels, signalements, recours, demandes, imports, annonces, guides, invitation, demande de suppression, alerte) daté des jours précédents.
+
+MFA : TOTP (RFC 6238, 30 s) avec secret chiffré AES-256-GCM par `MFA_ENCRYPTION_KEY` (64 caractères hexadécimaux, obligatoire en production ; une clé locale est générée sinon). Huit codes de secours à usage unique, affichés une seule fois. Quand la MFA est active, `POST /api/auth/login` exige `mfaCode` (401 avec `field: "mfaCode"` sinon). Un changement de MFA ferme les autres sessions du compte.
+
 ## Corps JSON
 
 Animal : `{ "name": "Rio", "species": "Chien", "breed": "Labrador", "sex": "Mâle", "dob": "2024-03-12", "weight": "24" }`.

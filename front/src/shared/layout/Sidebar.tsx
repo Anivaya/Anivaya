@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import type { Profile } from "../../../../shared/account.ts";
 import Icon from "../ui/Icon.tsx";
 import { initials } from "../utils/format.ts";
@@ -14,8 +15,9 @@ const navigation = [
 export const SIDEBAR_ID = "main-sidebar";
 
 /**
- * Barre latérale. Sur mobile, elle devient un panneau ouvert par le bouton menu de
- * l’en-tête (`open`), refermé par un lien, Échap ou un clic à côté.
+ * Barre latérale. Sur tablette et mobile, elle devient un panneau ouvert par le bouton
+ * menu de l’en-tête (`open`), refermé par un lien, Échap ou un clic à côté.
+ * `children` remplace le contenu habituel (navigation de l’administration).
  */
 export default function Sidebar({
   page,
@@ -23,17 +25,19 @@ export default function Sidebar({
   onLogout,
   open = false,
   onClose,
+  children,
 }: {
   page: string;
   profile: Profile;
   onLogout: () => Promise<void>;
   open?: boolean;
   onClose: () => void;
+  children?: ReactNode;
 }) {
   const panel = useRef<HTMLElement>(null);
   useEffect(() => {
     if (!open) return;
-    const narrow = matchMedia("(max-width:620px)");
+    const narrow = matchMedia("(max-width:1024px)");
     if (!narrow.matches) {
       onClose();
       return;
@@ -101,7 +105,9 @@ export default function Sidebar({
           if (e.target instanceof Element && e.target.closest("a")) onClose();
         }}
       >
-        <SidebarContent page={page} profile={profile} onLogout={onLogout} />
+        {children ?? (
+          <SidebarContent page={page} profile={profile} onLogout={onLogout} />
+        )}
       </aside>
     </>
   );
@@ -148,15 +154,21 @@ function SidebarContent({
   );
 }
 
-/** Menu du compte : dans la barre latérale et, sur mobile, dans l’en-tête. */
+/** Menu du compte : dans la barre latérale et, sur tablette et mobile, dans l’en-tête. */
 export function AccountMenu({
   profile,
   onLogout,
   mobile = false,
+  profileHref = "#profil",
+  roleLabel = "Mon compte",
 }: {
   profile: Profile;
   onLogout: () => Promise<void>;
   mobile?: boolean;
+  /** Page de profil ouverte depuis le menu (celle de l’administration, par exemple). */
+  profileHref?: string;
+  /** Texte sous le nom : rôle d’équipe dans l’administration. */
+  roleLabel?: string;
 }) {
   const [open, setOpen] = useState(false),
     [busy, setBusy] = useState(false),
@@ -217,7 +229,7 @@ export function AccountMenu({
         </span>
         <span className="profile-label">
           <strong>{profile.name}</strong>
-          <small>Mon compte</small>
+          <small>{roleLabel}</small>
         </span>
       </button>
       {open && (
@@ -231,7 +243,7 @@ export function AccountMenu({
             <span>{profile.email}</span>
           </div>
           <div className="account-actions">
-            <a href="#profil" onClick={() => setOpen(false)}>
+            <a href={profileHref} onClick={() => setOpen(false)}>
               <Icon name="settings" />
               Gestion de profil
             </a>

@@ -12,8 +12,14 @@ import { DatabaseSync } from "node:sqlite";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Database, Input } from "../database/types.ts";
 import type { AuthUser } from "../../shared/account.ts";
-import { openDatabase, databasePath } from "../database/connection.ts";
+import type { AdminRole } from "../../shared/admin.ts";
+import {
+  openDatabase,
+  databasePath,
+  centralMigration,
+} from "../database/connection.ts";
 import { profileRepository } from "./profile.ts";
+import { mfaService } from "./mfa.ts";
 import type { SocialNotice } from "./social.ts";
 import { ApiError, text, emailAddress } from "./validation.ts";
 
@@ -34,7 +40,10 @@ export const demoAccounts = [
   { id: "demo", name: "test", email: "test@gmail.com" },
   { id: "demo-2", name: "test2", email: "test2@gmail.com" },
   { id: "demo-3", name: "test3", email: "test3@gmail.com" },
+  { id: "demo-admin", name: "admin", email: "admin@anivaya.fr" },
 ] as const;
+/** Le compte de démonstration qui ouvre l’administration. */
+const DEMO_ADMIN = { id: "demo-admin", role: "Administrateur" } as const;
 export const demoCredentials = {
   email: demoAccounts[0].email,
   password: DEMO_PASSWORD,
@@ -64,7 +73,39 @@ export function authentication(db: Database, directory?: string) {
   db.exec(`CREATE TABLE IF NOT EXISTS accounts(id TEXT PRIMARY KEY,email TEXT NOT NULL UNIQUE,password TEXT NOT NULL,workspace TEXT NOT NULL UNIQUE);
  CREATE TABLE IF NOT EXISTS sessions(token TEXT PRIMARY KEY,account TEXT NOT NULL REFERENCES accounts(id),expires INTEGER NOT NULL);
  CREATE TABLE IF NOT EXISTS public_sheets(token TEXT PRIMARY KEY,account TEXT NOT NULL REFERENCES accounts(id),animal TEXT NOT NULL,UNIQUE(account,animal));`);
+  // Équipe, suspensions, dossiers d’administration et MFA : après la table des comptes.
+  db.exec(centralMigration("008_admin.sql"));
+  db.exec(centralMigration("009_admin_extensions.sql"));
+  if (
+    !db
+      .prepare("PRAGMA table_info(account_controls)")
+      .all<{ name: string }>()
+      .some((c) => c.name === "public_visibility")
+  )
+    db.exec(
+      "ALTER TABLE account_controls ADD COLUMN public_visibility TEXT NOT NULL DEFAULT 'Visible'",
+    );
   const root = directory || join(dirname(databasePath()), "accounts");
+  const mfa = mfaService(db, join(root, "mfa.key"));
+  /** Branchements de l’administration : alertes de sécurité et invitations acceptées. */
+  const hooks: {
+    security?: (kind: string, detail: string, account?: string) => void;
+    login?: (account: Account) => void;
+  } = {};
+  const failures = new Map<string, { count: number; until: number }>();
+  function failed(email: string, account: Account | undefined) {
+    const now = Date.now();
+    for (const [k, v] of failures) if (v.until <= now) failures.delete(k);
+    const f = failures.get(email) || { count: 0, until: now + 15 * 60 * 1000 };
+    f.count++;
+    failures.set(email, f);
+    if (f.count === 5)
+      hooks.security?.(
+        "Tentatives de connexion répétées",
+        `${f.count} échecs de connexion en 15 minutes pour ${email}.`,
+        account?.id,
+      );
+  }
   const connections = new Map<string, Database>();
   const attempts = new Map<string, { count: number; until: number }>();
   const workspacePath = (name: string) => join(root, name + ".sqlite");
@@ -138,6 +179,10 @@ export function authentication(db: Database, directory?: string) {
         account.workspace,
       );
     }
+    if (db.prepare("SELECT id FROM accounts WHERE id=?").get(DEMO_ADMIN.id))
+      db.prepare(
+        "INSERT OR IGNORE INTO admin_members(account,role) VALUES (?,?)",
+      ).run(DEMO_ADMIN.id, DEMO_ADMIN.role);
   })();
   function token(req: IncomingMessage) {
     return (
@@ -160,20 +205,54 @@ export function authentication(db: Database, directory?: string) {
         "email",
       );
   }
+  /** Rôle d’équipe actif du compte, s’il en a un. */
+  function adminRole(account: Pick<Account, "id">) {
+    return db
+      .prepare(
+        "SELECT role FROM admin_members WHERE account=? AND status='Actif'",
+      )
+      .get<{ role: AdminRole }>(account.id)?.role;
+  }
+  /** Visibilité des fiches publiques d’un compte, décidée par la modération. */
+  function publicVisibility(id: string) {
+    return (
+      db
+        .prepare(
+          "SELECT public_visibility AS visibility FROM account_controls WHERE account=?",
+        )
+        .get<{ visibility: string }>(id)?.visibility || "Visible"
+    );
+  }
+  function suspended(account: Pick<Account, "id">) {
+    return (
+      db
+        .prepare("SELECT status FROM account_controls WHERE account=?")
+        .get<{ status: string }>(account.id)?.status === "Suspendu"
+    );
+  }
   function user(account: Account): AuthUser {
+    const role = adminRole(account);
     return {
       id: account.id,
+      ...(role ? { adminRole: role } : {}),
       demo: isDemo(account),
       profile: profileRepository(workspace(account)).get(),
     };
   }
   function current(req: IncomingMessage): Account | null {
-    return (
-      db
-        .prepare(
-          "SELECT a.* FROM accounts a JOIN sessions s ON s.account=a.id WHERE s.token=? AND s.expires>?",
-        )
-        .get<Account>(digest(token(req)), Date.now()) || null
+    const account = db
+      .prepare(
+        "SELECT a.* FROM accounts a JOIN sessions s ON s.account=a.id WHERE s.token=? AND s.expires>?",
+      )
+      .get<Account>(digest(token(req)), Date.now());
+    return account && !suspended(account) ? account : null;
+  }
+  async function verifyPassword(account: Account, value: unknown) {
+    const [salt, key] = account.password.split(":");
+    const candidate = await hash(passwordValue(value), salt);
+    return timingSafeEqual(
+      Buffer.from(candidate.split(":")[1], "hex"),
+      Buffer.from(key, "hex"),
     );
   }
   function session(
@@ -210,17 +289,40 @@ export function authentication(db: Database, directory?: string) {
     const a = attempts.get(key) || { count: 0, until: now + 15 * 60 * 1000 };
     a.count++;
     attempts.set(key, a);
-    if (a.count > 30)
+    if (a.count > 30) {
+      if (a.count === 31)
+        hooks.security?.(
+          "Limite de tentatives atteinte",
+          `Plus de 30 tentatives de connexion ou d’inscription en 15 minutes depuis ${key}.`,
+        );
       throw new ApiError(
         429,
         "Trop de tentatives. Réessayez dans quelques minutes.",
       );
+    }
+  }
+  /** Efface le compte, son espace, ses liens publics et ses sessions. */
+  function purge(account: Account) {
+    dropWorkspace(account);
+    db.prepare("DELETE FROM public_sheets WHERE account=?").run(account.id);
+    db.prepare("DELETE FROM sessions WHERE account=?").run(account.id);
+    if (isDemo(account)) prepareDemoWorkspace(account);
+    else db.prepare("DELETE FROM accounts WHERE id=?").run(account.id);
   }
   return {
     ready,
     current,
     workspace,
     user,
+    mfa,
+    verifyPassword,
+    /** Ferme les autres sessions du compte, par exemple après un changement de MFA. */
+    revokeOtherSessions(req: IncomingMessage, account: Account) {
+      db.prepare("DELETE FROM sessions WHERE account=? AND token<>?").run(
+        account.id,
+        digest(token(req)),
+      );
+    },
     async login(req: IncomingMessage, res: ServerResponse, data: Input) {
       await ready;
       rate(req);
@@ -229,21 +331,30 @@ export function authentication(db: Database, directory?: string) {
       const account = db
         .prepare("SELECT * FROM accounts WHERE email=?")
         .get<Account>(email);
+      // Le temps de réponse ne révèle pas si l’adresse existe.
       const stored =
-        account?.password ||
-        db
-          .prepare("SELECT password FROM accounts WHERE id='demo'")
-          .get<{ password: string }>()!.password;
-      const [salt, key] = stored.split(":");
-      const candidate = await hash(password, salt);
-      if (
-        !account ||
-        !timingSafeEqual(
-          Buffer.from(candidate.split(":")[1], "hex"),
-          Buffer.from(key, "hex"),
-        )
-      )
+        account ||
+        db.prepare("SELECT * FROM accounts WHERE id='demo'").get<Account>()!;
+      if (!(await verifyPassword(stored, password)) || !account) {
+        failed(email, account);
         throw new ApiError(401, "Adresse e-mail ou mot de passe incorrect.");
+      }
+      if (suspended(account))
+        throw new ApiError(
+          403,
+          "Ce compte est suspendu. Contactez l’équipe Anivaya.",
+        );
+      if (mfa.status(account.id).enabled) {
+        if (!data.mfaCode)
+          throw new ApiError(
+            401,
+            "Saisissez le code de votre application d’authentification ou un code de secours.",
+            "mfaCode",
+          );
+        mfa.verify(account.id, data.mfaCode);
+      }
+      failures.delete(email);
+      hooks.login?.(account);
       session(req, res, account, data.remember === true);
       return user(account);
     },
@@ -280,6 +391,7 @@ export function authentication(db: Database, directory?: string) {
         encoded,
         id,
       );
+      hooks.login?.(account);
       session(req, res, account);
       return user(account);
     },
@@ -298,13 +410,37 @@ export function authentication(db: Database, directory?: string) {
           "Saisissez SUPPRIMER pour confirmer.",
           "confirmation",
         );
-      dropWorkspace(account);
-      db.prepare("DELETE FROM public_sheets WHERE account=?").run(account.id);
-      db.prepare("DELETE FROM sessions WHERE account=?").run(account.id);
-      if (isDemo(account)) prepareDemoWorkspace(account);
-      else db.prepare("DELETE FROM accounts WHERE id=?").run(account.id);
+      if (
+        db
+          .prepare("SELECT account FROM admin_members WHERE account=?")
+          .get(account.id)
+      )
+        throw new ApiError(
+          409,
+          "Ce compte fait partie de l’équipe Anivaya. Demandez à un administrateur de retirer votre accès avant de le supprimer.",
+        );
+      purge(account);
       clearCookie(res);
     },
+    /** Suppression décidée par l’administration à la demande du titulaire. */
+    deleteAccountById(id: string) {
+      const account = db
+        .prepare("SELECT * FROM accounts WHERE id=?")
+        .get<Account>(id);
+      if (!account) throw new ApiError(404, "Compte introuvable.");
+      if (
+        db
+          .prepare("SELECT account FROM admin_members WHERE account=?")
+          .get(account.id)
+      )
+        throw new ApiError(
+          409,
+          "Retirez d’abord ce compte de l’équipe avant de le supprimer.",
+        );
+      purge(account);
+      return account;
+    },
+    publicVisibility,
     saveProfile(account: Account, data: Input) {
       const email = emailAddress(data.email);
       assertEmailAvailable(email, account.id);
@@ -376,8 +512,16 @@ export function authentication(db: Database, directory?: string) {
           "SELECT a.*,p.animal FROM public_sheets p JOIN accounts a ON a.id=p.account WHERE p.token=?",
         )
         .get<Account & { animal: string }>(value);
-      return row ? { db: workspace(row), animal: row.animal } : null;
+      return row
+        ? {
+            db: workspace(row),
+            animal: row.animal,
+            account: row.id,
+            hidden: publicVisibility(row.id) === "Masqué",
+          }
+        : null;
     },
+    hooks,
     close() {
       for (const own of connections.values()) own.close();
       connections.clear();

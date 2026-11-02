@@ -56,6 +56,9 @@ h3,
 body {
   margin: 0;
 }
+.resize-none {
+  resize: none;
+}
 h1,
 h2,
 h3,
@@ -261,4 +264,53 @@ dialog::backdrop {
 .button.with-plus,
 .welcome .button.with-plus {
   gap: 8px;
+}
+/*
+ * Onglets des pages (partage, carnet, professionnels, communautés, profil, contact,
+ * administration) : centrés, avec le style de la page Partage.
+ * Les sélecteurs d’attribut l’emportent sur les règles de liens des pages (`.directory-page a`).
+ */
+.page-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 28px;
+  border-bottom: 1px solid var(--border);
+  margin: 0 0 26px;
+}
+.page-tabs > a[href],
+.page-tabs > button[role="tab"] {
+  padding: 12px 0 15px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: inherit;
+}
+.page-tabs > a[href]:hover,
+.page-tabs > button[role="tab"]:hover {
+  color: var(--blue);
+  text-decoration: none;
+}
+.page-tabs > a[aria-current="page"],
+.page-tabs > button[aria-selected="true"] {
+  color: var(--blue);
+  border-bottom-color: var(--gold);
+  font-weight: 700;
+}
+@media (max-width: 620px) {
+  .page-tabs {
+    gap: 20px;
+  }
+  .page-tabs > a[href],
+  .page-tabs > button[role="tab"] {
+    font-size: 12px;
+  }
+}
+@media (forced-colors: active) {
+  .page-tabs > a[aria-current="page"],
+  .page-tabs > button[aria-selected="true"] {
+    outline: 2px solid Highlight;
+  }
 }

@@ -418,31 +418,6 @@
 
 /* Menu du compte, commun aux pages connectées. */
 
-.profile-page .settings-tabs {
-  display: flex;
-  gap: 26px;
-  border-bottom: 1px solid var(--border);
-  margin: 0 0 26px;
-}
-.profile-page .settings-tabs button {
-  font: inherit;
-  font-weight: 800;
-  font-size: 15px;
-  color: var(--muted);
-  border: 0;
-  border-bottom: 3px solid transparent;
-  padding: 13px 2px;
-  background: transparent;
-  cursor: pointer;
-}
-.profile-page .settings-tabs button[aria-selected="true"] {
-  color: var(--blue);
-  border-bottom-color: var(--blue);
-}
-.profile-page .settings-tabs button:focus-visible {
-  outline: 3px solid var(--gold);
-  outline-offset: 3px;
-}
 .profile-page [role="tabpanel"][hidden] {
   display: none !important;
 }
@@ -511,9 +486,6 @@
   color: var(--muted);
   line-height: 1.7;
   margin: 10px 0 0;
-}
-.profile-page .settings-tabs button:hover {
-  color: var(--blue);
 }
 
 .profile-page .profile-fieldset {
@@ -611,10 +583,6 @@
 }
 .profile-page .export-actions #export-all {
   margin-left: auto;
-}
-.profile-page .settings-tabs {
-  flex-wrap: wrap;
-  gap: 24px;
 }
 @media (max-width: 500px) {
   .profile-page .export-actions {

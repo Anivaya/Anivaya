@@ -3,6 +3,9 @@ import type { FormEvent, ReactNode } from "react";
 import type { Animal, Dashboard } from "../../shared/types.ts";
 import Icon from "../../shared/ui/Icon.tsx";
 import Modal from "../../shared/ui/Modal.tsx";
+import { adminApi } from "../../shared/services/admin.ts";
+import { errorMessage } from "../../shared/types.ts";
+import ImportFeedback from "./ImportFeedback.tsx";
 
 /**
  * Import assisté par IA, en démonstration : aucun fichier n’est envoyé ni analysé,
@@ -263,12 +266,26 @@ export default function AiImport({
     return null;
   }
 
-  function submit(event: FormEvent) {
+  // Suivi de l’import par l’assistance : identifiant du dossier, ou raison de l’absence de suivi.
+  const [tracking, setTracking] = useState<{ id?: string; error?: string }>({});
+  async function submit(event: FormEvent) {
     event.preventDefault();
     const invalid = values && validate(values);
     if (invalid) return fail(...invalid);
     setError(null);
     setDirty(false);
+    setBusy(true);
+    try {
+      const started = await adminApi.registerImport({
+        name: values!.title.trim(),
+        kind: source?.file ? "Fichier" : "Exemple intégré",
+      });
+      setTracking({ id: started.id });
+    } catch (failure) {
+      setTracking({ error: errorMessage(failure) });
+    } finally {
+      setBusy(false);
+    }
     setStep(2);
   }
 
@@ -632,6 +649,18 @@ export default function AiImport({
               Démonstration : rien n’a encore été ajouté à votre espace.
               L’enregistrement sera disponible avec l’import réel.
             </p>
+            {tracking.error ? (
+              <p className="ai-muted" role="status">
+                Le suivi de cet import n’a pas pu être enregistré pour
+                l’assistance : {tracking.error}
+              </p>
+            ) : (
+              <p className="ai-muted">
+                Cet import est suivi par l’assistance Anivaya. Vous pouvez lui
+                laisser un retour.
+              </p>
+            )}
+            <ImportFeedback importId={tracking.id} />
           </div>
           <div className="ai-actions">
             {!creating && targetAnimal && (

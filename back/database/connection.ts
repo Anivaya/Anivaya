@@ -14,6 +14,8 @@ const migrations = [
 ];
 const sql = (file: string) =>
   readFileSync(new URL(file, import.meta.url), "utf8");
+/** Migration de la base centrale seule (comptes, administration), appliquée par `authentication`. */
+export const centralMigration = (name: string) => sql(`./migrations/${name}`);
 
 /** Base centrale : `DATABASE_PATH` ou `data/anivaya.sqlite`. */
 export const databasePath = () =>

@@ -46,7 +46,10 @@ export function fieldError(field: string, message: string) {
   error.field = field;
   return error;
 }
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+export async function request<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
   let response: Response;
   try {
     response = await fetch(`/api${path}`, {
@@ -95,8 +98,12 @@ export const api = {
   session: (signal?: AbortSignal) =>
     request<AuthUser | null>("/auth/session", { signal }),
   demo: () => request<DemoAccount[]>("/auth/demo"),
-  login: (body: { email: string; password: string; remember: boolean }) =>
-    send<AuthUser>("/auth/login", "POST", body),
+  login: (body: {
+    email: string;
+    password: string;
+    remember: boolean;
+    mfaCode?: string;
+  }) => send<AuthUser>("/auth/login", "POST", body),
   register: (body: {
     name: string;
     email: string;
