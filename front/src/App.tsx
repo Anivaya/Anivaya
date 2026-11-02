@@ -310,14 +310,17 @@ function Workspace({
         />
         <div className="app-main">
           <header className="app-top">
-            {/* Sur tablette et mobile : logo à gauche, bouton menu à droite de la cloche. */}
-            <a
-              className="top-brand"
-              href="#espace"
-              aria-label="Anivaya — Vue d’ensemble"
+            {/* Sur tablette et mobile : bouton menu à gauche, à la place du logo. */}
+            <button
+              type="button"
+              className="menu-toggle"
+              aria-label="Ouvrir le menu de navigation"
+              aria-expanded={menuOpen}
+              aria-controls={SIDEBAR_ID}
+              onClick={() => setMenuOpen(true)}
             >
-              <img src="/images/logo.png" alt="" width="52" height="46" />
-            </a>
+              <Icon name="menu" />
+            </button>
             <strong className="top-title">Mon espace</strong>
             <small>/ {title}</small>
             <a
@@ -336,16 +339,6 @@ function Workspace({
                 </span>
               )}
             </a>
-            <button
-              type="button"
-              className="menu-toggle"
-              aria-label="Ouvrir le menu de navigation"
-              aria-expanded={menuOpen}
-              aria-controls={SIDEBAR_ID}
-              onClick={() => setMenuOpen(true)}
-            >
-              <Icon name="menu" />
-            </button>
             <AccountMenu profile={user.profile} onLogout={onLogout} mobile />
           </header>
           <main

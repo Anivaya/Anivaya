@@ -9,7 +9,13 @@ import { adminApi } from "../../shared/services/admin.ts";
 import { errorMessage } from "../../shared/types.ts";
 import Modal from "../../shared/ui/Modal.tsx";
 import AdminDialog from "./AdminDialog.tsx";
-import { actionIcon, actionsFor, adminLink } from "./config.ts";
+import {
+  actionIcon,
+  actionsFor,
+  adminLink,
+  isDangerAction,
+  statusTone,
+} from "./config.ts";
 import AdminIconButton from "./AdminIconButton.tsx";
 
 /** Aperçu intermédiaire commun aux indicateurs et à la cloche. Le dossier s'ouvre au-dessus et revient ici. */
@@ -135,7 +141,9 @@ export default function AdminPreview({
                   {row.name}
                 </button>
                 <p>{row.email || row.category || row.reference || row.city}</p>
-                <span className="admin-badge">{row.status}</span>
+                <span className={`admin-badge ${statusTone(row.status)}`}>
+                  {row.status}
+                </span>
               </div>
               <div className="admin-preview-actions">
                 <AdminIconButton
@@ -151,6 +159,7 @@ export default function AdminPreview({
                       className="admin-text-button"
                       icon={actionIcon(action.id, indicator.resource)}
                       label={`${action.label} — ${row.name}`}
+                      danger={isDangerAction(action.id)}
                       disabled={busy}
                       key={action.id}
                       onClick={() => void open(row, action.id)}

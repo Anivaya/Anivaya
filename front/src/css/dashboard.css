@@ -17,17 +17,19 @@
   flex-direction: column;
   padding: 22px 18px;
 }
+/* Logo avec le nom ANIVAYA en dessous, commun à l’espace particulier et à l’administration. */
 .app-brand {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  flex-shrink: 0;
+  gap: 8px;
   padding: 0 14px 24px;
 }
 .app-brand img {
-  width: 78px;
-  height: 69px;
-  object-fit: contain;
+  width: 112px;
+  height: auto;
 }
 .side-nav {
   display: flex;
@@ -54,9 +56,11 @@
   background: var(--pale);
   text-decoration: none;
 }
+/* Page active : bleu plein et texte or (contraste 5,2:1), dans les deux espaces. */
 .side-nav a[aria-current="page"] {
-  background: #e8effb;
-  color: var(--blue);
+  background: var(--blue);
+  color: var(--gold);
+  box-shadow: 0 6px 16px #1b3b8e2e;
 }
 .side-bottom {
   margin-top: auto;
@@ -629,7 +633,7 @@
   }
 }
 /* Tablette et mobile : la navigation devient un panneau ouvert par le bouton menu,
-   placé en haut à droite de l’en-tête ; le panneau glisse donc depuis la droite. */
+   placé à gauche de l’en-tête ; le panneau glisse depuis la gauche. */
 @media (max-width: 1024px) {
   .workspace {
     display: block;
@@ -637,14 +641,12 @@
   .sidebar {
     position: fixed;
     z-index: 60;
-    inset: 0 0 0 auto;
+    inset: 0 auto 0 0;
     width: min(280px, 84vw);
     height: 100dvh;
     overflow-y: auto;
-    border-right: 0;
-    border-left: 1px solid var(--border);
     box-shadow: 0 0 40px #132e5c30;
-    transform: translateX(105%);
+    transform: translateX(-105%);
     visibility: hidden;
     transition:
       transform 0.25s ease,
@@ -666,9 +668,6 @@
   }
   .app-top .menu-toggle {
     display: grid;
-  }
-  .app-top .top-brand {
-    display: flex;
   }
 }
 @media (max-width: 620px) {
@@ -956,7 +955,7 @@
   place-items: center;
   border: 2px solid white;
 }
-/* Sur tablette et mobile, le bouton menu et le menu du compte suivent la cloche. */
+/* Sur tablette et mobile, le menu du compte suit directement la cloche. */
 .notification-bell ~ .mobile-account {
   margin-left: 0;
 }
@@ -1088,7 +1087,7 @@
     grid-column: 3;
   }
 }
-/* Bouton menu et logo de l’en-tête : affichés seulement sur tablette et mobile. */
+/* Bouton menu de l’en-tête : affiché seulement sur tablette et mobile, à gauche. */
 .menu-toggle {
   display: none;
   place-items: center;
@@ -1110,13 +1109,4 @@
   stroke: currentColor;
   stroke-width: 2;
   stroke-linecap: round;
-}
-.top-brand {
-  display: none;
-  align-items: center;
-}
-.top-brand img {
-  width: 52px;
-  height: 46px;
-  object-fit: contain;
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { FormEvent } from "react";
+import type { FormEvent, ReactNode } from "react";
 import type { Profile, ProfileInput } from "../../../../shared/account.ts";
 import type { UploadedFile } from "../../../../shared/models.ts";
 import { api, readFile } from "../../shared/services/api.ts";
@@ -40,6 +40,7 @@ export default function ProfilePage({
   onSaved,
   onDeleted,
   embedded = false,
+  security,
 }: {
   profile: Profile;
   demo: boolean;
@@ -47,12 +48,11 @@ export default function ProfilePage({
   initialTab?: string;
   onSaved: (profile: Profile) => Promise<void>;
   onDeleted: () => void;
-  /** Dans l’administration : sans titre de page, la sécurité étant gérée à côté. */
+  /** Dans l’administration : sans titre de page, le titre étant celui de l’administration. */
   embedded?: boolean;
+  /** Contenu de l’onglet Sécurité ; par défaut, la double authentification. */
+  security?: ReactNode;
 }) {
-  const tabs = embedded
-    ? profileTabs.filter(([key]) => key !== "securite")
-    : profileTabs;
   const [photoLoading, setPhotoLoading] = useState(false);
   const logoutAction = useRef<(() => Promise<void>) | null>(null);
   const [form, setForm] = useState(profile),
@@ -148,7 +148,7 @@ export default function ProfilePage({
       )}
       <Tabs
         label="Gestion de profil"
-        tabs={tabs}
+        tabs={profileTabs}
         active={tab}
         onChange={setTab}
       />
@@ -402,16 +402,14 @@ export default function ProfilePage({
           </div>
         </fieldset>
       </form>
-      {!embedded && (
-        <section
-          id="panel-securite"
-          role="tabpanel"
-          aria-labelledby="tab-securite"
-          hidden={tab !== "securite"}
-        >
-          {tab === "securite" && <MfaPanel />}
-        </section>
-      )}
+      <section
+        id="panel-securite"
+        role="tabpanel"
+        aria-labelledby="tab-securite"
+        hidden={tab !== "securite"}
+      >
+        {tab === "securite" && (security ?? <MfaPanel />)}
+      </section>
       <section
         id="panel-exportation"
         role="tabpanel"

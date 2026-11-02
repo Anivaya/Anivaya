@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type {
   AdminResource,
   AdminRole,
@@ -106,7 +107,17 @@ export const adminLink = (resource: AdminResource) => {
     )?.[0] || "dashboard";
   return `#admin/${page}/${resource}`;
 };
-export function actionsFor(
+/** Actions possibles sur un dossier ; suppression et retrait toujours en dernier (à droite). */
+export const actionsFor = (
+  resource: AdminResource,
+  row: AdminRecord,
+  role: AdminRole,
+) =>
+  availableActions(resource, row, role).sort(
+    (a, b) => Number(isDangerAction(a.id)) - Number(isDangerAction(b.id)),
+  );
+
+function availableActions(
   resource: AdminResource,
   row: AdminRecord,
   role: AdminRole,
@@ -242,6 +253,49 @@ export function actionsFor(
   return [];
 }
 
+/** Actions de suppression ou de retrait : boutons en rouge partout dans l’administration. */
+const dangerActions = new Set([
+  "delete",
+  "revoke",
+  "cancel",
+  "decline",
+  "unpublish",
+]);
+export const isDangerAction = (action: string) => dangerActions.has(action);
+
+/** Colonnes d’une rangée d’indicateurs : tous sur grand écran, sinon moitié par moitié. */
+export const indicatorColumns = (count: number) =>
+  ({ "--all": count, "--half": Math.ceil(count / 2) }) as CSSProperties;
+
+/** Couleur du badge d’état : rouge (bloquant), vert (terminé), or (en attente), bleu sinon. */
+export function statusTone(status?: string) {
+  if (!status) return "";
+  if (
+    ["Suspendu", "Refusé", "Risque grave", "Échoué", "Manquant"].includes(
+      status,
+    )
+  )
+    return "danger";
+  if (
+    [
+      "Actif",
+      "Active",
+      "Validé",
+      "Publié",
+      "Résolu",
+      "Conforme",
+      "Terminé",
+    ].includes(status)
+  )
+    return "success";
+  if (
+    status.startsWith("À ") ||
+    ["Ouvert", "Nouveau", "Invité", "Brouillon", "En cours"].includes(status)
+  )
+    return "pending";
+  return "";
+}
+
 export function actionIcon(action: string, resource?: string) {
   if (action.startsWith("proof-file")) return "download";
   if (action.startsWith("proof")) return "shield";
@@ -254,11 +308,14 @@ export function actionIcon(action: string, resource?: string) {
             ? "block"
             : resource === "pros"
               ? "shield"
-              : "settings",
+              : resource === "announcements" || resource === "library"
+                ? "edit"
+                : "settings",
         delete: "trash",
         decline: "close",
         publish: "send",
-        unpublish: "eye",
+        // Retrait de la publication : l’œil barré se distingue de « Consulter ».
+        unpublish: "eye-off",
         reply: "chat",
         ticket: "headset",
         incident: "headset",

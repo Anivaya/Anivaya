@@ -9,7 +9,12 @@ import { adminApi } from "../../shared/services/admin.ts";
 import { errorMessage } from "../../shared/types.ts";
 import AdminDialog from "./AdminDialog.tsx";
 import AdminIconButton from "./AdminIconButton.tsx";
-import { actionIcon, actionsFor } from "./config.ts";
+import {
+  actionIcon,
+  actionsFor,
+  isDangerAction,
+  statusTone,
+} from "./config.ts";
 
 export default function AdminCollection({
   resource,
@@ -158,13 +163,22 @@ export default function AdminCollection({
     params.get("scope"),
   );
   const titleColumn =
-    resource === "users"
-      ? "Compte"
-      : resource === "reports"
-        ? "Signalement"
-        : resource === "history"
-          ? "Action"
-          : "Élément";
+    (
+      {
+        users: "Compte",
+        deletions: "Compte",
+        reports: "Signalement",
+        history: "Historique",
+        team: "Identité",
+        tickets: "Demande",
+        imports: "Importation",
+        feedback: "Retour",
+        appeals: "Recours",
+        pros: "Établissement",
+        announcements: "Annonce",
+        library: "Contenu",
+      } as Partial<Record<AdminResource, string>>
+    )[resource] || "Élément";
   function sortHeading(label: string, key: string) {
     const state =
       params.get("sort") === key
@@ -399,7 +413,7 @@ export default function AdminCollection({
             role="region"
             aria-label="Liste des dossiers"
           >
-            <table>
+            <table className={`admin-table-${resource}`}>
               <thead>
                 <tr>
                   {sortHeading(titleColumn, "name")}
@@ -415,7 +429,7 @@ export default function AdminCollection({
                         feedback: "Utilisateur",
                         announcements: "Audience",
                         library: "Version / relecture",
-                        deletions: "Compte",
+                        deletions: "Adresse e-mail",
                         imports: "Compte / source",
                         security: "Nature",
                         appeals: "Référence",
@@ -444,41 +458,47 @@ export default function AdminCollection({
                       <td>
                         <button
                           className="admin-record-link"
+                          title={row.name}
                           onClick={() => void openRecord(row)}
                         >
                           {row.name}
                         </button>
                         {row.email &&
                           resource !== "reports" &&
-                          resource !== "history" && <small>{row.email}</small>}
+                          resource !== "history" &&
+                          resource !== "deletions" && (
+                            <small title={row.email}>{row.email}</small>
+                          )}
                         {resource === "library" && (
                           <small>{row.versions?.at(-1)?.summary}</small>
                         )}
                       </td>
                       <td>
-                        {resource === "history"
-                          ? row.email
-                          : resource === "tickets"
-                            ? row.assignee
-                            : resource === "reports"
-                              ? row.targetType === "pros"
-                                ? "Fiche professionnelle"
-                                : "Profil public"
-                              : resource === "library"
-                                ? `Version ${row.versions?.at(-1)?.number || 1}`
-                                : resource === "deletions" ||
-                                    resource === "imports"
-                                  ? row.email || "Compte supprimé"
-                                  : resource === "security"
-                                    ? row.kind
-                                    : resource === "users"
-                                      ? row.accountType
-                                      : row.role ||
-                                        row.category ||
-                                        row.audience ||
-                                        row.reference ||
-                                        row.priority ||
-                                        "—"}
+                        <span className="admin-cell-text">
+                          {resource === "history"
+                            ? row.email
+                            : resource === "tickets"
+                              ? row.assignee
+                              : resource === "reports"
+                                ? row.targetType === "pros"
+                                  ? "Fiche professionnelle"
+                                  : "Profil public"
+                                : resource === "library"
+                                  ? `Version ${row.versions?.at(-1)?.number || 1}`
+                                  : resource === "deletions" ||
+                                      resource === "imports"
+                                    ? row.email || "Compte supprimé"
+                                    : resource === "security"
+                                      ? row.kind
+                                      : resource === "users"
+                                        ? row.accountType
+                                        : row.role ||
+                                          row.category ||
+                                          row.audience ||
+                                          row.reference ||
+                                          row.priority ||
+                                          "—"}
+                        </span>
                         {row.city && <small>{row.city}</small>}
                         {resource === "tickets" && (
                           <small>{row.category}</small>
@@ -525,7 +545,7 @@ export default function AdminCollection({
                       )}
                       <td>
                         <span
-                          className={`admin-badge ${["Suspendu", "Refusé", "Risque grave"].includes(row.status) ? "danger" : ["Actif", "Validé", "Publié", "Résolu"].includes(row.status) ? "success" : ""}`}
+                          className={`admin-badge ${statusTone(row.status)}`}
                         >
                           {row.status}
                         </span>
@@ -555,12 +575,7 @@ export default function AdminCollection({
                                 key={action.id}
                                 icon={actionIcon(action.id, resource)}
                                 label={`${action.label} — ${row.name}`}
-                                danger={[
-                                  "delete",
-                                  "revoke",
-                                  "cancel",
-                                  "decline",
-                                ].includes(action.id)}
+                                danger={isDangerAction(action.id)}
                                 onClick={() => void openRecord(row, action.id)}
                               />
                             ))}

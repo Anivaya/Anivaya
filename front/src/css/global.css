@@ -250,6 +250,16 @@ dialog::backdrop {
 .button.close-action:hover {
   background: #fff0f2;
 }
+/* Boutons secondaires de suppression ou de retrait : contour et texte rouges. */
+.button.outline.danger {
+  background: white;
+  color: #a52b38;
+  border-color: #e8c2c8;
+}
+.button.outline.danger:hover {
+  background: #fff0f2;
+  border-color: #a52b38;
+}
 .close,
 .close svg,
 .social-icon.close-icon,

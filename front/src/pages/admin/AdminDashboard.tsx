@@ -6,7 +6,7 @@ import type {
 } from "../../../../shared/admin.ts";
 import Icon from "../../shared/ui/Icon.tsx";
 import AdminPreview from "./AdminPreview.tsx";
-import { adminLink } from "./config.ts";
+import { adminLink, indicatorColumns, statusTone } from "./config.ts";
 
 export default function AdminDashboard({
   overview,
@@ -56,7 +56,9 @@ export default function AdminDashboard({
   }
   return (
     <>
-      <div className="admin-stats">{main.map(card)}</div>
+      <div className="admin-stats" style={indicatorColumns(main.length)}>
+        {main.map(card)}
+      </div>
       {!!state.length && (
         <section className="admin-panel">
           <h2>État des comptes et de l’annuaire</h2>
@@ -80,7 +82,7 @@ export default function AdminDashboard({
         </section>
       )}
       {overview.role === "Administrateur" && (
-        <section className="admin-panel admin-section-title">
+        <section className="admin-panel admin-section-title admin-highlight">
           <div>
             <h2>Activation et rétention</h2>
             <p>
@@ -148,7 +150,11 @@ export default function AdminDashboard({
                                 group.label}
                             </small>
                           </span>
-                          <span className="admin-badge">{row.status}</span>
+                          <span
+                            className={`admin-badge ${statusTone(row.status)}`}
+                          >
+                            {row.status}
+                          </span>
                         </a>
                       ))}
                       {group.total > group.items.length && (

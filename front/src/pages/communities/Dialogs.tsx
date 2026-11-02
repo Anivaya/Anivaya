@@ -433,7 +433,7 @@ function friendAction(ctx: SocialContext, id: string) {
     return {
       action: "remove",
       label: "Retirer de mes amis",
-      icon: "check",
+      icon: "close",
     } as const;
   if (f?.status === "pending")
     return f.to === ctx.data.me
@@ -445,7 +445,7 @@ function friendAction(ctx: SocialContext, id: string) {
       : ({
           action: "remove",
           label: "Annuler la demande d’amitié",
-          icon: "friend",
+          icon: "close",
         } as const);
   return {
     action: "request",
@@ -530,6 +530,7 @@ function Members(
                         : friend.label
                     }
                     icon={friend.icon}
+                    danger={friend.action === "remove"}
                     disabled={blocked}
                     onClick={() => actions.friend(member, friend.action)}
                   />

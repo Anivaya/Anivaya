@@ -44,13 +44,7 @@
   padding: 11px 12px;
   gap: 11px;
 }
-.admin-side-bottom {
-  flex-shrink: 0;
-  padding-top: 16px;
-}
-.admin-workspace .sidebar .admin-side-bottom {
-  display: block;
-}
+
 .admin-account {
   display: flex;
   gap: 10px;
@@ -63,11 +57,13 @@
   color: var(--muted);
   font-size: 11px;
 }
+/* En-tête : même présentation que l’espace particulier (collant, translucide). */
 .admin-topbar {
-  min-height: 76px;
-  padding: 18px 32px;
+  min-height: 65px;
+  padding: 17px 35px;
   border-bottom: 1px solid var(--border);
-  background: white;
+  background: #ffffffd9;
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -84,8 +80,13 @@
   width: 22px;
   height: 22px;
 }
+.admin-topbar nav a {
+  font-weight: 700;
+  color: var(--navy);
+}
 .admin-topbar nav span {
   color: var(--muted);
+  font-size: 12px;
 }
 .admin-content {
   max-width: 1500px;
@@ -101,22 +102,31 @@
 }
 .admin-heading h1 {
   font-size: 34px;
+  font-weight: 750;
   letter-spacing: -1px;
   line-height: 1.2;
-  margin-bottom: 10px;
+  margin-bottom: 9px;
 }
 .admin-heading p {
   color: var(--muted);
   margin: 0;
-  font-size: 14px;
+  font-size: 15px;
 }
 .admin-heading .button {
   white-space: nowrap;
 }
+/* Bouton « Voir le pilotage » : icône au plus près du texte. */
+.admin-heading .admin-heading-link {
+  gap: 10px;
+}
+/* Contenu des onglets (gestion de profil) centré dans la page. */
+.admin-content .profile-page {
+  margin-inline: auto;
+}
 .admin-panel {
   background: var(--white);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 13px;
   padding: 24px;
   margin-bottom: 24px;
   min-width: 0;
@@ -288,16 +298,17 @@ a.admin-stat:hover {
 .admin-search button:hover {
   background: var(--pale);
 }
+/* Champs : même bordure, rayon et taille que les filtres de l’espace particulier. */
 .admin-workspace input,
 .admin-workspace select {
-  min-height: 42px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  min-height: 43px;
+  border: 1px solid #bdc9dc;
+  border-radius: 7px;
   padding: 10px 12px;
   background: white;
   color: var(--navy);
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
 }
 .admin-table-panel {
   padding: 0;
@@ -335,10 +346,56 @@ a.admin-stat:hover {
 }
 .admin-table-panel td {
   max-width: 350px;
+  /* Coupe seulement un mot trop long pour la cellule, pas « professionnel-le ». */
+  overflow-wrap: break-word;
+}
+/* Les adresses e-mail, sans espaces, peuvent se couper n’importe où. */
+.admin-table-panel td small {
   overflow-wrap: anywhere;
 }
 .admin-table-panel td:first-child {
   min-width: 200px;
+}
+/*
+ * Largeur des colonnes adaptée au contenu : État, date et Actions (les trois dernières
+ * colonnes de chaque tableau) restent compactes ; l’espace restant va aux colonnes de texte.
+ */
+.admin-table-panel :is(th, td):nth-last-child(-n + 3) {
+  width: 1%;
+}
+.admin-table-panel td:nth-last-child(-n + 3),
+.admin-table-reports td:nth-child(3) {
+  white-space: nowrap;
+}
+.admin-table-panel th:last-child {
+  text-align: right;
+}
+@media (max-width: 1024px) {
+  .admin-table-panel td,
+  .admin-table-panel th {
+    padding: 14px 12px;
+  }
+  .admin-table-panel :is(td, th):first-child {
+    padding-left: 18px;
+  }
+  .admin-table-panel :is(td, th):last-child {
+    padding-right: 18px;
+  }
+  .admin-table-panel th {
+    white-space: normal;
+  }
+  .admin-table-panel td:first-child {
+    min-width: 150px;
+  }
+  .admin-table-panel .admin-row-actions {
+    gap: 4px;
+  }
+  .admin-table-panel .admin-row-actions .admin-icon-button {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    padding: 7px;
+  }
 }
 .admin-table-panel th button {
   font: inherit;
@@ -427,8 +484,13 @@ a.admin-stat:hover {
 .admin-text-button:hover {
   text-decoration: underline;
 }
-.admin-menu {
-  display: none;
+.admin-side-bottom {
+  flex-shrink: 0;
+  padding-top: 16px;
+}
+/* Tablette et mobile : le menu du compte suit directement la cloche. */
+.admin-topbar .mobile-account {
+  margin-left: 0;
 }
 .admin-dialog {
   width: min(740px, calc(100vw - 32px));
@@ -491,6 +553,10 @@ a.admin-stat:hover {
   padding-top: 20px;
   border-top: 1px solid var(--border);
 }
+/* Suppression et retrait : à droite de la ligne, après les autres actions. */
+.admin-dialog-actions .danger:not(.danger ~ .danger) {
+  margin-left: auto;
+}
 .admin-form-fields {
   display: grid;
   gap: 16px;
@@ -537,20 +603,18 @@ a.admin-stat:hover {
     font-size: 28px;
   }
 }
-/* Tablette et mobile : bouton menu à droite de la cloche ; le panneau s’ouvre à droite. */
+/* Tablette et mobile : bouton menu à gauche de l’en-tête, à la place du logo. */
 @media (max-width: 1024px) {
   .admin-workspace {
     display: block;
   }
-  .admin-menu {
-    display: inline-flex;
-  }
   .admin-topbar .admin-menu {
-    padding: 6px 10px;
+    display: grid;
+    flex-shrink: 0;
   }
-  .admin-workspace .sidebar .account-popup {
-    left: auto;
-    right: 0;
+  .admin-topbar nav {
+    flex: 1;
+    min-width: 0;
   }
 }
 @media (max-width: 620px) {
@@ -664,6 +728,42 @@ button.admin-stat:active {
   border-color: var(--blue);
   background: var(--pale);
 }
+/*
+ * Tablette et mobile : dans les tableaux Équipe et Retours utilisateurs, les textes trop
+ * longs se terminent par « … » (texte complet au survol et pour les lecteurs d’écran).
+ */
+@media (max-width: 1024px) {
+  .admin-table-team td:not(:last-child) > :is(.admin-record-link, small, .admin-cell-text),
+  .admin-table-feedback td:is(:nth-child(1), :nth-child(2)) > :is(.admin-record-link, small, .admin-cell-text) {
+    display: block;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .admin-table-team td:first-child,
+  .admin-table-feedback td:first-child {
+    min-width: 0;
+  }
+}
+@media (max-width: 620px) {
+  .admin-table-team td:not(:last-child) > :is(.admin-record-link, small, .admin-cell-text),
+  .admin-table-feedback td:is(:nth-child(1), :nth-child(2)) > :is(.admin-record-link, small, .admin-cell-text) {
+    max-width: 140px;
+  }
+}
+/* Pilotage : pendant la mise à jour des filtres, le tableau des cohortes s’estompe. */
+.admin-analytics .admin-table-panel {
+  transition: opacity 160ms;
+}
+.admin-analytics.updating .admin-table-panel {
+  opacity: 0.55;
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-analytics .admin-table-panel {
+    transition: none;
+  }
+}
 .admin-record-link {
   background: none;
   border: 0;
@@ -728,13 +828,15 @@ button.admin-stat:active {
   font-size: 13px;
   margin-bottom: 20px;
 }
+/* Cloche : cercle blanc bordé, comme dans l’espace particulier ; le badge reste en bas. */
 .admin-alert-trigger {
   position: relative;
-  background: none;
-  border: 0;
-  color: var(--navy);
-  width: 44px;
-  height: 44px;
+  background: white;
+  border: 1px solid var(--border);
+  color: var(--blue);
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
   border-radius: 50%;
   display: grid;
   place-items: center;
@@ -805,15 +907,7 @@ button.admin-stat:active {
 }
 
 /* Navigation défilante entre le logo et le compte fixes, actions compactes. */
-.admin-workspace .app-brand {
-  flex-direction: column;
-  gap: 8px;
-  flex-shrink: 0;
-}
-.admin-workspace .app-brand img {
-  width: 112px;
-  height: auto;
-}
+
 .admin-workspace .side-nav::-webkit-scrollbar,
 .admin-pending-scroll::-webkit-scrollbar {
   display: none;
@@ -822,7 +916,8 @@ button.admin-stat:active {
   flex-shrink: 0;
 }
 .admin-topbar {
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: 30;
 }
 .admin-workspace .page-tabs button {
@@ -1332,4 +1427,160 @@ button.admin-stat:active {
   width: 100%;
   min-height: 90px;
   resize: none;
+}
+
+/*
+ * Couleurs de la charte (dossier stratégique, palette issue du logo) : bleu #1B3B8E pour la
+ * navigation et la confiance, or #F0AB06 pour les accents (jamais en texte fin sur blanc),
+ * bleu foncé #132E5C pour les titres et contrastes, bleu-gris #65748B pour le secondaire.
+ * Le lien actif du sidebar (bleu plein, texte or) est commun aux deux espaces : dashboard.css.
+ */
+.admin-heading h1::after {
+  content: "";
+  display: block;
+  width: 44px;
+  height: 4px;
+  margin-top: 10px;
+  border-radius: 4px;
+  background: var(--gold);
+}
+/*
+ * Indicateurs du tableau de bord et du Pilotage : tous sur une ligne sur grand écran,
+ * moitié par moitié en dessous de 1280 px, deux par deux sur mobile ; lignes incomplètes
+ * centrées. --all et --half sont posés par le composant selon le nombre d’indicateurs.
+ */
+.admin-stats,
+.admin-metric-grid {
+  --cols: var(--all, 4);
+  --gap: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--gap);
+}
+.admin-stats > *,
+.admin-metric-grid > * {
+  flex: 0 0 calc((100% - (var(--cols) - 1) * var(--gap)) / var(--cols));
+  min-width: 0;
+}
+@media (max-width: 1279px) {
+  .admin-stats,
+  .admin-metric-grid {
+    --cols: var(--half, 2);
+  }
+}
+@media (max-width: 620px) {
+  .admin-stats,
+  .admin-metric-grid {
+    --cols: 2;
+    --gap: 12px;
+  }
+}
+/* Couleurs des indicateurs en alternance : or, bleu, or, bleu… */
+.admin-stats > .admin-stat,
+.admin-metric-grid > .admin-metric-card {
+  --accent: var(--gold);
+  --accent-ink: var(--navy);
+  border-top: 4px solid var(--accent);
+}
+.admin-stats > .admin-stat:nth-child(even),
+.admin-metric-grid > .admin-metric-card:nth-child(even) {
+  --accent: var(--blue);
+  --accent-ink: white;
+}
+/* Survol : bordure de la couleur de l’indicateur (or pour les indicateurs or). */
+.admin-stats > .admin-stat:hover {
+  border-color: var(--accent);
+}
+.admin-stats .admin-stat-icon {
+  background: var(--accent);
+}
+.admin-stats .admin-stat-icon svg {
+  color: var(--accent-ink);
+}
+/* Bandeau mis en avant (Activation et rétention). */
+.admin-panel.admin-highlight {
+  background: linear-gradient(120deg, var(--blue), var(--navy));
+  border-color: transparent;
+  color: white;
+}
+.admin-panel.admin-highlight h2 {
+  color: white;
+}
+.admin-panel.admin-highlight p {
+  color: #dbe4f5;
+}
+.admin-panel.admin-highlight .button.outline {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--navy);
+}
+.admin-panel.admin-highlight .button.outline:hover {
+  background: white;
+  border-color: white;
+}
+.admin-metric-line {
+  background: white;
+  border-left: 4px solid var(--gold);
+}
+.admin-metric-line strong {
+  color: var(--blue);
+}
+/* Tableau de bord : un peu d’air entre le bord et la bulle d’état des dossiers en attente. */
+.admin-queue,
+.admin-pending-group > :is(h4, .admin-text-button) {
+  padding-inline: 12px;
+}
+.admin-table-panel thead th {
+  background: var(--pale);
+  color: var(--navy);
+}
+/* Les en-têtes de ligne (colonne Cohorte du Pilotage) restent sur fond blanc. */
+.admin-table-panel tbody th {
+  background: none;
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 700;
+}
+.admin-table-panel tbody tr:hover {
+  background: #f5f8fd;
+}
+/* Badges d’état : en attente en or, terminé en vert, bloquant en rouge, le reste en bleu. */
+.admin-badge.pending {
+  background: #fff4d6;
+  color: var(--navy);
+  box-shadow: inset 0 0 0 1px #f0ab0659;
+}
+/* Pilotage : cartes bordées d’or et de bleu, avec une jauge du pourcentage. */
+.admin-metric-card {
+  background: white;
+  border: 1px solid var(--border);
+}
+.admin-metric-card > .admin-metric-bar {
+  display: block;
+  min-height: 0;
+  height: 6px;
+  border-radius: 6px;
+  background: var(--pale);
+  overflow: hidden;
+}
+.admin-metric-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 0.6s cubic-bezier(0.33, 1, 0.68, 1);
+}
+/* Tableau des cohortes : six colonnes de même largeur. */
+.admin-analytics table {
+  table-layout: fixed;
+}
+.admin-analytics .admin-table-panel :is(th, td) {
+  width: auto;
+  text-align: left;
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-metric-bar > span {
+    transition: none;
+  }
 }

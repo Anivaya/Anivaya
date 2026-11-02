@@ -57,8 +57,6 @@ export default function AdminWorkspace({
     [retry, setRetry] = useState(0),
     [menu, setMenu] = useState(false),
     [alerts, setAlerts] = useState(false);
-  const profileTab =
-    section === "security" ? "admin-security" : "admin-profile";
   const closeMenu = useCallback(() => setMenu(false), []);
   useEffect(() => {
     const close = () => setAlerts(false);
@@ -159,6 +157,7 @@ export default function AdminWorkspace({
               </a>
             ))}
         </nav>
+        {/* Ordinateur : menu du compte en bas de la barre latérale ; tablette et mobile : dans l’en-tête. */}
         <div className="side-bottom admin-side-bottom">
           <AccountMenu
             profile={user.profile}
@@ -170,6 +169,16 @@ export default function AdminWorkspace({
       </Sidebar>
       <div className="app-main">
         <header className="admin-topbar">
+          {/* Sur tablette et mobile : bouton menu à gauche. */}
+          <button
+            className="admin-menu menu-toggle"
+            aria-label="Ouvrir la navigation"
+            aria-expanded={menu}
+            aria-controls="main-sidebar"
+            onClick={() => setMenu(true)}
+          >
+            <Icon name="menu" />
+          </button>
           <nav aria-label="Fil d’Ariane">
             <a href="#admin/dashboard">Administration</a>
             <span> / {config?.title || "Page introuvable"}</span>
@@ -188,16 +197,14 @@ export default function AdminWorkspace({
                 )}
               </button>
             )}
-            {/* Sur tablette et mobile : bouton menu à droite de la cloche. */}
-            <button
-              className="admin-menu button outline"
-              aria-label="Ouvrir la navigation"
-              aria-expanded={menu}
-              aria-controls="main-sidebar"
-              onClick={() => setMenu(true)}
-            >
-              ☰
-            </button>
+            {/* Tablette et mobile : menu du compte à droite de la cloche. */}
+            <AccountMenu
+              profile={user.profile}
+              onLogout={onLogout}
+              profileHref="#admin/profil"
+              roleLabel={role || "Mon compte"}
+              mobile
+            />
           </div>
         </header>
         <main id="admin-content" className="admin-content" tabIndex={-1}>
@@ -214,7 +221,10 @@ export default function AdminWorkspace({
               </p>
             </div>
             {role === "Administrateur" && page === "dashboard" && (
-              <a className="button outline" href="#admin/pilotage">
+              <a
+                className="button outline admin-heading-link"
+                href="#admin/pilotage"
+              >
                 <Icon name="chart" />
                 Voir le pilotage
               </a>
@@ -255,52 +265,32 @@ export default function AdminWorkspace({
                 )}
                 {page === "pilotage" && <AdminAnalytics />}
                 {page === "profil" && (
-                  <>
-                    <Tabs
-                      animated
-                      label="Profil administrateur"
-                      tabs={
-                        [
-                          ["admin-profile", "Profil"],
-                          ["admin-security", "Sécurité"],
-                        ] as const
-                      }
-                      active={profileTab}
-                      onChange={(next) => {
-                        window.location.hash = `admin/profil/${next === "admin-security" ? "security" : "profile"}${query ? "?" + query : ""}`;
-                      }}
-                    />
-                    <section
-                      role="tabpanel"
-                      id={`panel-${profileTab}`}
-                      aria-labelledby={`tab-${profileTab}`}
-                    >
-                      {profileTab === "admin-profile" ? (
-                        <ProfilePage
-                          embedded
-                          profile={user.profile}
-                          demo={user.demo}
-                          onSaved={onProfileChanged}
-                          onDeleted={onAccountDeleted}
-                        />
-                      ) : (
-                        <>
-                          <MfaPanel />
-                          {allowed.includes("security") && (
-                            <AdminCollection
-                              resource="security"
-                              role={role!}
-                              query=""
-                              onQuery={(q) => {
-                                window.location.hash = `admin/parametres/security?${q}`;
-                              }}
-                              onChanged={refresh}
-                            />
-                          )}
-                        </>
-                      )}
-                    </section>
-                  </>
+                  // Une seule ligne d’onglets, comme dans l’espace particulier ;
+                  // la sécurité ajoute les sessions de l’équipe à la double authentification.
+                  <ProfilePage
+                    embedded
+                    profile={user.profile}
+                    demo={user.demo}
+                    initialTab={section === "security" ? "securite" : section}
+                    onSaved={onProfileChanged}
+                    onDeleted={onAccountDeleted}
+                    security={
+                      <>
+                        <MfaPanel />
+                        {allowed.includes("security") && (
+                          <AdminCollection
+                            resource="security"
+                            role={role!}
+                            query={query}
+                            onQuery={(q) => {
+                              window.location.hash = `admin/profil/security${q ? "?" + q : ""}`;
+                            }}
+                            onChanged={refresh}
+                          />
+                        )}
+                      </>
+                    }
+                  />
                 )}
                 {!!tabs.length && tab && (
                   <>

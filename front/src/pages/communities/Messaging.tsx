@@ -322,6 +322,7 @@ function ThreadSettings({
                   () => api.friend(other, "remove"),
                   "Relation mise à jour.",
                 ),
+              true,
             ]
           : f?.status === "pending"
             ? f.to === data.me
@@ -342,6 +343,7 @@ function ThreadSettings({
                       () => api.friend(other, "remove"),
                       "Relation mise à jour.",
                     ),
+                  true,
                 ]
             : [
                 "Ajouter en ami",

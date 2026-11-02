@@ -10,7 +10,7 @@ import SubmissionForm, { Field } from "../../shared/forms/SubmissionForm.tsx";
 import type { ValidationState } from "../../shared/types.ts";
 import { adminApi } from "../../shared/services/admin.ts";
 import { readFile } from "../../shared/services/api.ts";
-import { actionsFor, adminLink } from "./config.ts";
+import { actionsFor, adminLink, isDangerAction, statusTone } from "./config.ts";
 import AdminIconButton from "./AdminIconButton.tsx";
 
 const PROOF_TYPES = ["application/pdf", "image/jpeg", "image/png"];
@@ -25,7 +25,9 @@ export function RecordBody({
   return (
     <div className="admin-record-body">
       <p>
-        <span className="admin-badge">{row.status}</span>
+        <span className={`admin-badge ${statusTone(row.status)}`}>
+          {row.status}
+        </span>
         {row.level && (
           <span
             className={`admin-badge ${row.level === "Dossier vérifié" ? "success" : ""}`}
@@ -639,7 +641,9 @@ export default function AdminDialog({
               </div>
             </div>
             <p>{row?.name}</p>
-            <span className="admin-badge">{viewedProof.status}</span>
+            <span className={`admin-badge ${statusTone(viewedProof.status)}`}>
+              {viewedProof.status}
+            </span>
             {viewedProof.file ? (
               <ProofPreview record={row!.id} proof={viewedProof} />
             ) : (
@@ -718,7 +722,9 @@ export default function AdminDialog({
               {actions.map((a) => (
                 <button
                   key={a.id}
-                  className="button outline"
+                  className={
+                    "button outline" + (isDangerAction(a.id) ? " danger" : "")
+                  }
                   onClick={() => setAction(a.id)}
                 >
                   {a.label}
@@ -762,13 +768,7 @@ export default function AdminDialog({
               else onClose();
             }}
             onSaved={onSaved}
-            danger={[
-              "revoke",
-              "unpublish",
-              "delete",
-              "cancel",
-              "decline",
-            ].includes(action)}
+            danger={isDangerAction(action)}
             onSubmit={async (values, form) => {
               if (action === "new") await adminApi.create(resource, values);
               else if (proofUpload) {

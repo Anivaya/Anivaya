@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type {
   AdminAnalytics as Analytics,
   Ratio,
@@ -7,6 +7,7 @@ import { request } from "../../shared/services/api.ts";
 import AdminDisclosure from "./AdminDisclosure.tsx";
 import AdminIconButton from "./AdminIconButton.tsx";
 import { errorMessage } from "../../shared/types.ts";
+import { indicatorColumns } from "./config.ts";
 
 export default function AdminAnalytics() {
   const [cohortSort, setCohortSort] = useState<"none" | "asc" | "desc">("none");
@@ -35,11 +36,17 @@ export default function AdminAnalytics() {
       });
     return () => controller.abort();
   }, [query, key]);
-  const data = result?.key === key ? result.data : undefined;
+  // Pendant le chargement de nouveaux filtres, les derniers chiffres restent affichés :
+  // la page ne se vide pas et les pourcentages s’animent vers leur nouvelle valeur.
+  const data = result?.data,
+    updating = result?.key !== key;
   const ratio = (v: Ratio) => (v.total ? `${v.count} / ${v.total}` : "—");
   const values = data
     ? [data.activation, data.active, ...data.retention]
     : Array.from({ length: 5 }, () => ({ count: 0, total: 0 }));
+  const percents = values.map((v) =>
+    v.total ? (v.count / v.total) * 100 : null,
+  );
   return (
     <div className="admin-pilotage">
       <AdminDisclosure
@@ -65,7 +72,12 @@ export default function AdminAnalytics() {
           parcourir les indicateurs de la maquette.
         </p>
       </AdminDisclosure>
-      <section className="admin-panel admin-analytics">
+      <section
+        className={
+          "admin-panel admin-analytics" + (updating ? " updating" : "")
+        }
+        aria-busy={updating}
+      >
         <div className="admin-section-title">
           <h2>Activation et fidélisation</h2>
           <span className="admin-badge">
@@ -74,7 +86,7 @@ export default function AdminAnalytics() {
               : "Données de l’installation"}
           </span>
         </div>
-        {result?.key === key && result.error ? (
+        {!updating && result?.error ? (
           <div role="alert" className="admin-error">
             {result.error}
             <button
@@ -118,7 +130,10 @@ export default function AdminAnalytics() {
             </select>
           </label>
         </div>
-        <div className="admin-metric-grid">
+        <div
+          className="admin-metric-grid"
+          style={indicatorColumns(values.length)}
+        >
           {[
             "Activation sous 7 jours",
             "Animaux activement suivis",
@@ -129,10 +144,12 @@ export default function AdminAnalytics() {
             <article className="admin-metric-card" key={label}>
               <span>{label}</span>
               <strong>
-                {values[i].total
-                  ? `${Math.round((values[i].count / values[i].total) * 100)} %`
-                  : "—"}
+                <AnimatedPercent value={percents[i]} />
               </strong>
+              {/* Jauge décorative : la valeur est déjà lue dans le pourcentage. */}
+              <span className="admin-metric-bar" aria-hidden="true">
+                <span style={{ width: `${percents[i] ?? 0}%` }} />
+              </span>
               <small>
                 {data?.available
                   ? `${ratio(values[i])}${values[i].total ? "" : " · aucune cohorte éligible"}`
@@ -252,5 +269,43 @@ export default function AdminAnalytics() {
         </div>
       </section>
     </div>
+  );
+}
+
+/**
+ * Pourcentage qui défile de l’ancienne à la nouvelle valeur (600 ms).
+ * Les lecteurs d’écran lisent directement la valeur finale ; pas d’animation en mouvement réduit.
+ */
+function AnimatedPercent({ value }: { value: number | null }) {
+  const [shown, setShown] = useState<number | null>(null);
+  // Valeur affichée à l’image précédente : point de départ de la prochaine animation.
+  const current = useRef(0);
+  const animated =
+    value !== null && !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  useEffect(() => {
+    if (!animated || value === null) {
+      current.current = value ?? 0;
+      return;
+    }
+    const start = current.current,
+      began = performance.now();
+    let frame = 0;
+    const step = (now: number) => {
+      const progress = Math.min(1, (now - began) / 600),
+        eased = 1 - (1 - progress) ** 3;
+      current.current = start + (value - start) * eased;
+      setShown(current.current);
+      if (progress < 1) frame = requestAnimationFrame(step);
+    };
+    frame = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frame);
+  }, [value, animated]);
+  const format = (v: number | null) =>
+    v === null ? "—" : `${Math.round(v)} %`;
+  return (
+    <>
+      <span aria-hidden="true">{format(animated ? (shown ?? 0) : value)}</span>
+      <span className="sr-only">{format(value)}</span>
+    </>
   );
 }

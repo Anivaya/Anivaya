@@ -108,10 +108,17 @@
 .account-actions .account-signout svg {
   color: inherit;
 }
+/* Menu du compte placé dans l’en-tête : son popup s’ouvre vers le bas, aligné à droite. */
 .mobile-account {
   display: none;
   margin-left: auto;
   width: auto;
+}
+.mobile-account .account-popup {
+  left: auto;
+  right: 0;
+  bottom: auto;
+  top: calc(100% + 8px);
 }
 .session-screen {
   min-height: 100vh;
@@ -241,19 +248,13 @@
   .mobile-account {
     display: block;
   }
-  .mobile-account .account-popup {
-    left: auto;
-    right: 0;
-    bottom: auto;
-    top: calc(100% + 8px);
-  }
   .mobile-account .profile-label {
     display: none;
   }
   .app-top {
     gap: 8px;
   }
-  .app-top .account-trigger {
+  .mobile-account .account-trigger {
     padding: 0;
   }
   .sidebar .side-bottom {

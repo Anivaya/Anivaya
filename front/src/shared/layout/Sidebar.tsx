@@ -129,7 +129,12 @@ function SidebarContent({
         href="#espace"
         aria-label="Anivaya — Vue d’ensemble"
       >
-        <img src="/images/logo.png" alt="Anivaya" width="78" height="69" />
+        <img
+          src="/images/logo-anivaya-wordmark.png"
+          alt=""
+          width="1353"
+          height="1162"
+        />
       </a>
       <nav className="side-nav" aria-label="Navigation principale">
         {navigation.map(([id, icon, label]) => (
@@ -154,7 +159,10 @@ function SidebarContent({
   );
 }
 
-/** Menu du compte : dans la barre latérale et, sur tablette et mobile, dans l’en-tête. */
+/**
+ * Menu du compte : dans la barre latérale et, sur tablette et mobile, dans l’en-tête
+ * (`mobile`). L’administration l’affiche toujours dans l’en-tête.
+ */
 export function AccountMenu({
   profile,
   onLogout,
