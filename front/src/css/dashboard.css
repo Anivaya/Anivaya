@@ -124,6 +124,10 @@
   color: var(--muted);
   font-size: 12px;
 }
+/* Fil d’Ariane « Mon espace / … » : un simple espace, comme dans l’administration. */
+.app-top .top-title + small {
+  margin-left: -10px;
+}
 .app-top .demo-label {
   margin-left: auto;
   border: 1px solid var(--border);
@@ -151,6 +155,16 @@
     sans-serif;
   letter-spacing: -1px;
   margin: 0 0 9px;
+}
+/* Trait or sous le titre de chaque page, comme dans l’administration. */
+.welcome h1::after {
+  content: "";
+  display: block;
+  width: 44px;
+  height: 4px;
+  margin-top: 10px;
+  border-radius: 4px;
+  background: var(--gold);
 }
 .welcome p {
   color: var(--muted);
@@ -203,12 +217,17 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
 }
+/* Bordure haute en alternance or / bleu, selon le rang de l’animal (pas sa position à l’écran). */
 .animal-card {
   border: 1px solid var(--border);
+  border-top: 4px solid var(--gold);
   border-radius: 13px;
   overflow: hidden;
   background: white;
   min-width: 0;
+}
+.animal-card.accent-blue {
+  border-top-color: var(--blue);
 }
 .pet-picture {
   height: 165px;
@@ -256,12 +275,14 @@
   flex-direction: column;
   gap: 10px;
 }
+/* Filet or à gauche ; un rappel fait repasse en neutre. */
 .reminder-row {
   display: flex;
   gap: 17px;
   align-items: center;
   background: white;
   border: 1px solid var(--border);
+  border-left: 4px solid var(--gold);
   border-radius: 10px;
   padding: 13px;
   min-width: 0;
@@ -319,6 +340,9 @@
   text-decoration: line-through;
   color: var(--muted);
 }
+.reminder-row.is-done {
+  border-left-color: var(--border);
+}
 .reminder-row.is-done .date-tile {
   background: var(--pale);
 }
@@ -328,6 +352,10 @@
   border: 1px solid var(--border);
   border-radius: 13px;
   padding: 22px;
+}
+/* Colonne de droite (Documents récents) : bordure haute bleue. */
+.app-right .panel {
+  border-top: 4px solid var(--blue);
 }
 .panel .section-head {
   margin-bottom: 4px;
@@ -402,8 +430,10 @@
   min-height: 42px;
   margin-top: 10px;
 }
+/* Encart « Un dossier, vos choix. » : bandeau bleu, comme « Activation et rétention ». */
 .privacy-note {
-  background: #fff6e0;
+  background: linear-gradient(120deg, var(--blue), var(--navy));
+  color: white;
   border-radius: 13px;
   padding: 24px;
   margin-top: 18px;
@@ -414,7 +444,7 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: #ffe9ab;
+  background: var(--gold);
   margin-bottom: 15px;
 }
 .lock svg {
@@ -425,11 +455,12 @@
 .privacy-note h2 {
   font-size: 17px;
   margin-bottom: 10px;
+  color: white;
 }
 .privacy-note p {
   font-size: 13px;
   line-height: 1.75;
-  color: #5b667b;
+  color: #dbe4f5;
   margin: 0;
 }
 .section-mode .app-grid {

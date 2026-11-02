@@ -91,19 +91,23 @@ export function AnimalsSection({
 
 function AnimalGrid({
   animals,
+  start = 0,
   overview,
   onOpen,
 }: {
   animals: Animal[];
+  /** Rang du premier animal dans la liste complète (pages du carrousel). */
+  start?: number;
   overview?: boolean;
   onOpen: (animal: Animal) => void;
 }) {
   return (
     <div className="animal-grid">
-      {animals.map((animal) => (
+      {animals.map((animal, i) => (
         <AnimalCard
           key={animal.id}
           animal={animal}
+          rank={start + i}
           onOpen={onOpen}
           overview={overview}
         />
@@ -184,13 +188,19 @@ function AnimalCarousel({
               inert={offset === leaving}
             >
               {overview ? (
-                <AnimalCard animal={animals[index]} onOpen={onOpen} overview />
+                <AnimalCard
+                  animal={animals[index]}
+                  rank={index}
+                  onOpen={onOpen}
+                  overview
+                />
               ) : (
                 <AnimalGrid
                   animals={animals.slice(
                     index * PAGE_SIZE,
                     (index + 1) * PAGE_SIZE,
                   )}
+                  start={index * PAGE_SIZE}
                   onOpen={onOpen}
                 />
               )}
@@ -212,16 +222,19 @@ function AnimalCarousel({
 
 function AnimalCard({
   animal,
+  rank,
   onOpen,
   overview,
 }: {
   animal: Animal;
+  /** Rang dans la liste complète : la couleur (or / bleu) suit l’animal, pas sa position à l’écran. */
+  rank: number;
   onOpen: (animal: Animal) => void;
   overview?: boolean;
 }) {
   const label = overview ? "Ouvrir la fiche" : "Ouvrir le carnet";
   return (
-    <article className="animal-card">
+    <article className={"animal-card" + (rank % 2 ? " accent-blue" : "")}>
       <button
         type="button"
         className={`pet-picture animal-picture-button ${animal.style}`}

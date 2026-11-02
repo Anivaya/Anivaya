@@ -25,6 +25,7 @@ import {
 import { directoryRepository } from "./directory.ts";
 import { profileRepository } from "./profile.ts";
 import type { Household } from "./admin-analytics.ts";
+import { sampleOrigin, seedSamples } from "./admin-samples.ts";
 
 interface Row {
   id: string;
@@ -343,21 +344,28 @@ export function adminService(db: Database, auth: Authentication) {
           now(),
         );
       }
+      // v3 : foyers datés pour le Pilotage et dossiers supplémentaires dans chaque rubrique.
+      if (
+        !db.prepare("SELECT key FROM admin_metadata WHERE key='seed-v3'").get()
+      ) {
+        const tools = demoTools();
+        if (tools) seedSamples({ db, auth, insert, ...tools });
+        db.prepare("INSERT INTO admin_metadata VALUES ('seed-v3',?)").run(
+          now(),
+        );
+      }
     });
     seeded = true;
   }
-  /**
-   * Jeu de démonstration de l’administration : dossiers datés des jours précédents,
-   * rattachés aux comptes de démonstration. Ignoré quand le compte admin n’existe pas.
-   */
-  function seedDemo() {
+  /** Outils des jeux de démonstration ; `null` quand le compte admin de démonstration n’existe pas. */
+  function demoTools() {
     const accounts = Object.fromEntries(
       db
         .prepare("SELECT id,email FROM accounts")
         .all<{ id: string; email: string }>()
         .map((a) => [a.id, a.email]),
     );
-    if (!accounts["demo-admin"]) return;
+    if (!accounts["demo-admin"]) return null;
     const ago = (days: number, hours = 10) =>
       new Date(Date.now() - days * 86400000 - hours * 3600000).toISOString();
     const admin = accounts["demo-admin"];
@@ -394,6 +402,16 @@ export function adminService(db: Database, auth: Authentication) {
         "UPDATE admin_records SET name=?,status=?,data=?,updated_at=? WHERE resource=? AND id=?",
       ).run(value.name, value.status, JSON.stringify(value), at, kind, id);
     };
+    return { accounts, admin, ago, entry, audit, update };
+  }
+  /**
+   * Jeu de démonstration de l’administration : dossiers datés des jours précédents,
+   * rattachés aux comptes de démonstration. Ignoré quand le compte admin n’existe pas.
+   */
+  function seedDemo() {
+    const tools = demoTools();
+    if (!tools) return;
+    const { accounts, admin, ago, entry, audit, update } = tools;
     // Professionnels : un dossier vérifié, un à corriger, une pièce manquante.
     update(
       "pros",
@@ -1124,7 +1142,9 @@ export function adminService(db: Database, auth: Authentication) {
       return {
         createdAt: account.created_at || now(),
         zone: profile.city.trim() || "Non renseignée",
-        channel: auth.isDemo(account) ? "Démonstration" : "Direct",
+        channel: auth.isDemo(account)
+          ? "Démonstration"
+          : (sampleOrigin(account.id) ?? "Direct"),
         animals,
       };
     });

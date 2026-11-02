@@ -7,6 +7,7 @@ import type {
 import { api } from "../../shared/services/api.ts";
 import { errorMessage } from "../../shared/types.ts";
 import Icon from "../../shared/ui/Icon.tsx";
+import PageHeading from "../../shared/layout/PageHeading.tsx";
 import { matches } from "../../shared/utils/format.ts";
 import { Empty } from "./Common.tsx";
 import { CommunityDetail, EventDetail } from "./Details.tsx";
@@ -112,7 +113,10 @@ export default function CommunitiesPage({ params }: { params: string[] }) {
   const detail = Boolean(id) && tab !== "messagerie";
   return (
     <div className="social-page">
-      <h1 className="sr-only">Communautés</h1>
+      <PageHeading
+        title="Communautés"
+        description="Rejoignez des groupes près de chez vous, participez à des sorties et échangez avec d’autres propriétaires."
+      />
       <nav className="page-tabs" aria-label="Sections des communautés">
         {socialTabs.map(([key, label]) => (
           <a

@@ -17,6 +17,7 @@ import { errorMessage } from "./shared/types.ts";
 import { api } from "./shared/services/api.ts";
 import { useDashboard } from "./shared/hooks.ts";
 import Sidebar, { AccountMenu, SIDEBAR_ID } from "./shared/layout/Sidebar.tsx";
+import { isTabNavigation } from "./shared/layout/tabNavigation.ts";
 import Modal from "./shared/ui/Modal.tsx";
 import HomePage from "./pages/home/HomePage.tsx";
 import AuthPage from "./pages/auth/AuthPage.tsx";
@@ -87,7 +88,7 @@ export default function App() {
   useEffect(() => {
     const navigate = () => {
       setRoute(window.location.hash.slice(1) || "accueil");
-      window.scrollTo(0, 0);
+      if (!isTabNavigation()) window.scrollTo(0, 0);
     };
     const expired = () => {
       sessionVersion.current++;
@@ -238,8 +239,10 @@ function Workspace({
   const [pending, setPending] = useState<string | null>(null);
   const { data, loading, error, reload } = useDashboard();
   useEffect(() => {
-    const focusContent = () =>
-      document.getElementById("dashboard-content")?.focus();
+    const focusContent = () => {
+      if (!isTabNavigation())
+        document.getElementById("dashboard-content")?.focus();
+    };
     window.addEventListener("hashchange", focusContent);
     return () => window.removeEventListener("hashchange", focusContent);
   }, []);

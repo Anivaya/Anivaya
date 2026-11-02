@@ -10,13 +10,14 @@ export default function PageHeading({
 }: {
   title: string;
   description: string;
-  actionLabel: string;
-  onAction: () => void;
+  /** Bouton principal, facultatif (Communautés n’en a pas). */
+  actionLabel?: string;
+  onAction?: () => void;
   showPlus?: boolean;
   /** Action placée avant le bouton principal. */
   secondary?: ReactNode;
 }) {
-  const action = (
+  const action = actionLabel && (
     <button
       className={`button${showPlus ? " with-plus" : ""}`}
       onClick={onAction}

@@ -413,10 +413,24 @@
   width: 30px;
   height: 30px;
 }
-.directory-page .pro-card:nth-child(3n + 2) .profession-icon,
-.directory-dialog .pro-card:nth-child(3n + 2) .profession-icon {
-  background: #fff6e0;
-  color: #805800;
+/* Annuaire : cartes bordées en haut en alternance or / bleu, pastille d’icône assortie. */
+.directory-page .pro-card {
+  --accent: var(--gold);
+  --accent-ink: var(--navy);
+  border-top: 4px solid var(--accent);
+}
+.directory-page .pro-card:nth-child(even) {
+  --accent: var(--blue);
+  --accent-ink: white;
+}
+.directory-page .pro-card:hover {
+  border-color: var(--accent);
+}
+.directory-page .pro-card .profession-icon {
+  background: var(--accent);
+}
+.directory-page .pro-card .profession-icon svg {
+  color: var(--accent-ink);
 }
 .directory-page .pro-body,
 .directory-dialog .pro-body {
