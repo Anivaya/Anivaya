@@ -70,11 +70,14 @@ const workspacePages: Record<
   reservations: { title: "Professionnels" },
   profil: { title: "Gestion de profil" },
   notifications: { title: "Notifications", Page: NotificationsPage },
-  contact: { title: "Contact et informations" },
+  contact: { title: "Contact" },
+  informations: { title: "Informations du service" },
   communautes: { title: "Communautés" },
 };
 /** Pages secondaires, plus étroites que le tableau de bord. */
-const secondaryPages = new Set(["notifications", "contact"]);
+const secondaryPages = new Set(["notifications", "contact", "informations"]);
+/** Anciens onglets de « Contact et informations », devenus la page Informations du service. */
+const informationTabs = new Set(["ressources", "service", "donnees"]);
 
 export default function App() {
   const sessionVersion = useRef(0);
@@ -121,7 +124,11 @@ export default function App() {
       });
     return () => controller.abort();
   }, []);
-  const [page, ...params] = route.split("/");
+  const [requestedPage, ...params] = route.split("/");
+  const page =
+    requestedPage === "contact" && informationTabs.has(params[0])
+      ? "informations"
+      : requestedPage;
   const homeSection = page === "accueil" ? params[0] : undefined;
   const authenticated = (value: AuthUser) => {
     sessionVersion.current++;
@@ -156,12 +163,13 @@ export default function App() {
         onDismiss={() => setDeletedNotice(false)}
       />
     );
-  if (page === "reinitialisation")
+  // « Mot de passe oublié », puis le lien reçu par e-mail (#mot-de-passe/<jeton>).
+  if (page === "reinitialisation" || page === "mot-de-passe")
     return (
       <ResetPasswordPage
         // Recréée quand la session arrive, pour proposer l’e-mail du compte.
         key={`${route}-${user?.id ?? ""}`}
-        fromProfile={params[0] === "profil"}
+        token={page === "mot-de-passe" ? (params[0] ?? "") : undefined}
         email={user?.profile.email}
       />
     );
@@ -188,8 +196,8 @@ export default function App() {
       </div>
     );
   if (!user)
-    return page === "contact" ? (
-      <PublicContactPage tab={params[0]} />
+    return page === "contact" || page === "informations" ? (
+      <PublicContactPage section={page} tab={params[0]} />
     ) : (
       <AuthPage register={false} onAuthenticated={authenticated} />
     );
@@ -390,9 +398,10 @@ function Workspace({
               />
             )}
             {page === "communautes" && <CommunitiesPage params={params} />}
-            {page === "contact" && (
+            {(page === "contact" || page === "informations") && (
               <ContactPage
-                key={params[0] ?? ""}
+                key={page + (params[0] ?? "")}
+                section={page}
                 profile={user.profile}
                 initialTab={params[0]}
               />
@@ -406,7 +415,8 @@ function Workspace({
             )}
           </main>
           <footer className="connected-help">
-            <a href="#contact">Contact et informations du service</a>
+            <a href="#contact">Contact</a>
+            <a href="#informations">Informations du service</a>
           </footer>
         </div>
       </div>
@@ -460,7 +470,12 @@ function ActionDialog({
   const { kind } = modal;
   if (kind === "ai-import")
     return (
-      <AiImport data={data} animal={modal.item?.animal} onClose={onClose} />
+      <AiImport
+        data={data}
+        animal={modal.item?.animal}
+        onClose={onClose}
+        onSaved={onSaved}
+      />
     );
   const props = {
     kind,

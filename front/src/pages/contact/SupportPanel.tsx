@@ -33,7 +33,7 @@ export default function SupportPanel({
   }, [authenticated, retry]);
   if (!authenticated)
     return (
-      <div className="profile-panel">
+      <div className="profile-panel support-panel">
         <h2>Vos demandes et recours</h2>
         <p>
           Connectez-vous pour consulter vos dossiers et demander un nouvel
@@ -45,7 +45,7 @@ export default function SupportPanel({
       </div>
     );
   return (
-    <div className="profile-panel">
+    <div className="profile-panel support-panel">
       <h2>Vos demandes et recours</h2>
       <p>
         Retrouvez les réponses de l’équipe et les décisions concernant vos

@@ -11,8 +11,7 @@ import { indicatorColumns } from "./config.ts";
 
 export default function AdminAnalytics() {
   const [cohortSort, setCohortSort] = useState<"none" | "asc" | "desc">("none");
-  const [source, setSource] = useState("installation"),
-    [zone, setZone] = useState(""),
+  const [zone, setZone] = useState(""),
     [channel, setChannel] = useState("");
   const [result, setResult] = useState<{
       key: string;
@@ -20,7 +19,7 @@ export default function AdminAnalytics() {
       error?: string;
     } | null>(null),
     [retry, setRetry] = useState(0);
-  const query = new URLSearchParams({ source, zone, channel }).toString(),
+  const query = new URLSearchParams({ zone, channel }).toString(),
     key = query + retry;
   useEffect(() => {
     const controller = new AbortController();
@@ -49,29 +48,6 @@ export default function AdminAnalytics() {
   );
   return (
     <div className="admin-pilotage">
-      <AdminDisclosure
-        label="Démonstration locale"
-        className="admin-demo-disclosure"
-      >
-        <label className="admin-demo-source">
-          Source des indicateurs
-          <select
-            value={source}
-            onChange={(e) => {
-              setSource(e.target.value);
-              setZone("");
-              setChannel("");
-            }}
-          >
-            <option value="installation">Données de l’installation</option>
-            <option value="maquette">Données de démonstration</option>
-          </select>
-        </label>
-        <p>
-          Le jeu d’exemples est indépendant des comptes réels et permet de
-          parcourir les indicateurs de la maquette.
-        </p>
-      </AdminDisclosure>
       <section
         className={
           "admin-panel admin-analytics" + (updating ? " updating" : "")
@@ -80,11 +56,6 @@ export default function AdminAnalytics() {
       >
         <div className="admin-section-title">
           <h2>Activation et fidélisation</h2>
-          <span className="admin-badge">
-            {source === "maquette"
-              ? "Données de démonstration"
-              : "Données de l’installation"}
-          </span>
         </div>
         {!updating && result?.error ? (
           <div role="alert" className="admin-error">
@@ -101,10 +72,8 @@ export default function AdminAnalytics() {
         ) : (
           <p className="admin-analytics-description">
             {!data.available
-              ? "Aucun foyer n’est encore inscrit. Ouvrez « Démonstration locale » pour consulter les exemples de la maquette."
-              : source === "maquette"
-                ? `Photographie au ${new Date(data.asOf).toLocaleDateString("fr-FR")}. Les chiffres ci-dessous proviennent d’un jeu d’exemples, indépendant des comptes du tableau de bord.`
-                : `Photographie au ${new Date(data.asOf).toLocaleDateString("fr-FR")} des comptes de cette installation. L’activité est mesurée depuis la mise en place du suivi : les carnets plus anciens comptent à partir de cette date.`}
+              ? "Aucun foyer n’est encore inscrit."
+              : `Photographie au ${new Date(data.asOf).toLocaleDateString("fr-FR")} des comptes de cette installation. L’activité est mesurée depuis la mise en place du suivi : les carnets plus anciens comptent à partir de cette date.`}
           </p>
         )}
         <div className="admin-toolbar admin-metric-filters">

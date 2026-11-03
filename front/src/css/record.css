@@ -870,8 +870,6 @@
     display: none;
   }
 }
-@media (prefers-reduced-motion: reduce) {
-}
 @media print {
   .record-page .layout,
   .record-page .toast,
@@ -1324,6 +1322,28 @@ dialog:has(.record-form-grid) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .record-page .pet-header > .actions .button {
+    width: 100%;
+  }
+}
+/*
+ * Mobile : en-tête de la fiche (photo, nom, informations, statut) centré sur toute la
+ * largeur ; le bouton retour reste dans le coin supérieur gauche.
+ */
+@media (max-width: 620px) {
+  .record-page:has(> .back) > .pet-header {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+  .record-page:has(> .back) > .back {
+    grid-row: 1;
+    position: relative;
+    z-index: 1;
+  }
+  .record-page .pet-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  .record-page .pet-summary {
     width: 100%;
   }
 }

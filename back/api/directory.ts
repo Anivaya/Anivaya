@@ -6,6 +6,7 @@ import type {
   DirectoryData,
 } from "../../shared/account.ts";
 import { transaction } from "../database/connection.ts";
+import { appUrl, sendMail } from "./mail.ts";
 import {
   ApiError,
   text,
@@ -145,13 +146,6 @@ export function directoryRepository(db: Database) {
       const contactName = text(data.contactName, "contactName", 80),
         email = emailAddress(data.email),
         note = text(data.note ?? "", "note", 500, false);
-      if (data.payment === "declined")
-        throw new ApiError(
-          402,
-          "Paiement refusé (simulation). Aucun rendez-vous n’a été créé.",
-        );
-      if (data.payment !== "success")
-        throw new ApiError(400, "Choisissez un scénario de paiement valide.");
       const id = randomUUID();
       transaction(
         db,
@@ -175,7 +169,9 @@ export function directoryRepository(db: Database) {
         },
         "BEGIN IMMEDIATE",
       );
-      return booking(id);
+      const created = booking(id);
+      bookingMail(created, "confirmed");
+      return created;
     },
     update(id: string, data: Input): Booking {
       const current = booking(id);
@@ -199,7 +195,45 @@ export function directoryRepository(db: Database) {
         },
         "BEGIN IMMEDIATE",
       );
-      return booking(id);
+      const updated = booking(id);
+      bookingMail(updated, data.status === "cancelled" ? "cancelled" : "moved");
+      return updated;
     },
   };
+  /** Confirmation, déplacement ou annulation, envoyés à l’adresse donnée à la réservation. */
+  function bookingMail(b: Booking, kind: "confirmed" | "moved" | "cancelled") {
+    const pro = professional(b.professional),
+      service = pro.services[b.service],
+      price = euros(b.price),
+      when = new Date(`${b.date}T${b.time}`).toLocaleDateString("fr-FR", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+    const place = pro.mode === "En visio" ? "En visioconférence" : pro.address;
+    const details = `${service?.name ?? "Rendez-vous"} pour ${b.animalName}\n${when} à ${b.time}\n${pro.name} · ${place}`;
+    const receipt = `Reçu n° ${b.id.slice(0, 8).toUpperCase()}`;
+    void sendMail({
+      to: b.email,
+      subject:
+        kind === "confirmed"
+          ? `Rendez-vous confirmé — ${pro.name}`
+          : kind === "moved"
+            ? `Rendez-vous déplacé — ${pro.name}`
+            : `Rendez-vous annulé — ${pro.name}`,
+      text:
+        kind === "confirmed"
+          ? `Bonjour ${b.contactName},\n\nVotre rendez-vous est confirmé.\n\n${details}\n\nPaiement reçu : ${price}. ${receipt}.`
+          : kind === "moved"
+            ? `Bonjour ${b.contactName},\n\nVotre rendez-vous a été déplacé.\n\n${details}\n\nLe paiement de ${price} reste valable.`
+            : `Bonjour ${b.contactName},\n\nVotre rendez-vous est annulé et le créneau libéré.\n\n${details}\n\nRemboursement : ${price}. ${receipt}.`,
+      action: {
+        label: "Voir mes réservations",
+        url: `${appUrl()}/#reservations`,
+      },
+    });
+  }
 }
+const euros = (value: number) =>
+  value.toLocaleString("fr-FR", { style: "currency", currency: "EUR" });

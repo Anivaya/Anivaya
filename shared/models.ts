@@ -119,10 +119,29 @@ export interface ReceivedAnimal {
   instructions: string;
   contact: string;
 }
+/** Informations lues par l’IA dans un document importé ; vides si elles ne sont pas lisibles. */
+export interface ExtractedValues {
+  readable: boolean;
+  title: string;
+  category: "Santé" | "Identité" | "Assurance" | "Autre";
+  date: string;
+  name: string;
+  species: "Chien" | "Chat" | "";
+  breed: string;
+  sex: "Femelle" | "Mâle" | "Non renseigné";
+  dob: string;
+  identifier: string;
+  eventType: "Consultation" | "Vaccination déclarée" | "Pesée" | "Autre";
+  note: string;
+  reminderName: string;
+  reminderDate: string;
+}
 export interface ReceivedDocument {
   document: string;
   description: string;
   entries: string[];
+  /** Adresse du fichier partagé, lisible tant que l’accès est actif. */
+  file?: string;
 }
 export interface ReceivedShare {
   id: string;

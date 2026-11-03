@@ -156,17 +156,7 @@ export default function CommunitiesPage({ params }: { params: string[] }) {
       ) : (
         <SocialList key={tab} ctx={ctx} tab={tab} id={id} />
       )}
-      <details className="social-demo-note">
-        <summary>Tester les échanges entre comptes</summary>
-        <p>
-          Les communautés, les événements et les messages sont partagés entre
-          tous les comptes de l’application. Envoyez un message avec
-          test@gmail.com, déconnectez-vous puis connectez-vous avec
-          test2@gmail.com pour le lire. Au retour sur le premier compte, le
-          dernier message affiche « Lu ». Aucun message n’est envoyé à
-          l’extérieur de l’application.
-        </p>
-      </details>
+
       <div className="toast" role="status" hidden={!toast}>
         {toast}
       </div>
@@ -196,10 +186,15 @@ const filters: Record<SocialTab, [string, string][]> = {
   // La messagerie a ses propres filtres par type de discussion.
   messagerie: [],
 };
-const primary: Record<SocialTab, [string, SocialDialog]> = {
-  communautes: ["Créer une communauté", { kind: "community-editor" }],
-  evenements: ["Créer un événement", { kind: "event-editor" }],
-  messagerie: ["Nouvelle discussion", { kind: "new-thread", group: false }],
+/** Action principale de chaque onglet : libellé complet, libellé court du bouton, fenêtre. */
+const primary: Record<SocialTab, [string, string, SocialDialog]> = {
+  communautes: ["Créer une communauté", "Créer", { kind: "community-editor" }],
+  evenements: ["Créer un événement", "Créer", { kind: "event-editor" }],
+  messagerie: [
+    "Nouvelle discussion",
+    "Nouvelle",
+    { kind: "new-thread", group: false },
+  ],
 };
 const placeholders: Record<SocialTab, string> = {
   communautes: "Nom, ville ou thème…",
@@ -302,9 +297,10 @@ function SocialList({
           className="button social-primary"
           aria-label={primary[tab][0]}
           title={primary[tab][0]}
-          onClick={() => ctx.open(primary[tab][1])}
+          onClick={() => ctx.open(primary[tab][2])}
         >
           <Icon name="plus" />
+          <span aria-hidden="true">{primary[tab][1]}</span>
         </button>
       </div>
       {tab === "messagerie" ? (

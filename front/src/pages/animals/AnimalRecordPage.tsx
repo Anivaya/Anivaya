@@ -118,7 +118,7 @@ export default function AnimalRecordPage({
           <strong>{kind === "event" ? item.type : item.name}</strong>
           <small>
             {kind === "document" ? (
-              `${item.category} · ${item.example ? "Exemple" : "Fichier enregistré"}`
+              `${item.category} · ${item.example ? "Sans fichier" : "Fichier enregistré"}`
             ) : kind === "event" ? (
               <>
                 {fullDate(item.date!)}
@@ -454,10 +454,7 @@ export default function AnimalRecordPage({
               "Son identité",
               <>
                 {datums(identity)}
-                <p className="note">
-                  Ces informations sont déclaratives. Les identifiants de
-                  démonstration sont fictifs.
-                </p>
+                <p className="note">Ces informations sont déclaratives.</p>
               </>,
               <button
                 className="button outline"
@@ -509,7 +506,8 @@ export default function AnimalRecordPage({
               "Ses rappels",
               <>
                 <p className="muted">
-                  Aucune notification réelle n’est envoyée.
+                  Vous êtes prévenu par notification et par e-mail, selon le
+                  délai choisi.
                 </p>
                 {rows("reminder", reminders)}
               </>,

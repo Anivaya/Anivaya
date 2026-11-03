@@ -51,7 +51,6 @@ export interface BookingInput {
   contactName: string;
   email: string;
   note: string;
-  payment: "success" | "declined";
 }
 export interface DirectoryData {
   professionals: Professional[];
@@ -60,11 +59,6 @@ export interface DirectoryData {
   today: string;
 }
 
-export interface DemoAccount {
-  name: string;
-  email: string;
-  password: string;
-}
 export const exportCategories = [
   "profile",
   "animals",
@@ -81,4 +75,19 @@ export interface AuthUser {
   /** Compte de démonstration : sa suppression recrée un espace d’exemple. */
   demo: boolean;
   profile: Profile;
+}
+
+/** Règle des nouveaux mots de passe, appliquée à l’inscription et à la réinitialisation. */
+export const PASSWORD_RULE =
+  "Au moins 8 caractères, dont une majuscule, une minuscule et un caractère spécial.";
+/** Message d’erreur si le mot de passe ne respecte pas la règle, sinon null. */
+export function passwordProblem(password: string): string | null {
+  if (
+    password.length < 8 ||
+    !/\p{Lu}/u.test(password) ||
+    !/\p{Ll}/u.test(password) ||
+    !/[^\p{L}\p{N}\s]/u.test(password)
+  )
+    return `Utilisez ${PASSWORD_RULE.charAt(0).toLowerCase()}${PASSWORD_RULE.slice(1)}`;
+  return null;
 }

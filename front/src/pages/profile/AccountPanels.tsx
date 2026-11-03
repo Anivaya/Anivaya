@@ -24,7 +24,7 @@ const categoryLabels: Record<ExportCategory, [string, string]> = {
     "Partages et personnes de confiance",
     "Partages envoyés, contacts associés et état des invitations reçues.",
   ],
-  bookings: ["Réservations", "Rendez-vous, statuts et paiements simulés."],
+  bookings: ["Réservations", "Rendez-vous, statuts et paiements."],
   social: [
     "Communautés et messagerie",
     "Vos adhésions, participations, relations et messages envoyés (sans les photos ni les messages des autres).",

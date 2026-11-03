@@ -58,7 +58,7 @@ export default function SharingDialog({
       <SubmissionForm
         {...props}
         title={item.id ? "Modifier la personne" : "Ajouter une personne"}
-        description="Renseignez au moins un e-mail ou un téléphone. Un e-mail est nécessaire pour simuler un partage de document."
+        description="Renseignez au moins un e-mail ou un téléphone. Un e-mail est nécessaire pour lui partager des documents."
         submitLabel="Enregistrer"
         successMessage="Personne de confiance enregistrée."
         onSubmit={(values) => api.savePerson(item.id, { ...values, animals })}
@@ -131,7 +131,7 @@ export default function SharingDialog({
         }
         description={
           revoke
-            ? `L’accès de ${item.recipient} à ce document sera désactivé dans la démonstration. Ses autres partages sont conservés.`
+            ? `L’accès de ${item.recipient} à ce document sera désactivé immédiatement. Ses autres partages sont conservés.`
             : remove
               ? `${item.name} sera retirée des contacts de cet animal. Ses partages de documents restent inchangés.`
               : `${item.name} sera retirée de la liste et des carnets associés. Ses partages seront révoqués.`
@@ -327,7 +327,7 @@ export default function SharingDialog({
       <SubmissionForm
         {...props}
         title={single ? `Partager : ${item.name}` : "Partager des documents"}
-        description="Aucun document, message ni invitation ne sera envoyé. Les partages sont simulés et enregistrés localement."
+        description="Chaque destinataire reçoit une invitation par e-mail et retrouve les documents dans « Partage avec moi », en lecture seule, jusqu’à la date choisie."
         submitLabel="Confirmer le partage"
         onSubmit={async (values) => {
           const result = await api.share({
@@ -352,7 +352,7 @@ export default function SharingDialog({
                   title="Documents à partager"
                   items={data.documents.map((d) => ({
                     ...d,
-                    help: `${animalName(data.animals, d.animal)}${d.example ? " · Exemple sans fichier" : ""}`,
+                    help: `${animalName(data.animals, d.animal)}${d.example ? " · Sans fichier" : ""}`,
                   }))}
                   selected={documents}
                   onChange={setDocuments}

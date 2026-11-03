@@ -281,11 +281,9 @@ export default function EmergencySheet({
             <div className="stack">
               <section className="panel qr-panel" aria-busy={loading}>
                 <h2>Le QR de {pet.name}</h2>
-                <span className="active-status">
-                  {settings.active
-                    ? "Fiche publique active"
-                    : "Fiche désactivée"}
-                </span>
+                {!settings.active && (
+                  <span className="active-status">Fiche désactivée</span>
+                )}
                 {settings.active ? (
                   <>
                     {loading ? (

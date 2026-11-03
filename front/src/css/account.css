@@ -129,74 +129,6 @@
   padding: 30px;
   color: var(--navy);
 }
-/* Connexion : liste des comptes de démonstration. */
-.auth-page .demo-accounts {
-  margin-top: 26px;
-  padding-top: 24px;
-  border-top: 1px solid var(--line);
-  font-size: 12px;
-  line-height: 1.6;
-}
-.auth-page .demo-accounts h2 {
-  font-size: 18px;
-  margin: 0 0 8px;
-}
-.auth-page .demo-accounts p {
-  color: var(--muted);
-  margin: 0 0 16px;
-}
-.auth-page .demo-accounts ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.auth-page .demo-account {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 15px 0;
-  border-bottom: 1px solid var(--line);
-}
-.auth-page .demo-account div {
-  min-width: 0;
-}
-.auth-page .demo-account strong,
-.auth-page .demo-account span {
-  display: block;
-}
-.auth-page .demo-account span {
-  overflow-wrap: anywhere;
-}
-.auth-page .demo-account strong {
-  font-size: 13px;
-  margin-bottom: 4px;
-}
-.auth-page .demo-account b {
-  font-weight: 600;
-}
-.auth-page .demo-account code {
-  font-family: inherit;
-  font-weight: 700;
-}
-.auth-page .demo-account .text-button {
-  flex-shrink: 0;
-  font-size: 12px;
-}
-.auth-page .demo-accounts .demo-disclaimer {
-  margin-top: 16px;
-  font-size: 11px;
-}
-@media (max-width: 500px) {
-  .auth-page .demo-account {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .auth-page .demo-account .text-button {
-    padding: 4px 0;
-  }
-}
 .profile-page .profile-tabs {
   display: flex;
   gap: 24px;
@@ -227,8 +159,10 @@
 .directory-dialog .error {
   white-space: pre-line;
 }
+/* Filtres des réservations sur toute la largeur de la page, comme ceux de l’annuaire. */
 .directory-page .booking-filters {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: none;
   margin-bottom: 22px;
 }
 .directory-dialog .confirmation {

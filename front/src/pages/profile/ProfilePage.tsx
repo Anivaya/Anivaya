@@ -63,7 +63,13 @@ export default function ProfilePage({
     [busy, setBusy] = useState(false),
     [error, setError] = useState<FormError | null>(null),
     [message, setMessage] = useState(""),
-    [leave, setLeave] = useState<string | null>(null);
+    [leave, setLeave] = useState<string | null>(null),
+    // Lien de changement de mot de passe envoyé à l’adresse du compte.
+    [passwordLink, setPasswordLink] = useState<{
+      busy?: boolean;
+      text?: string;
+      error?: boolean;
+    }>({});
   const file = useRef<HTMLInputElement>(null),
     allowLeave = useRef(false),
     photoVersion = useRef(0);
@@ -310,15 +316,37 @@ export default function ProfilePage({
             <section className="profile-panel">
               <h2>Mot de passe</h2>
               <p className="muted">
-                Demandez un lien par e-mail pour choisir un nouveau mot de
-                passe.
+                Recevez un lien par e-mail pour choisir un nouveau mot de passe.
               </p>
-              <a className="button outline" href="#reinitialisation/profil">
-                Changer mon mot de passe
-              </a>
-              <p className="field-help security-note">
-                L’envoi d’e-mails n’est pas encore configuré : cette demande est
-                simulée.
+              <button
+                type="button"
+                className="button outline"
+                disabled={passwordLink.busy}
+                onClick={async () => {
+                  setPasswordLink({ busy: true });
+                  try {
+                    await api.requestOwnPasswordReset();
+                    setPasswordLink({
+                      text: `Un lien valable une heure vient d’être envoyé à ${profile.email}.`,
+                    });
+                  } catch (failure) {
+                    setPasswordLink({
+                      text: errorMessage(failure),
+                      error: true,
+                    });
+                  }
+                }}
+              >
+                {passwordLink.busy ? "Envoi…" : "Changer mon mot de passe"}
+              </button>
+              <p
+                className={
+                  "field-help security-note" +
+                  (passwordLink.error ? " field-error" : "")
+                }
+                role="status"
+              >
+                {passwordLink.text}
               </p>
             </section>
           </div>
@@ -363,8 +391,8 @@ export default function ProfilePage({
                 ),
               )}
               <p className="notification-demo">
-                Vos préférences sont enregistrées. Aucune notification réelle
-                n’est envoyée pour le moment.
+                Chaque type activé arrive dans votre espace et par e-mail, à
+                l’adresse de votre compte.
               </p>
             </div>
           </section>

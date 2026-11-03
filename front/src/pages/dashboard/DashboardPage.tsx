@@ -56,9 +56,8 @@ function PrivacyNote() {
       </div>
       <h2>Un dossier, vos choix.</h2>
       <p>
-        Vos documents sont conservés dans votre espace local. Les partages sont
-        simulés : vous choisissez les documents et les personnes concernés, sans
-        envoi d’invitation.
+        Vos documents sont privés. Vous choisissez les documents à partager, les
+        personnes concernées et la date de fin de l’accès.
       </p>
     </aside>
   );

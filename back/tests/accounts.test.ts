@@ -80,14 +80,8 @@ test("Comptes réels : sessions, isolation, profil, annuaire, réservations et Q
     async () => {
       assert.equal((await request("/dashboard")).status, 401);
       assert.equal(await json("/auth/session"), null);
-      assert.deepEqual(
-        await json("/auth/demo"),
-        demoAccounts.map(({ name, email }) => ({
-          name,
-          email,
-          password: demoCredentials.password,
-        })),
-      );
+      // Les identifiants des comptes de démonstration ne sont plus exposés par l’API.
+      assert.ok((await request("/auth/demo")).status >= 400);
       assert.equal(
         (
           await request("/auth/login", "POST", {
@@ -343,19 +337,7 @@ test("Comptes réels : sessions, isolation, profil, annuaire, réservations et Q
         contactName: "Alice Nouvelle",
         email: "alice@example.test",
         note: "Test",
-        payment: "success",
       };
-      assert.equal(
-        (
-          await request(
-            "/bookings",
-            "POST",
-            { ...input, payment: "declined" },
-            alice,
-          )
-        ).status,
-        402,
-      );
       assert.equal(
         (await json<DirectoryData>("/directory", "GET", undefined, alice))
           .bookings.length,

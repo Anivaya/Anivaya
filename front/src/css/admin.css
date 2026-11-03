@@ -831,12 +831,6 @@ button.admin-stat:active {
 .admin-queue:hover {
   background: #f8fafd;
 }
-.admin-back {
-  display: inline-block;
-  color: var(--blue);
-  font-size: 13px;
-  margin-bottom: 20px;
-}
 /* Cloche : cercle blanc bordé, comme dans l’espace particulier ; le badge reste en bas. */
 .admin-alert-trigger {
   position: relative;
@@ -1313,25 +1307,10 @@ button.admin-stat:active {
   order: 2;
 }
 
-.admin-demo-disclosure {
-  margin: 0 0 24px;
-  color: var(--muted);
-  font-size: 12px;
-}
-.admin-demo-disclosure .admin-disclosure-toggle {
-  color: var(--muted);
-  font-size: 12px;
-}
-.admin-demo-disclosure .admin-disclosure-content > div > p {
-  font-size: 13px;
-  margin: 12px 0;
-}
-.admin-demo-source {
-  display: grid;
-  gap: 8px;
-  max-width: 300px;
-  padding-top: 16px;
-}
+
+
+
+
 .admin-analytics {
   font-size: 16px;
   line-height: 1.65;
@@ -1599,5 +1578,73 @@ button.admin-stat:active {
 @media (prefers-reduced-motion: reduce) {
   .admin-metric-bar > span {
     transition: none;
+  }
+}
+/*
+ * Mobile : chaque ligne des listes devient une carte. Le nom de la colonne (data-label)
+ * s'affiche au-dessus de chaque valeur ; seuls les tris restent en tête de liste.
+ */
+@media (max-width: 620px) {
+  .admin-table-scroll table[class^="admin-table-"],
+  .admin-table-scroll table[class^="admin-table-"] :is(tbody, tr, td) {
+    display: block;
+  }
+  .admin-table-scroll table[class^="admin-table-"] thead tr {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    padding: 10px 18px;
+    background: #f8fafd;
+    border-bottom: 1px solid var(--border);
+  }
+  .admin-table-scroll table[class^="admin-table-"] thead th {
+    display: none;
+    width: auto;
+    padding: 0;
+    border: 0;
+  }
+  .admin-table-scroll table[class^="admin-table-"] thead th:has(.admin-sort-heading) {
+    display: block;
+  }
+  .admin-table-scroll table[class^="admin-table-"] tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 16px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .admin-table-scroll table[class^="admin-table-"] td {
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    padding: 0 !important;
+    border: 0;
+    white-space: normal;
+  }
+  .admin-table-scroll table[class^="admin-table-"] td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 3px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 800;
+  }
+  /* Nom et actions sur toute la largeur de la carte. */
+  .admin-table-scroll table[class^="admin-table-"] td:is(:first-child, :last-child) {
+    grid-column: 1 / -1;
+  }
+  .admin-table-scroll table[class^="admin-table-"] td:first-child small {
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
+  .admin-table-scroll table[class^="admin-table-"] .admin-row-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 0;
+  }
+  .admin-table-scroll table[class^="admin-table-"] td > :is(.admin-record-link, small, .admin-cell-text) {
+    max-width: none;
+    white-space: normal;
   }
 }

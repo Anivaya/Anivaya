@@ -65,7 +65,7 @@ export const byReminderOrder = (a: Reminder, b: Reminder) =>
   Number(a.done) - Number(b.done) || a.date.localeCompare(b.date);
 
 export const shareLabels: Record<Share["status"], string> = {
-  active: "Actif dans la démo",
+  active: "Actif",
   expired: "Expiré",
   revoked: "Révoqué",
 };

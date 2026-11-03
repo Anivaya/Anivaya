@@ -12,6 +12,9 @@ const migrations = [
   "006_received_shares.sql",
   "007_social_notifications.sql",
   "010_activity.sql",
+  "011_reminder_notifications.sql",
+  "012_wording.sql",
+  "013_contact_wording.sql",
 ];
 const sql = (file: string) =>
   readFileSync(new URL(file, import.meta.url), "utf8");

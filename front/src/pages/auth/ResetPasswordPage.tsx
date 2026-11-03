@@ -1,36 +1,50 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
+import { PASSWORD_RULE, passwordProblem } from "../../../../shared/account.ts";
 import Icon from "../../shared/ui/Icon.tsx";
+import { api } from "../../shared/services/api.ts";
+import { errorMessage } from "../../shared/types.ts";
 import { AuthLayout } from "./AuthPage.tsx";
 
-type Step = "request" | "sent" | "new" | "unavailable" | "success";
+type Step = "request" | "sent" | "checking" | "new" | "unavailable" | "success";
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-/** Même règle que la création de compte. */
-const MIN_PASSWORD = 12;
 
 /**
- * Parcours de réinitialisation simulé : aucun e-mail n’est envoyé et aucun mot de passe
- * n’est modifié, l’envoi d’e-mails n’étant pas configuré.
+ * Mot de passe oublié : un lien valable une heure est envoyé par e-mail ; il ouvre cette
+ * page avec son jeton (#mot-de-passe/<jeton>) pour choisir un nouveau mot de passe.
  */
 export default function ResetPasswordPage({
-  fromProfile,
+  token,
   email: initialEmail = "",
 }: {
-  /** Ouverte depuis « Mot de passe » du profil : les liens ramènent au profil. */
-  fromProfile: boolean;
+  /** Jeton du lien reçu par e-mail ; absent pour la demande de lien. */
+  token?: string;
   /** E-mail du compte connecté, proposé par défaut. */
   email?: string;
 }) {
-  const [step, setStep] = useState<Step>("request");
-  const [expired, setExpired] = useState(false);
+  const [step, setStep] = useState<Step>(
+    token === undefined ? "request" : "checking",
+  );
   const [email, setEmail] = useState(initialEmail);
   const [passwords, setPasswords] = useState({ password: "", confirm: "" });
   const [visible, setVisible] = useState({ password: false, confirm: false });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState(false);
   const title = useRef<HTMLHeadingElement>(null);
-  const back = fromProfile ? "#profil" : "#connexion";
   // Chaque étape remplace le contenu : le titre reçoit le focus pour l’annoncer.
   useEffect(() => title.current?.focus(), [step]);
+  // Le lien reçu est vérifié avant d’afficher le formulaire.
+  useEffect(() => {
+    if (token === undefined) return;
+    let active = true;
+    api
+      .passwordResetStatus(token)
+      .then(({ valid }) => active && setStep(valid ? "new" : "unavailable"))
+      .catch(() => active && setStep("unavailable"));
+    return () => {
+      active = false;
+    };
+  }, [token]);
 
   function show(next: Step) {
     setStep(next);
@@ -40,43 +54,64 @@ export default function ResetPasswordPage({
       setVisible({ password: false, confirm: false });
     }
   }
-  function request(event: FormEvent) {
+  async function request(event: FormEvent) {
     event.preventDefault();
+    if (busy) return;
     if (!EMAIL.test(email.trim())) {
       setErrors({ email: "Indiquez une adresse e-mail valide." });
       document.getElementById("reset-email")?.focus();
       return;
     }
-    show("sent");
+    setBusy(true);
+    try {
+      await api.requestPasswordReset(email.trim());
+      show("sent");
+    } catch (failure) {
+      setErrors({ email: errorMessage(failure) });
+    } finally {
+      setBusy(false);
+    }
   }
-  function choose(event: FormEvent) {
+  async function choose(event: FormEvent) {
     event.preventDefault();
+    if (busy) return;
     const found: Record<string, string> = {};
-    if (passwords.password.length < MIN_PASSWORD)
-      found.password = `Utilisez au moins ${MIN_PASSWORD} caractères.`;
+    // Même règle que la création de compte.
+    const problem = passwordProblem(passwords.password);
+    if (problem) found.password = problem;
     if (!passwords.confirm || passwords.confirm !== passwords.password)
       found.confirm = "Les deux mots de passe doivent être identiques.";
     setErrors(found);
     const first = Object.keys(found)[0];
-    if (first) document.getElementById("reset-" + first)?.focus();
-    else show("success");
-  }
-  function unavailable(isExpired: boolean) {
-    setExpired(isExpired);
-    show("unavailable");
+    if (first) {
+      document.getElementById("reset-" + first)?.focus();
+      return;
+    }
+    setBusy(true);
+    try {
+      await api.resetPassword({
+        token: token ?? "",
+        password: passwords.password,
+        confirmPassword: passwords.confirm,
+      });
+      show("success");
+    } catch (failure) {
+      setErrors({ password: errorMessage(failure) });
+    } finally {
+      setBusy(false);
+    }
   }
 
   const titles: Record<Step, string> = {
-    request: fromProfile
-      ? "Changer votre mot de passe"
-      : "Réinitialiser votre mot de passe",
+    request: "Réinitialiser votre mot de passe",
     sent: "Vérifiez votre boîte e-mail",
+    checking: "Vérification du lien…",
     new: "Choisissez un nouveau mot de passe",
     unavailable: "Ce lien ne peut plus être utilisé",
-    success: "Modification simulée",
+    success: "Mot de passe modifié",
   };
   const intro = {
-    request: "Demandez un lien pour choisir un nouveau mot de passe.",
+    request: "Recevez un lien par e-mail pour choisir un nouveau mot de passe.",
     new: "Choisissez un mot de passe et confirmez-le ci-dessous.",
   }[step as "request" | "new"];
   const passwordField = (
@@ -115,7 +150,7 @@ export default function ResetPasswordPage({
           }
           onClick={() => setVisible({ ...visible, [key]: !visible[key] })}
         >
-          <Icon name="eye" />
+          <Icon name={visible[key] ? "eye-off" : "eye"} />
         </button>
       </div>
       {help && (
@@ -130,12 +165,10 @@ export default function ResetPasswordPage({
   );
 
   return (
-    <AuthLayout>
-      <a className="reset-back" href={back}>
+    <AuthLayout opening menuLogin>
+      <a className="reset-back" href="#connexion" title="Retour à la connexion">
         <Icon name="back" />
-        <span>
-          {fromProfile ? "Retour à mon profil" : "Retour à la connexion"}
-        </span>
+        <span className="sr-only">Retour à la connexion</span>
       </a>
       <h1 id="auth-title" tabIndex={-1} ref={title}>
         {titles[step]}
@@ -143,7 +176,7 @@ export default function ResetPasswordPage({
       {intro && <p className="intro">{intro}</p>}
 
       {step === "request" && (
-        <form noValidate onSubmit={request}>
+        <form noValidate onSubmit={request} aria-busy={busy}>
           <div className="field">
             <label htmlFor="reset-email">Adresse e-mail</label>
             <input
@@ -164,8 +197,8 @@ export default function ResetPasswordPage({
               {errors.email}
             </p>
           </div>
-          <button className="button submit" type="submit">
-            Demander un lien de réinitialisation
+          <button className="button submit" type="submit" disabled={busy}>
+            {busy ? "Envoi…" : "Recevoir un lien de réinitialisation"}
           </button>
         </form>
       )}
@@ -173,23 +206,10 @@ export default function ResetPasswordPage({
       {step === "sent" && (
         <>
           <p>
-            Si un compte correspond à cette adresse, un lien de réinitialisation
-            lui sera envoyé lorsque l’envoi d’e-mails sera configuré.
+            Si un compte correspond à <strong>{email.trim()}</strong>, un lien
+            vient de lui être envoyé. Il est valable une heure et ne fonctionne
+            qu’une fois. Pensez à vérifier vos courriers indésirables.
           </p>
-          <div className="demo-note">
-            <strong>Demande simulée</strong>
-            <p>
-              Aucun e-mail n’a été envoyé. Utilisez le lien ci-dessous pour
-              poursuivre le parcours.
-            </p>
-          </div>
-          <button
-            type="button"
-            className="button submit"
-            onClick={() => show("new")}
-          >
-            Ouvrir le lien de démonstration
-          </button>
           <button
             type="button"
             className="text-button"
@@ -201,73 +221,38 @@ export default function ResetPasswordPage({
       )}
 
       {step === "new" && (
-        <>
-          <form noValidate onSubmit={choose}>
-            {passwordField(
-              "password",
-              "Nouveau mot de passe",
-              `Au moins ${MIN_PASSWORD} caractères.`,
-            )}
-            {passwordField("confirm", "Confirmer le nouveau mot de passe")}
-            <button type="submit" className="button submit">
-              Valider le nouveau mot de passe
-            </button>
-          </form>
-          <details className="reset-demo-states">
-            <summary>Tester les états du lien</summary>
-            <div>
-              <button
-                className="text-button"
-                type="button"
-                onClick={() => unavailable(true)}
-              >
-                Lien expiré
-              </button>
-              <button
-                className="text-button"
-                type="button"
-                onClick={() => unavailable(false)}
-              >
-                Lien invalide
-              </button>
-            </div>
-          </details>
-        </>
+        <form noValidate onSubmit={choose} aria-busy={busy}>
+          {passwordField("password", "Nouveau mot de passe", PASSWORD_RULE)}
+          {passwordField("confirm", "Confirmer le nouveau mot de passe")}
+          <button type="submit" className="button submit" disabled={busy}>
+            {busy ? "Enregistrement…" : "Valider le nouveau mot de passe"}
+          </button>
+        </form>
       )}
 
       {step === "unavailable" && (
         <>
           <p>
-            {expired
-              ? "Ce lien de démonstration a expiré. Demandez un nouveau lien pour continuer."
-              : "Ce lien de démonstration est invalide ou a déjà été utilisé. Demandez un nouveau lien."}
+            Ce lien a expiré, a déjà servi ou est incomplet. Demandez un nouveau
+            lien pour continuer.
           </p>
-          <button
-            type="button"
-            className="button submit"
-            onClick={() => show("request")}
-          >
+          <a className="button submit" href="#reinitialisation">
             Demander un nouveau lien
-          </button>
+          </a>
         </>
       )}
 
       {step === "success" && (
         <>
           <p>
-            Le parcours de changement de mot de passe est terminé. Aucun mot de
-            passe n’a été modifié.
+            Votre mot de passe a été modifié et vos sessions ouvertes ont été
+            fermées. Connectez-vous avec votre nouveau mot de passe.
           </p>
-          <a className="button submit" href={back}>
-            {fromProfile ? "Revenir à mon profil" : "Revenir à la connexion"}
+          <a className="button submit" href="#connexion">
+            Se connecter
           </a>
         </>
       )}
-
-      <p className="demo-note">
-        Version de démonstration : aucun e-mail n’est envoyé et aucun mot de
-        passe n’est enregistré ou transmis.
-      </p>
     </AuthLayout>
   );
 }

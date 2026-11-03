@@ -51,7 +51,8 @@ export function ReminderDetails({
       </div>
       {item.note && <p className="dialog-copy preserve-lines">{item.note}</p>}
       <p className="dialog-copy">
-        Aucune notification réelle n’est envoyée pour le moment.
+        Vous serez prévenu par notification et par e-mail, selon le délai
+        choisi.
       </p>
       <FormAlert message={error} />
       <div className="dialog-actions">
@@ -102,7 +103,7 @@ export function ReminderForm({
     <SubmissionForm
       {...props}
       title={item.id ? "Modifier le rappel" : "Ajouter un rappel"}
-      description="Choisissez une date à suivre pour votre animal. Aucune notification réelle n’est envoyée."
+      description="Choisissez une date à suivre pour votre animal. Vous serez prévenu par notification et par e-mail."
       submitLabel={item.id ? "Enregistrer" : "Ajouter"}
       successMessage={item.id ? "Rappel modifié." : "Rappel ajouté."}
       disabled={!data.animals.length}

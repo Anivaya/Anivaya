@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { request } from "../../shared/services/api.ts";
 import { errorMessage } from "../../shared/types.ts";
 import Modal from "../../shared/ui/Modal.tsx";
+import Icon from "../../shared/ui/Icon.tsx";
 import SubmissionForm, { Field } from "../../shared/forms/SubmissionForm.tsx";
 interface Status {
   enabled: boolean;
@@ -206,7 +207,7 @@ export default function MfaPanel() {
                       aria-pressed={visible}
                       onClick={() => setVisible(!visible)}
                     >
-                      {visible ? "Masquer" : "Voir"}
+                      <Icon name={visible ? "eye-off" : "eye"} />
                     </button>
                   </div>
                 </Field>

@@ -167,13 +167,13 @@ export function createRepository(
       if (Object.hasOwn(data, "done") && typeof data.done !== "boolean")
         throw new ApiError(400, "Le statut doit être un booléen.", "done");
       animal(old.animal);
+      const values = reminderValues({ ...old, ...data });
       db.prepare(
         "UPDATE reminders SET name=?,animal=?,date=?,repeat=?,notice=?,note=?,done=? WHERE id=?",
-      ).run(
-        ...reminderValues({ ...old, ...data }),
-        Number(data.done ?? old.done),
-        id,
-      );
+      ).run(...values, Number(data.done ?? old.done), id);
+      // Nouvelle date ou nouveau délai : le rappel sera de nouveau envoyé.
+      if (values[2] !== old.date || values[4] !== old.notice)
+        db.prepare("UPDATE reminders SET notified_at=NULL WHERE id=?").run(id);
       return publicReminder(find("reminders", id));
     },
     deleteReminder(id: string) {
@@ -223,10 +223,7 @@ export function createRepository(
       const row = find("documents", id);
       animal(row.animal);
       if (!(row.content instanceof Uint8Array))
-        throw new ApiError(
-          404,
-          "Ce document de démonstration ne contient aucun fichier.",
-        );
+        throw new ApiError(404, "Ce document ne contient aucun fichier.");
       return {
         name: row.name,
         content: row.content,

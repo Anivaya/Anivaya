@@ -3,7 +3,6 @@ export interface Ratio {
   total: number;
 }
 export interface AdminAnalytics {
-  source: "installation" | "maquette";
   available: boolean;
   asOf: string;
   zones: string[];

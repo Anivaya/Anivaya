@@ -29,14 +29,13 @@ const qrCode = (payload: string) =>
 /** Texte ASCII encodé dans le QR quand aucune URL publique n’est disponible. */
 function offlinePayload(fields: EmergencySnapshot) {
   return [
-    "ANIVAYA - DEMONSTRATION",
+    "ANIVAYA - FICHE D'URGENCE",
     fields.name,
     fields.species,
     fields.details,
     fields.notes && `Consignes: ${fields.notes}`,
     fields.contact && `Contact: ${fields.contact}`,
     fields.vet && `Veterinaire: ${fields.vet}`,
-    "Fiche fictive hors ligne.",
   ]
     .filter(Boolean)
     .join("\n")

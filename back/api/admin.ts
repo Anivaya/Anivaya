@@ -26,6 +26,7 @@ import { directoryRepository } from "./directory.ts";
 import { profileRepository } from "./profile.ts";
 import type { Household } from "./admin-analytics.ts";
 import { sampleOrigin, seedSamples } from "./admin-samples.ts";
+import { appUrl, sendMail } from "./mail.ts";
 
 interface Row {
   id: string;
@@ -191,7 +192,7 @@ export function adminService(db: Database, auth: Authentication) {
         updatedAt: i.createdAt,
         expiresAt: i.expiresAt,
         invitation: true,
-        note: `Invité par ${i.invitedBy}. Aucun e-mail n’est envoyé : transmettez le lien d’inscription à cette personne.`,
+        note: `Invité par ${i.invitedBy}. Un e-mail d’invitation a été envoyé à cette adresse.`,
       }));
   }
   function securityRows(): AdminRecord[] {
@@ -341,6 +342,44 @@ export function adminService(db: Database, auth: Authentication) {
       ) {
         seedDemo();
         db.prepare("INSERT INTO admin_metadata VALUES ('seed-v2',?)").run(
+          now(),
+        );
+      }
+      // v5 : imports créés avec l’ancien « exemple intégré », devenus de simples fichiers.
+      if (
+        !db.prepare("SELECT key FROM admin_metadata WHERE key='seed-v5'").get()
+      ) {
+        db.prepare(
+          "UPDATE admin_records SET data=json_set(data,'$.kind','Fichier') WHERE resource='imports' AND json_extract(data,'$.kind')='Exemple intégré'",
+        ).run();
+        db.prepare(
+          "UPDATE admin_records SET name=replace(name,' — exemple',''),data=json_set(data,'$.name',replace(json_extract(data,'$.name'),' — exemple','')) WHERE resource='imports' AND name LIKE '% — exemple'",
+        ).run();
+        db.prepare("INSERT INTO admin_metadata VALUES ('seed-v5',?)").run(
+          now(),
+        );
+      }
+      // v4 : formulations sans mention de test dans les dossiers déjà créés.
+      if (
+        !db.prepare("SELECT key FROM admin_metadata WHERE key='seed-v4'").get()
+      ) {
+        for (const pro of directoryRepository(db).all().professionals)
+          db.prepare(
+            "UPDATE admin_records SET data=json_set(data,'$.body',?) WHERE resource='pros' AND id=?",
+          ).run(pro.about, pro.id);
+        db.prepare(
+          "UPDATE admin_records SET data=json_set(data,'$.issue',?) WHERE resource='imports' AND id='import-consultation'",
+        ).run(
+          "Dates extraites à vérifier : l’utilisateur n’a pas encore validé l’import.",
+        );
+        db.prepare(
+          "UPDATE admin_records SET name=?,data=json_set(data,'$.name',?,'$.kind','Fichier','$.issue',?,'$.history[0].note','Import enregistré.') WHERE resource='imports' AND id='import-exemple'",
+        ).run(
+          "Certificat d’identification",
+          "Certificat d’identification",
+          "Informations extraites par l’IA, vérifiées puis enregistrées par l’utilisateur.",
+        );
+        db.prepare("INSERT INTO admin_metadata VALUES ('seed-v4',?)").run(
           now(),
         );
       }
@@ -691,7 +730,7 @@ export function adminService(db: Database, auth: Authentication) {
         kind: "Fichier",
         status: "À analyser",
         issue:
-          "Extraction simulée : les informations ont été vérifiées manuellement par l’utilisateur.",
+          "Dates extraites à vérifier : l’utilisateur n’a pas encore validé l’import.",
         history: [],
       },
       "import-consultation",
@@ -700,13 +739,14 @@ export function adminService(db: Database, auth: Authentication) {
     insert(
       "imports",
       {
-        name: "Certificat d’identification — exemple",
+        name: "Certificat d’identification",
         account: "demo",
         email: accounts.demo,
-        kind: "Exemple intégré",
+        kind: "Fichier",
         status: "Terminé",
-        issue: "",
-        history: [entry(9, "Terminé", "Exemple de démonstration.", "test")],
+        issue:
+          "Informations extraites par l’IA, vérifiées puis enregistrées par l’utilisateur.",
+        history: [entry(9, "Terminé", "Import enregistré.", "test")],
       },
       "import-exemple",
       ago(9),
@@ -1142,9 +1182,7 @@ export function adminService(db: Database, auth: Authentication) {
       return {
         createdAt: account.created_at || now(),
         zone: profile.city.trim() || "Non renseignée",
-        channel: auth.isDemo(account)
-          ? "Démonstration"
-          : (sampleOrigin(account.id) ?? "Direct"),
+        channel: sampleOrigin(account.id) ?? "Direct",
         animals,
       };
     });
@@ -1390,6 +1428,7 @@ export function adminService(db: Database, auth: Authentication) {
           );
           row = invitationRows().find((r) => r.id === id)!;
           log(account, kind, id, "Invitation : " + email, memberRole);
+          inviteByMail(email, memberRole, account.email);
           return row;
         }
         if (
@@ -1403,6 +1442,15 @@ export function adminService(db: Database, auth: Authentication) {
           memberRole,
         );
         row = accountRows(true).find((r) => r.id === target.id)!;
+        void sendMail({
+          to: email,
+          subject: "Vous rejoignez l’équipe Anivaya",
+          text: `Bonjour,\n\n${account.email} vous a ajouté à l’équipe Anivaya en tant que ${memberRole}. L’administration est accessible dès votre prochaine connexion.`,
+          action: {
+            label: "Ouvrir l’administration",
+            url: `${appUrl()}/#admin`,
+          },
+        });
       } else if (kind === "library") {
         const title = text(data.name, "name", 180),
           summary = text(data.summary, "summary", 600),
@@ -1485,7 +1533,7 @@ export function adminService(db: Database, auth: Authentication) {
           (action === "edit"
             ? "Coordonnées mises à jour depuis la fiche."
             : action === "reset"
-              ? "Demande préparée depuis la fiche du compte ; envoi d’e-mail non configuré."
+              ? "Lien de réinitialisation envoyé depuis la fiche du compte."
               : undefined),
         "note",
         3000,
@@ -1542,6 +1590,11 @@ export function adminService(db: Database, auth: Authentication) {
           "Invitation prolongée : " + invitation.email,
           note,
         );
+        inviteByMail(
+          invitation.email ?? "",
+          invitation.role ?? "membre",
+          account.email,
+        );
         return invitationRows().find((r) => r.id === id);
       }
       if (kind === "users" || kind === "team") {
@@ -1549,14 +1602,18 @@ export function adminService(db: Database, auth: Authentication) {
         if (!row) throw new ApiError(404, "Compte introuvable.");
         checkVersion(data.version, row.version);
         if (kind === "users" && action === "reset") {
-          // Aucun envoi d’e-mail n’est configuré : la demande est tracée pour le suivi.
+          // Lien valable une heure envoyé au titulaire ; la demande reste tracée.
+          const target = db
+            .prepare("SELECT * FROM accounts WHERE id=?")
+            .get<Account>(id)!;
+          void auth.sendPasswordReset(target);
           log(
             account,
             kind,
             id,
             "Réinitialisation du mot de passe demandée",
             note ||
-              "Demande préparée depuis la fiche du compte ; envoi d’e-mail non configuré.",
+              "Lien de réinitialisation envoyé depuis la fiche du compte.",
           );
           return detail(account, kind, id);
         }
@@ -1736,7 +1793,19 @@ export function adminService(db: Database, auth: Authentication) {
           throw new ApiError(409, "Cette demande est déjà traitée.");
         if (action === "decline") {
           row.status = "Refusée";
+          if (row.email)
+            void sendMail({
+              to: row.email,
+              subject: "Votre demande de suppression de compte",
+              text: `Bonjour,\n\nVotre demande de suppression de compte Anivaya n’a pas été appliquée.${note ? `\n\nMotif : ${note}` : ""}\n\nVous pouvez répondre via le formulaire de contact pour toute question.`,
+            });
         } else if (action === "delete") {
+          if (row.email)
+            void sendMail({
+              to: row.email,
+              subject: "Votre compte Anivaya a été supprimé",
+              text: "Bonjour,\n\nComme vous l’avez demandé, votre compte Anivaya et les données de votre espace ont été supprimés. Merci d’avoir utilisé Anivaya.",
+            });
           const target = row.account
             ? db
                 .prepare("SELECT id FROM accounts WHERE id=?")
@@ -1756,7 +1825,17 @@ export function adminService(db: Database, auth: Authentication) {
             throw new ApiError(409, "Cet import est déjà terminé.");
           row.status = "Échoué";
           row.issue =
-            "Service d’extraction non configuré : relancez après la mise en place du traitement réel.";
+            "Relance demandée : l’utilisateur est invité à importer à nouveau son document.";
+          if (row.email)
+            void sendMail({
+              to: row.email,
+              subject: "Votre import de document",
+              text: `Bonjour,\n\nL’import de « ${row.name} » n’a pas pu aboutir. Importez à nouveau votre document depuis Documents → Importer avec l’IA, avec une photo nette et bien éclairée ou un PDF.`,
+              action: {
+                label: "Ouvrir mes documents",
+                url: `${appUrl()}/#documents`,
+              },
+            });
         } else if (action === "incident") {
           if (row.ticketId) return get("tickets", row.ticketId);
           const ticket = insert("tickets", {
@@ -1923,6 +2002,18 @@ export function adminService(db: Database, auth: Authentication) {
                 );
               suspendAccount(row.target!);
             }
+            const targetEmail = accountRows().find(
+              (a) => a.id === row.target,
+            )?.email;
+            if (targetEmail)
+              void sendMail({
+                to: targetEmail,
+                subject:
+                  sanction === "Suspendre le compte"
+                    ? "Votre compte Anivaya est suspendu"
+                    : "Avertissement concernant votre compte Anivaya",
+                text: `Bonjour,\n\nÀ la suite d’un signalement (${row.reference}), l’équipe de modération ${sanction === "Suspendre le compte" ? "a suspendu votre compte" : "vous adresse un avertissement"}.${note ? `\n\nMotif : ${note}` : ""}\n\nVous pouvez contester cette décision depuis Contact → Vos demandes, avec la référence ${row.reference}.`,
+              });
             log(
               account,
               "users",
@@ -2013,6 +2104,17 @@ export function adminService(db: Database, auth: Authentication) {
       row.history.push({ date: now(), actor: account.email, action, note });
       const saved = save(kind, row);
       log(account, kind, id, action + " : " + row.name, note);
+      // Réponse du support : envoyée à la personne qui a écrit.
+      if (kind === "tickets" && action === "reply" && note && row.email)
+        void sendMail({
+          to: row.email,
+          subject: `Réponse à votre demande : ${row.name}`,
+          text: `Bonjour,\n\n${note}\n\nÉtat de votre demande : ${row.status}.\n\nL’équipe Anivaya`,
+          action: {
+            label: "Voir mes demandes",
+            url: `${appUrl()}/#contact/recours`,
+          },
+        });
       return saved;
     });
   }
@@ -2076,7 +2178,21 @@ export function adminService(db: Database, auth: Authentication) {
         { date: now(), actor: name, action: "Demande reçue", note: message },
       ],
     });
+    void sendMail({
+      to: email,
+      subject: `Nous avons bien reçu votre demande : ${subject}`,
+      text: `Bonjour ${name},\n\nVotre demande a bien été transmise à l’équipe Anivaya. Nous vous répondrons à cette adresse.\n\nVotre message :\n${message}`,
+    });
     return { reference: record.id, status: record.status };
+  }
+  /** Invitation à rejoindre l’équipe : à créer son compte avec l’adresse invitée. */
+  function inviteByMail(email: string, role: string, invitedBy: string) {
+    void sendMail({
+      to: email,
+      subject: "Invitation à rejoindre l’équipe Anivaya",
+      text: `Bonjour,\n\n${invitedBy} vous invite à rejoindre l’équipe Anivaya en tant que ${role}. L’invitation est valable ${INVITATION_DAYS} jours.\n\nCréez votre compte avec cette adresse e-mail, ou connectez-vous si vous en avez déjà un : l’accès à l’administration s’ouvre à votre première connexion.`,
+      action: { label: "Rejoindre l’équipe", url: `${appUrl()}/#inscription` },
+    });
   }
   function createReport(
     reporter: Account | null | undefined,
@@ -2156,17 +2272,26 @@ export function adminService(db: Database, auth: Authentication) {
     return { id: row.id, status: row.status };
   }
   /** Suivi d’un import assisté validé par l’utilisateur ; aucune extraction réelle n’a lieu. */
+  /**
+   * Suivi d’un import par l’assistance : « Terminé » quand l’utilisateur a enregistré les
+   * informations vérifiées, « Échoué » quand l’analyse n’a pas abouti (avec la raison).
+   */
   function registerImport(account: Account, data: Input) {
+    const status = pick(data.status ?? "À analyser", [
+      "À analyser",
+      "Terminé",
+      "Échoué",
+    ]);
     const row = insert("imports", {
       name: text(data.name, "name", 180),
       account: account.id,
       email: account.email,
       kind: pick(data.kind, ["Fichier", "Exemple intégré"], "kind"),
-      status: data.kind === "Exemple intégré" ? "Terminé" : "À analyser",
+      status,
       issue:
-        data.kind === "Exemple intégré"
-          ? ""
-          : "Extraction simulée : les informations ont été vérifiées manuellement par l’utilisateur.",
+        status === "Terminé"
+          ? "Informations extraites par l’IA, vérifiées puis enregistrées par l’utilisateur."
+          : text(data.issue ?? "", "issue", 300, false),
       history: [],
     });
     return { id: row.id, status: row.status };

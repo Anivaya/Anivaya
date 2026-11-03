@@ -28,13 +28,13 @@ const unavailableText: Partial<Record<ReceivedShareState, string>> = {
     "Vous avez refusé cette invitation. Le propriétaire peut vous en envoyer une nouvelle.",
 };
 
-/** Photo d’exemple de l’animal confié (illustration commune, cadrée par espèce). */
+/** Illustration de l’animal confié (image commune, cadrée par espèce). */
 function AnimalPhoto({ animal }: { animal: ReceivedAnimal }) {
   return (
     <span
       className="received-animal-photo"
       role="img"
-      aria-label={`Photo de démonstration de ${animal.name}`}
+      aria-label={`Illustration : ${animal.species.toLowerCase()}`}
       style={{
         backgroundPosition: animal.species === "Chat" ? "80% 60%" : "32% 0%",
       }}
@@ -307,19 +307,30 @@ function ReceivedDetail({
       {share.state === "accepted" && document && (
         <section className="received-preview">
           <span className="received-state accepted">
-            Document d’exemple · Lecture seule
+            Document partagé · Lecture seule
           </span>
           <h3>{document.document}</h3>
           <p>{document.description}</p>
-          <ul>
-            {document.entries.map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-          </ul>
-          <p className="muted">
-            Aperçu fictif : aucun fichier médical réel n’est joint à cette
-            démonstration.
-          </p>
+          {document.entries.length > 0 && (
+            <ul>
+              {document.entries.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          )}
+          {document.file ? (
+            <a
+              className="button outline"
+              href={document.file}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Icon name="eye" />
+              Ouvrir le document
+            </a>
+          ) : (
+            <p className="muted">Aucun fichier n’est joint à ce document.</p>
+          )}
         </section>
       )}
       {share.state !== "pending" && !share.content && (

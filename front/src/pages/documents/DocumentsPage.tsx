@@ -157,7 +157,7 @@ export function DocumentsSection({
                 <strong>{document.name}</strong>
                 <small>
                   {owner} · {document.category} ·{" "}
-                  {document.example ? "Exemple" : "Fichier enregistré"}
+                  {document.example ? "Sans fichier" : "Fichier enregistré"}
                 </small>
                 {activeShares > 0 && (
                   <small>{activeShares} partage(s) actif(s)</small>
@@ -249,8 +249,9 @@ function BatchBar({
           aria-label={`Sélectionner ou désélectionner les ${visible.length} documents affichés`}
         />
         <span role="status">
-          Élément{plural} sélectionné{plural}
-          {selected.length ? ` (${selected.length})` : ""}
+          {selected.length
+            ? `${selected.length} élément${plural} sélectionné${plural}`
+            : "Tout sélectionner"}
         </span>
       </label>
       <div className="document-batch-actions doc-actions">

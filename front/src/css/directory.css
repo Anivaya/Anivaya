@@ -269,24 +269,7 @@
   color: #d6336c;
   fill: #f7a8c4;
 }
-.directory-page .intro-note,
-.directory-dialog .intro-note {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  background: #fff6e0;
-  border-radius: 10px;
-  padding: 14px 17px;
-  margin: 0 0 23px;
-  font-size: 12px;
-  line-height: 1.6;
-}
-.directory-page .intro-note svg,
-.directory-dialog .intro-note svg {
-  width: 19px;
-  height: 19px;
-  margin-top: 1px;
-}
+
 .directory-page .filters,
 .directory-dialog .filters {
   display: grid;

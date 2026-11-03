@@ -455,3 +455,29 @@
   display: grid;
   place-items: center;
 }
+/* « Signaler cette fiche » : lien discret, comme les autres actions secondaires. */
+.public-emergency .public-note .text-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--blue);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+/* Bloc de signalement en rouge, distinct des informations de la fiche. */
+.public-emergency .public-note:has(> .text-button) {
+  text-align: center;
+  padding-block: 8px;
+  background: #fdecee;
+  border: 1px solid #f3c2c8;
+}
+.public-emergency .public-note > .text-button {
+  color: #a52b38;
+}

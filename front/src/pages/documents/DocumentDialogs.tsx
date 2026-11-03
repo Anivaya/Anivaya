@@ -268,8 +268,7 @@ export function DownloadDocuments({
           <ul>
             {missing.map((d) => (
               <li key={d.id}>
-                {d.name} —{" "}
-                {d.example ? "exemple sans fichier" : "fichier à associer"}
+                {d.name} — {d.example ? "sans fichier" : "fichier à associer"}
               </li>
             ))}
           </ul>

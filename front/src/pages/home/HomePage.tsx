@@ -8,7 +8,7 @@ const HOME_SCREENS = [
   ["moments", "Les moments à partager"],
   ["fonctionnement", "Comment ça marche"],
   ["engagement", "Notre engagement"],
-  ["prochainement", "À venir"],
+  ["prochainement", "Autour de vous"],
   ["questions", "Questions fréquentes"],
   ["bienvenue", "Bienvenue"],
 ];
@@ -307,11 +307,7 @@ export default function HomePage({
           <section className="account-deleted-notice" role="status">
             <div>
               <strong>Votre compte a été supprimé.</strong>
-              <p>
-                Vos données ont été effacées et votre session est fermée. Les
-                comptes de démonstration retrouvent leur espace d’exemple à la
-                prochaine connexion.
-              </p>
+              <p>Vos données ont été effacées et votre session est fermée.</p>
             </div>
             <button
               type="button"
@@ -342,9 +338,6 @@ export default function HomePage({
                   Voir comment ça marche
                 </a>
               </div>
-              <p className="hero-demo-note">
-                Compte de démonstration disponible · Sans inscription
-              </p>
             </div>
             <div className="hero-media">
               <img
@@ -660,8 +653,8 @@ export default function HomePage({
                 <div>
                   <h3>Des informations à vérifier</h3>
                   <p>
-                    Avec le futur import IA, vous relisez et confirmez les
-                    informations extraites.
+                    Avec l’import par IA, vous relisez et confirmez les
+                    informations extraites avant de les enregistrer.
                   </p>
                 </div>
               </article>
@@ -693,11 +686,11 @@ export default function HomePage({
             <div className="wrap">
               <div className="section-intro">
                 <h2 id="future-title">
-                  Et bientôt, un peu plus de monde autour de vous.
+                  Et autour du carnet, un peu plus de monde.
                 </h2>
                 <p>
-                  Après le carnet, des services et des rencontres près de chez
-                  vous.
+                  Des services et des rencontres près de chez vous, depuis votre
+                  espace.
                 </p>
               </div>
               <div className="future-grid">
@@ -707,8 +700,8 @@ export default function HomePage({
                   </svg>
                   <h3>Trouver un professionnel</h3>
                   <p>
-                    Cliniques, éducateurs et toiletteurs : les contacts utiles à
-                    proximité.
+                    Cliniques, éducateurs et toiletteurs : choisissez un créneau
+                    et réservez en ligne.
                   </p>
                 </article>
                 <article className="future-item">
@@ -717,8 +710,8 @@ export default function HomePage({
                   </svg>
                   <h3>Préparer une garde</h3>
                   <p>
-                    Une personne de confiance et les bonnes consignes pour son
-                    séjour.
+                    Réservez une garde et partagez les bonnes consignes avec la
+                    personne qui veille sur lui.
                   </p>
                 </article>
                 <article className="future-item">
@@ -727,15 +720,11 @@ export default function HomePage({
                   </svg>
                   <h3>Faire de belles rencontres</h3>
                   <p>
-                    Des balades et des activités à partager près de chez vous.
+                    Rejoignez des communautés, des balades et des activités près
+                    de chez vous.
                   </p>
                 </article>
               </div>
-              <p className="future-note">
-                L’annuaire et les réservations sont disponibles en
-                démonstration. Les services réels et les rencontres viendront
-                ensuite.
-              </p>
             </div>
           </section>
         </div>
@@ -780,29 +769,28 @@ export default function HomePage({
                 </summary>
                 <p>
                   Vos documents sont privés et enregistrés dans votre compte.
-                  Les partages de documents sont simulés pour le moment. Seules
-                  les informations que vous sauvegardez dans une fiche d’urgence
-                  active sont consultables via son lien public.
+                  Vous choisissez qui peut les consulter, en lecture seule et
+                  jusqu’à une date. Seules les informations que vous sauvegardez
+                  dans une fiche d’urgence active sont consultables via son lien
+                  public.
                 </p>
               </details>
               <details>
                 <summary>
-                  Puis-je déjà réserver une garde ou un rendez-vous ?
+                  Puis-je réserver une garde ou un rendez-vous ?
                 </summary>
                 <p>
-                  Vous pouvez essayer le parcours dans l’annuaire : choisir un
-                  professionnel, un service et un créneau. La réservation est
-                  conservée dans votre compte, mais les professionnels et
-                  paiements restent fictifs. Aucun rendez-vous réel n’est pris.
+                  Oui : dans l’annuaire, choisissez un professionnel, un service
+                  et un créneau. La confirmation et le reçu vous sont envoyés
+                  par e-mail, et la réservation reste dans votre compte.
                 </p>
               </details>
               <details>
-                <summary>Que puis-je essayer dans la démo ?</summary>
+                <summary>Serai-je prévenu de mes rappels ?</summary>
                 <p>
-                  Vous pouvez explorer un foyer fictif, ajouter un animal ou un
-                  rappel, ouvrir les fiches et manipuler des documents de test.
-                  La connexion est réelle et les modifications sont conservées
-                  après actualisation. Aucune notification réelle n’est envoyée.
+                  Oui : selon le délai choisi sur chaque rappel, vous recevez
+                  une notification dans votre espace et un e-mail. Vous pouvez
+                  les désactiver dans vos préférences.
                 </p>
               </details>
             </div>
@@ -823,34 +811,14 @@ export default function HomePage({
             <a className="button" href="#espace">
               Essayer le carnet
             </a>
-            <small>
-              Un compte de démonstration est disponible sur la page de
-              connexion.
-            </small>
           </section>
           <footer className="footer wrap">
-            <div className="footer-brand">
-              <a href="#accueil" aria-label="Anivaya, retour à l’accueil">
-                <img
-                  src="/images/logo.png"
-                  alt="Anivaya"
-                  width="72"
-                  height="63"
-                />
-              </a>
-              <p>
-                Toute leur vie,
-                <br />à vos côtés.
-              </p>
-            </div>
-            <nav aria-label="Navigation de pied de page">
-              <a href="#contact">Contact et informations</a>
-              <a href="#accueil/quotidien">Le quotidien</a>
-              <a href="#accueil/engagement">Notre engagement</a>
-              <a href="#accueil/questions">Questions fréquentes</a>
-            </nav>
             <div className="footer-bottom">
               <span>Anivaya · Toute leur vie, à vos côtés.</span>
+              <nav aria-label="Navigation de pied de page">
+                <a href="#contact">Contact</a>
+                <a href="#informations">Informations du service</a>
+              </nav>
               <span>
                 Pour les chiens, les chats et les humains qui les aiment.
               </span>

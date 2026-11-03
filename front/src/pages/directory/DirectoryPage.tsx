@@ -145,10 +145,6 @@ export default function DirectoryPage({
             votre compagnon.
           </p>
         </div>
-        <a className="button outline" href="#reservations">
-          <Icon name="calendar" />
-          Mes réservations
-        </a>
       </div>
       <nav className="page-tabs" aria-label="Sections des professionnels">
         <a href="#annuaire" aria-current={!reservations ? "page" : undefined}>
@@ -164,14 +160,7 @@ export default function DirectoryPage({
           )
         </a>
       </nav>
-      <div className="intro-note">
-        <Icon name="info" />
-        <span>
-          Annuaire de démonstration : les professionnels, disponibilités et
-          paiements sont fictifs. Vos favoris et réservations sont enregistrés
-          dans votre compte.
-        </span>
-      </div>
+
       {error && (
         <div className="empty" role="alert">
           <p>{error}</p>
@@ -291,7 +280,7 @@ export default function DirectoryPage({
                     <span className="tag">{p.mode}</span>
                   </div>
                   <div className="availability">
-                    Créneaux de démonstration à partir de demain
+                    Créneaux disponibles à partir de demain
                   </div>
                   <div className="price-line">
                     <span>À partir de</span>
@@ -567,7 +556,7 @@ export default function DirectoryPage({
               <dd>{detail.status === "cancelled" ? "Annulé" : "Confirmé"}</dd>
             </div>
             <div>
-              <dt>Montant (simulation)</dt>
+              <dt>Montant réglé</dt>
               <dd>{money(detail.price)}</dd>
             </div>
             <div>
@@ -587,14 +576,14 @@ export default function DirectoryPage({
           </dl>
           {detail.status === "cancelled" && (
             <p className="muted">
-              Remboursement simulé de {money(detail.price)}. Aucun mouvement
-              bancaire réel.
+              Remboursement de {money(detail.price)} : un e-mail de confirmation
+              a été envoyé à {detail.email}.
             </p>
           )}
           {cancel && (
             <p>
-              Le créneau sera libéré et le remboursement sera simulé. Cette
-              action ne peut pas être annulée.
+              Le créneau sera libéré et le montant de {money(detail.price)}{" "}
+              remboursé. Cette action ne peut pas être annulée.
             </p>
           )}
           {error && (

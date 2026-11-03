@@ -16,6 +16,7 @@ import type {
   EmergencySheet,
   Notification,
   ReceivedShare,
+  ExtractedValues,
 } from "../../../../shared/models.ts";
 import type {
   AuthUser,
@@ -24,7 +25,6 @@ import type {
   DirectoryData,
   Booking,
   BookingInput,
-  DemoAccount,
   ExportCategory,
 } from "../../../../shared/account.ts";
 import type {
@@ -97,13 +97,27 @@ export const api = {
   // Compte et session
   session: (signal?: AbortSignal) =>
     request<AuthUser | null>("/auth/session", { signal }),
-  demo: () => request<DemoAccount[]>("/auth/demo"),
   login: (body: {
     email: string;
     password: string;
     remember: boolean;
     mfaCode?: string;
   }) => send<AuthUser>("/auth/login", "POST", body),
+  /** Mot de passe oublié : la réponse est la même que l’adresse existe ou non. */
+  requestPasswordReset: (email: string) =>
+    send<void>("/auth/password-reset", "POST", { email }),
+  passwordResetStatus: (token: string) =>
+    request<{ valid: boolean }>(
+      `/auth/password-reset/${encodeURIComponent(token)}`,
+    ),
+  resetPassword: (body: {
+    token: string;
+    password: string;
+    confirmPassword: string;
+  }) => send<void>("/auth/password-reset/confirm", "POST", body),
+  /** Depuis la gestion de profil : lien envoyé à l’adresse du compte connecté. */
+  requestOwnPasswordReset: () =>
+    send<void>("/account/password-reset", "POST", {}),
   register: (body: {
     name: string;
     email: string;
@@ -158,6 +172,9 @@ export const api = {
   setReminder: (id: string, done: boolean) =>
     send<Reminder>(`/reminders/${id}`, "PATCH", { done }),
   deleteReminder: (id: string) => remove(`/reminders/${id}`),
+  /** Lecture d’un document par l’IA ; rien n’est enregistré avant validation. */
+  extractDocument: (body: { type: string; content: string }) =>
+    send<ExtractedValues>("/imports/extract", "POST", body),
   addDocument: (body: DocumentInput) =>
     send<Document>("/documents", "POST", body),
   editDocument: (id: string, body: DocumentInput) =>

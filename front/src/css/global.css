@@ -349,10 +349,15 @@ dialog::backdrop {
   .page-tabs > :last-child {
     margin-right: auto;
   }
+  /* Zone tactile plus large que le mot (« Suivi »), même écart visuel entre les onglets. */
+  .page-tabs {
+    gap: 4px;
+  }
   .page-tabs > a[href],
   .page-tabs > button[role="tab"] {
     flex-shrink: 0;
     white-space: nowrap;
+    padding-inline: 8px;
   }
 }
 /* Pas de cadre coloré furtif au toucher (surbrillance native des navigateurs mobiles). */
@@ -423,6 +428,18 @@ html {
   .button:not(.social-primary) {
     font-size: 12px !important;
   }
+  /* Le contenu ne touche jamais les bords du bouton. */
+  .button:not(.social-primary, .icon-back) {
+    padding-inline: 18px !important;
+  }
+  /* « + » des boutons d’ajout : à la taille du texte, aligné sur lui. */
+  .button.with-plus {
+    gap: 6px;
+  }
+  .button.with-plus > span {
+    font-size: 19px;
+    line-height: 1;
+  }
 }
 /*
  * Mobile : les boutons des fenêtres (Annuler, Ajouter, Enregistrer…) sont centrés.
@@ -438,4 +455,83 @@ html {
   .admin-dialog .dialog-actions.dialog-actions > button:first-child {
     margin-left: 0;
   }
+}
+/*
+ * Bouton retour : sur la même ligne que le premier élément de la page, à sa gauche.
+ * Seule cette première ligne a deux colonnes ; le reste de la page garde toute la largeur.
+ */
+.record-page:has(> .back),
+.social-page:has(> .social-back),
+.admin-content:has(> .admin-back),
+.public-shell:has(> .public-back) {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 16px;
+  align-items: start;
+}
+:is(.record-page, .social-page, .admin-content, .public-shell) > * {
+  grid-column: 1 / -1;
+}
+:is(.record-page, .social-page, .admin-content, .public-shell):has(
+    > :is(.back, .social-back, .admin-back, .public-back)
+  )
+  > :is(.back, .social-back, .admin-back, .public-back) {
+  grid-column: 1;
+  margin: 0;
+}
+:is(.record-page, .social-page, .admin-content, .public-shell)
+  > :is(.back, .social-back, .admin-back, .public-back)
+  + * {
+  grid-column: 2;
+  /* Les blocs centrés (fiche d’urgence) gardent leur largeur maximale. */
+  width: 100%;
+}
+/* Texte lu par les lecteurs d’écran seulement (boutons réduits à une icône). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+/* Retour de la réinitialisation et de l’administration : même rond que les autres. */
+.auth-page .reset-back,
+.admin-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: var(--blue);
+}
+.auth-page .reset-back:hover,
+.admin-back:hover {
+  background: var(--pale);
+}
+.admin-back svg {
+  width: 20px;
+  height: 20px;
+  color: inherit;
+}
+/* Bouton retour d’une étape (fenêtres) : une flèche seule, carrée, à gauche des actions. */
+.button.icon-back {
+  flex: 0 0 44px !important;
+  width: 44px;
+  min-width: 44px;
+  padding-inline: 0 !important;
+}
+.button.icon-back svg {
+  width: 20px;
+  height: 20px;
+  color: inherit;
+}
+/* Edge ajoute son propre œil aux champs mot de passe : seul celui d’Anivaya reste. */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
 }

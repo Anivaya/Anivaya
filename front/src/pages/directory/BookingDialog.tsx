@@ -40,7 +40,6 @@ export default function BookingDialog({
     note: "",
   });
   const [step, setStep] = useState(1),
-    [payment, setPayment] = useState<"success" | "declined">("success"),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [availability, setAvailability] = useState<{
@@ -86,7 +85,7 @@ export default function BookingDialog({
             date: form.date,
             time: form.time,
           })
-        : await api.book({ ...form, professional: p.id, payment });
+        : await api.book({ ...form, professional: p.id });
       setResult(saved);
       setStep(3);
       await onSaved().catch(() =>
@@ -316,32 +315,16 @@ export default function BookingDialog({
             <strong>{money(p.services[form.service].price)}</strong>
           </div>
           {!booking && (
-            <>
-              <div className="payment-card">
-                <Icon name="card" />
-                <p>
-                  Paiement de démonstration
-                  <small>
-                    Aucune carte bancaire demandée. Aucun débit réel.
-                  </small>
-                </p>
-              </div>
-              <div className="field">
-                <label htmlFor="payment">Scénario de paiement</label>
-                <select
-                  id="payment"
-                  value={payment}
-                  disabled={busy}
-                  onChange={(e) => {
-                    setPayment(e.target.value as "success" | "declined");
-                    setError("");
-                  }}
-                >
-                  <option value="success">Paiement accepté</option>
-                  <option value="declined">Paiement refusé</option>
-                </select>
-              </div>
-            </>
+            <div className="payment-card">
+              <Icon name="card" />
+              <p>
+                Paiement à la confirmation
+                <small>
+                  Le reçu est envoyé par e-mail à{" "}
+                  {form.email || "votre adresse"}.
+                </small>
+              </p>
+            </div>
           )}
           {error && (
             <p className="error" role="alert">
@@ -350,14 +333,15 @@ export default function BookingDialog({
           )}
           <div className="dialog-actions">
             <button
-              className="button outline back"
+              className="button outline back icon-back"
               disabled={busy}
+              aria-label="Revenir au choix du créneau"
               onClick={() => {
                 setError("");
                 setStep(1);
               }}
             >
-              Retour
+              <Icon name="back" />
             </button>
             <button
               className="button"
@@ -368,7 +352,7 @@ export default function BookingDialog({
                 ? "Enregistrement…"
                 : booking
                   ? "Confirmer le déplacement"
-                  : "Confirmer et payer (simulation)"}
+                  : "Confirmer et payer"}
             </button>
           </div>
         </>
@@ -388,8 +372,9 @@ export default function BookingDialog({
             {fullDate(result.date)} à {result.time}
           </p>
           <p className="muted">
-            La réservation est enregistrée dans votre espace. Le professionnel
-            est fictif ; aucun e-mail ni paiement réel n’a été envoyé.
+            La réservation est enregistrée dans votre espace. Un e-mail de
+            confirmation et le reçu de paiement ont été envoyés à {result.email}
+            .
           </p>
           <div className="dialog-actions">
             <button className="button outline close-action" onClick={onClose}>

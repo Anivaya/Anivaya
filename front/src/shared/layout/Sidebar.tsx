@@ -11,6 +11,7 @@ const navigation = [
   ["documents", "file", "Documents"],
   ["partage", "share", "Partage"],
   ["communautes", "people", "Communautés"],
+  ["contact", "headset", "Nous contacter"],
 ];
 export const SIDEBAR_ID = "main-sidebar";
 

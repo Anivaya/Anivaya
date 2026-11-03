@@ -156,18 +156,6 @@ dialog.ai-import {
   cursor: pointer;
   color: var(--blue);
 }
-.ai-example {
-  display: flex;
-  align-items: flex-end;
-  gap: 14px;
-}
-.ai-example .field {
-  flex: 1;
-  margin: 0;
-}
-.ai-example .button {
-  flex-shrink: 0;
-}
 
 .ai-import .field {
   margin: 16px 0 0;
@@ -228,29 +216,7 @@ dialog.ai-import {
 .ai-pdf {
   height: 410px;
 }
-.ai-paper {
-  padding: 24px;
-  background: #fffcf4;
-  border: 1px solid #eadfc5;
-  border-radius: 8px;
-  line-height: 1.8;
-  font-size: 13px;
-}
-.ai-paper h3 {
-  margin-top: 6px;
-}
-.ai-paper small {
-  color: var(--muted);
-  font-size: 11px;
-  letter-spacing: 1px;
-}
-.ai-paper dt {
-  color: var(--muted);
-}
-.ai-paper dd {
-  margin: 0 0 12px;
-  overflow-wrap: anywhere;
-}
+
 .ai-fields {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -347,10 +313,7 @@ dialog.ai-import {
   .ai-pdf {
     height: 240px;
   }
-  .ai-example {
-    align-items: stretch;
-    flex-direction: column;
-  }
+
   .ai-steps {
     gap: 8px;
   }
@@ -403,19 +366,23 @@ dialog.ai-import {
   .ai-actions .button {
     flex: 1 1 100%;
   }
-  /* Boutons du titre de page (Importer avec l’IA, Ajouter…) deux par deux, même largeur. */
+  /*
+   * Boutons du titre de page (Importer avec l’IA, Ajouter…) deux par ligne : chacun prend
+   * la largeur de son contenu plus une marge, puis l’espace restant est partagé.
+   */
   .heading-actions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    justify-content: stretch;
+    display: flex;
+    flex-wrap: wrap;
     align-items: stretch;
     gap: 10px;
     margin-top: 18px;
   }
   .heading-actions .button {
+    flex: 1 1 auto;
+    width: auto;
     margin-top: 0;
     gap: 6px;
-    padding-inline: 8px;
+    padding-inline: 14px !important;
     white-space: nowrap;
   }
 }

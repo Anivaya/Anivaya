@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Database, Input } from "../database/types.ts";
 import type { Account, Authentication } from "./auth.ts";
-import { authentication, demoAccounts, DEMO_PASSWORD } from "./auth.ts";
+import { authentication } from "./auth.ts";
 import { adminService } from "./admin.ts";
 import type { AdminService } from "./admin.ts";
 import { analytics } from "./admin-analytics.ts";
@@ -12,6 +12,10 @@ import type { SocialService } from "./social.ts";
 import { directoryRepository } from "./directory.ts";
 import { profileRepository } from "./profile.ts";
 import { createRepository } from "./repository.ts";
+import { sharedAccess } from "./shared-access.ts";
+import { startReminderMail } from "./reminder-mail.ts";
+import { extractDocument } from "./ai-import.ts";
+import type { SharedAccess } from "./shared-access.ts";
 import { ApiError, text } from "./validation.ts";
 
 const MAX_BODY_BYTES = 14 * 1024 * 1024;
@@ -41,6 +45,8 @@ interface WorkspaceContext extends RequestContext {
   directory: ReturnType<typeof directoryRepository>;
   /** Communautés partagées entre comptes ; absentes sans authentification. */
   social: SocialService | null;
+  /** Documents partagés entre comptes ; absents sans authentification. */
+  access: SharedAccess | null;
 }
 type Handler<C> = (context: C) => unknown;
 interface Route<C> {
@@ -105,13 +111,6 @@ function requireAdmin(admin: AdminService | null) {
 // Routes accessibles sans session.
 const open = router<RequestContext>();
 open.get("/api/health", () => ({ status: "ok" }));
-open.get("/api/auth/demo", () =>
-  demoAccounts.map(({ name, email }) => ({
-    name,
-    email,
-    password: DEMO_PASSWORD,
-  })),
-);
 open.post("/api/auth/login", async ({ auth, request, response, body }) =>
   requireAuth(auth).login(request, response, await body()),
 );
@@ -124,6 +123,19 @@ open.post(
 open.post("/api/auth/logout", ({ auth, request, response }) => {
   requireAuth(auth).logout(request, response);
 });
+// Mot de passe oublié : envoi du lien, vérification du lien, nouveau mot de passe.
+open.post("/api/auth/password-reset", async ({ auth, request, body }) => {
+  await requireAuth(auth).requestPasswordReset(request, await body());
+});
+open.get("/api/auth/password-reset/:token", ({ auth, params }) =>
+  requireAuth(auth).passwordResetStatus(decodeURIComponent(params[0])),
+);
+open.post(
+  "/api/auth/password-reset/confirm",
+  async ({ auth, request, body }) => {
+    await requireAuth(auth).resetPassword(request, await body());
+  },
+);
 open.get("/api/auth/session", ({ auth, request }) => {
   const sessions = requireAuth(auth);
   const account = sessions.current(request);
@@ -204,6 +216,16 @@ api.delete(
     social?.removePerson(account!.id);
   },
 );
+// Depuis la gestion de profil : lien de changement de mot de passe envoyé à sa propre adresse.
+api.post("/api/account/password-reset", async ({ auth, account, request }) => {
+  const sessions = requireAuth(auth);
+  if (sessions.isDemo(account!))
+    throw new ApiError(
+      409,
+      "Le mot de passe d’un compte de démonstration ne peut pas être modifié.",
+    );
+  await sessions.requestPasswordReset(request, { email: account!.email });
+});
 api.get("/api/account/mfa", ({ auth, account }) =>
   requireAuth(auth).mfa.status(account!.id),
 );
@@ -234,6 +256,10 @@ api.post(
   async ({ admin, account, body }) =>
     requireAdmin(admin).requestDeletion(account!, await body()),
   201,
+);
+// Import assisté : lecture du document par l’API Claude ; rien n’est enregistré à ce stade.
+api.post("/api/imports/extract", async ({ body }) =>
+  extractDocument(await body()),
 );
 api.post(
   "/api/imports",
@@ -522,16 +548,35 @@ api.post("/api/associations", async ({ repository, body }) =>
 );
 api.post(
   "/api/shares",
-  async ({ repository, body }) => repository.sharing.createShares(await body()),
+  async ({ repository, access, account, body }) => {
+    const { shares, ...result } = repository.sharing.createShares(await body());
+    if (access && account) access.publish(account, shares);
+    return result;
+  },
   201,
 );
 api.delete("/api/shares/:id", ({ repository, params }) => {
   repository.sharing.revoke(params[0]);
 });
 
-api.patch("/api/received-shares/:id", async ({ repository, params, body }) =>
-  repository.receivedShares.respond(params[0], (await body()).status),
+api.patch(
+  "/api/received-shares/:id",
+  async ({ repository, access, account, params, body }) => {
+    const status = (await body()).status;
+    return access && account && access.has(account, params[0])
+      ? access.respond(account, params[0], status)
+      : repository.receivedShares.respond(params[0], status);
+  },
 );
+// Document reçu d’un autre compte, lu chez son propriétaire tant que l’accès est actif.
+api.get("/api/received-shares/:id/file", ({ access, account, params }) => {
+  if (!access || !account)
+    throw new ApiError(404, "Cette route est introuvable.");
+  const file = access.file(account, params[0]);
+  return new FileReply(file, {
+    "Content-Disposition": `inline; filename*=UTF-8''${encodeURIComponent(file.name)}`,
+  });
+});
 api.patch("/api/notifications/:id", async ({ repository, params, body }) =>
   repository.notifications.setRead(params[0], (await body()).read),
 );
@@ -544,7 +589,14 @@ api.get("/api/dashboard", async (context) => {
   // Les notifications des communautés d’exemple arrivent dès la première visite.
   if (context.social) socialUser(context);
   await repository.emergency.upgradePublicLinks();
-  return repository.dashboard();
+  const dashboard = repository.dashboard();
+  // Invitations venues d’autres comptes, puis les exemples propres à l’espace.
+  if (context.access && context.account)
+    dashboard.receivedShares = [
+      ...context.access.forRecipient(context.account),
+      ...dashboard.receivedShares,
+    ];
+  return dashboard;
 });
 api.get("/api/animals", ({ repository }) => repository.allAnimals());
 api.post(
@@ -689,7 +741,12 @@ function send(response: ServerResponse, status: number, result: unknown) {
 
 export function createApi(
   db: Database,
-  options: { authentication?: boolean; userDatabaseDirectory?: string } = {},
+  options: {
+    authentication?: boolean;
+    userDatabaseDirectory?: string;
+    /** Envoi horaire des rappels arrivés à échéance (serveur réel, pas les tests). */
+    reminders?: boolean;
+  } = {},
 ) {
   const auth =
     options.authentication === false
@@ -702,6 +759,7 @@ export function createApi(
       markRead: auth.markNotificationRead,
     });
   const admin = auth && adminService(db, auth);
+  const access = auth && sharedAccess(db, auth);
   if (auth && admin) {
     auth.hooks.security = admin.securityEvent;
     auth.hooks.login = admin.acceptInvitation;
@@ -725,6 +783,7 @@ export function createApi(
       profile: profileRepository(own),
       directory: directoryRepository(own),
       social,
+      access,
     };
   }
 
@@ -780,6 +839,11 @@ export function createApi(
       });
     }
   });
-  server.on("close", () => auth?.close());
+  const stopReminders =
+    auth && options.reminders ? startReminderMail(auth) : undefined;
+  server.on("close", () => {
+    stopReminders?.();
+    auth?.close();
+  });
   return server;
 }

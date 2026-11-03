@@ -210,7 +210,8 @@ export default function AdminWorkspace({
         <main id="admin-content" className="admin-content" tabIndex={-1}>
           {new URLSearchParams(query).get("from") === "dashboard" && (
             <a className="admin-back" href="#admin/dashboard">
-              ← Retour au tableau de bord
+              <Icon name="back" />
+              <span className="sr-only">Retour au tableau de bord</span>
             </a>
           )}
           <div className="admin-heading">

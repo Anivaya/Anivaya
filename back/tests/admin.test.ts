@@ -461,46 +461,31 @@ test("Administration : rôles, dossiers réels, publication, modération, concur
     },
   );
   await t.test(
-    "le pilotage distingue installation et maquette, filtre les cohortes et refuse le support",
+    "le pilotage mesure les foyers de l’installation, filtre les cohortes et refuse le support",
     async () => {
+      // L’ouverture de l’administration ajoute les foyers d’exemple datés.
+      await json("/admin/overview", "GET", undefined, admin.cookie);
       const actual = await json<AdminAnalytics>(
         "/admin/analytics",
         "GET",
         undefined,
         admin.cookie,
       );
-      assert.equal(actual.source, "installation");
-      // Les comptes de démonstration forment déjà des foyers mesurables.
       assert.equal(actual.available, true);
-      assert.ok(actual.channels.includes("Démonstration"));
-      assert.ok(actual.cohorts.reduce((n, c) => n + c.households, 0) >= 4);
-      const demo = await json<AdminAnalytics>(
-        "/admin/analytics?source=maquette",
-        "GET",
-        undefined,
-        admin.cookie,
-      );
-      assert.equal(demo.activation.total, 12);
-      assert.equal(demo.active.count, 8);
-      assert.equal(demo.retention.length, 3);
+      assert.ok(actual.channels.includes("Partenaire vétérinaire"));
+      assert.equal(actual.retention.length, 3);
+      assert.ok(actual.cohorts.reduce((n, c) => n + c.households, 0) >= 24);
       const filtered = await json<AdminAnalytics>(
-        "/admin/analytics?source=maquette&zone=Lyon&channel=Direct",
+        "/admin/analytics?zone=Lyon&channel=Partenaire+v%C3%A9t%C3%A9rinaire",
         "GET",
         undefined,
         admin.cookie,
       );
-      assert.equal(filtered.activation.total, 4);
       assert.equal(
         filtered.cohorts.reduce((n, c) => n + c.households, 0),
-        4,
+        2,
       );
-      await json(
-        "/admin/analytics?source=maquette",
-        "GET",
-        undefined,
-        support.cookie,
-        403,
-      );
+      await json("/admin/analytics", "GET", undefined, support.cookie, 403);
     },
   );
   await t.test(

@@ -217,6 +217,12 @@ export function sharingRepository(db: Database) {
       return transaction(db, () => {
         let created = 0,
           skipped = 0;
+        const shares: {
+          id: string;
+          doc: string;
+          email: string;
+          until: string;
+        }[] = [];
         for (const p of recipients)
           for (const doc of documents) {
             const active = db
@@ -228,9 +234,11 @@ export function sharingRepository(db: Database) {
               skipped++;
               continue;
             }
+            const id = randomUUID();
             db.prepare(
               "INSERT INTO document_shares(id,doc,person,recipient,email,until) VALUES (?,?,?,?,?,?)",
-            ).run(randomUUID(), doc, p.id, p.name, p.email, until);
+            ).run(id, doc, p.id, p.name, p.email, until);
+            shares.push({ id, doc, email: p.email, until });
             created++;
           }
         if (!created)
@@ -238,7 +246,7 @@ export function sharingRepository(db: Database) {
             400,
             "Ces personnes ont déjà un accès actif aux documents sélectionnés.",
           );
-        return { created, skipped };
+        return { created, skipped, shares };
       });
     },
     revoke(id: string) {

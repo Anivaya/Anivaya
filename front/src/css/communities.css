@@ -814,20 +814,7 @@
 #social-editor .field {
   margin-top: 18px;
 }
-.social-demo-note {
-  margin-top: 26px;
-  font-size: 11px;
-  color: var(--muted);
-  line-height: 1.8;
-}
-.social-demo-note summary {
-  cursor: pointer;
-  color: var(--blue);
-  font-weight: 700;
-}
-.social-demo-note p {
-  max-width: 700px;
-}
+
 .social-detail .button:disabled,
 .social-actions .button:disabled {
   opacity: 0.5;
@@ -835,17 +822,25 @@
 }
 /* Ajustements des listes, fiches et fenêtres Communautés. */
 /* Bouton « + » : créer une communauté, un événement ou une discussion. */
+/* Bouton de création : « + » suivi d’un libellé court, pour ne pas le confondre avec la recherche. */
 .social-toolbar > .social-primary {
   flex-shrink: 0;
-  width: 44px;
+  gap: 6px;
   height: 44px;
   min-height: 44px;
   margin: 0;
-  padding: 0;
+  padding: 0 16px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+/* Le libellé garde la taille du texte (les « + » des autres boutons sont plus grands). */
+.social-toolbar > .social-primary span {
+  font-size: inherit;
+  line-height: inherit;
 }
 .social-toolbar > .social-primary svg {
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   color: inherit;
 }
 a.community-cover,

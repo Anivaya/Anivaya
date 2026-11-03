@@ -1,18 +1,18 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
-import type { Animal, Dashboard } from "../../shared/types.ts";
+import type { Dashboard } from "../../shared/types.ts";
 import Icon from "../../shared/ui/Icon.tsx";
 import Modal from "../../shared/ui/Modal.tsx";
 import { adminApi } from "../../shared/services/admin.ts";
+import { api, readFile } from "../../shared/services/api.ts";
 import { errorMessage } from "../../shared/types.ts";
 import ImportFeedback from "./ImportFeedback.tsx";
 
 /**
- * Import assisté par IA, en démonstration : aucun fichier n’est envoyé ni analysé,
- * et rien n’est enregistré. Le parcours (document, vérification, récapitulatif)
- * sera branché sur le serveur plus tard.
+ * Import assisté par IA : le document est lu par l’API Claude, la personne vérifie
+ * chaque champ, puis le document, l’identité, l’événement et le rappel choisis sont
+ * enregistrés dans le carnet.
  */
-type Scenario = "consultation" | "identity" | "unreadable";
 interface Source {
   name: string;
   file?: File;
@@ -40,11 +40,6 @@ const TITLES = [
   "Importer un document",
   "Vérifier les informations",
   "Import terminé",
-];
-const SCENARIOS: [Scenario, string, string][] = [
-  ["consultation", "Compte rendu de consultation", "Consultation — exemple"],
-  ["identity", "Document d’identification", "Identification — exemple"],
-  ["unreadable", "Document illisible", "Document illisible — exemple"],
 ];
 const FILE_TYPES = ["application/pdf", "image/jpeg", "image/png"];
 const PNG = [137, 80, 78, 71, 13, 10, 26, 10];
@@ -87,49 +82,27 @@ async function validSignature(file: File) {
   return bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255;
 }
 
-/** Valeurs « extraites » : fictives pour un exemple, vides pour un vrai fichier. */
-function suggestions(
-  scenario: Scenario,
-  example: boolean,
-  title: string,
-  animal: Animal | undefined,
-): Values {
-  const fictional = example && scenario !== "unreadable";
-  const consultation = fictional && scenario === "consultation";
-  return {
-    title,
-    category: fictional && scenario === "identity" ? "Identité" : "Santé",
-    date: fictional ? "2026-10-12" : "",
-    name: fictional ? animal?.name || "Rio" : "",
-    species: fictional ? animal?.species || "Chien" : "Chien",
-    breed: fictional ? animal?.breed || "Croisé" : "",
-    sex: fictional ? animal?.sex || "Mâle" : "Non renseigné",
-    dob: fictional ? animal?.dob || "2024-05-16" : "",
-    identifier: fictional ? animal?.identifier || "EXEMPLE-RIO-003" : "",
-    eventType: "Consultation",
-    note: consultation
-      ? "Visite de suivi — compte rendu fictif à confirmer."
-      : "",
-    reminderName: consultation ? "Préparer le prochain rendez-vous" : "",
-    reminderDate: consultation ? "2026-11-15" : "",
-  };
-}
-
 export default function AiImport({
   data,
   animal,
   onClose,
+  onSaved,
 }: {
   data: Dashboard;
   /** Carnet d’origine : l’animal est alors imposé. */
   animal?: string;
   onClose: () => void;
+  /** Après enregistrement : recharge l’espace, ferme et confirme. */
+  onSaved: (message: string) => Promise<void>;
 }) {
   const [step, setStep] = useState(0);
   const [target, setTarget] = useState(animal ?? "");
-  const [scenario, setScenario] = useState<Scenario>("consultation");
   const [source, setSource] = useState<Source | null>(null);
   const [values, setValues] = useState<Values | null>(null);
+  /** L’IA a-t-elle trouvé des informations lisibles dans le document ? */
+  const [readable, setReadable] = useState(true);
+  /** Carnet où l’import a été enregistré (nouveau ou existant). */
+  const [savedAnimal, setSavedAnimal] = useState<string | null>(null);
   const [options, setOptions] = useState<Record<Option, boolean>>({
     identity: false,
     event: false,
@@ -198,37 +171,62 @@ export default function AiImport({
     }
   }
 
-  function useExample() {
+  async function extract() {
     if (busy) return;
-    setSource({ name: SCENARIOS.find(([key]) => key === scenario)![2] });
-    setDirty(true);
-    setError(null);
-  }
-
-  function extract() {
-    if (busy) return;
-    if (!source)
-      return fail(
-        "Choisissez un fichier ou utilisez un exemple intégré.",
-        "file",
-      );
+    if (!source?.file) return fail("Choisissez un fichier à importer.", "file");
     if (!target)
       return fail("Choisissez un animal ou créez un nouveau profil.", "target");
     setError(null);
     // Même document et même animal : on retrouve la vérification déjà commencée.
-    const key = JSON.stringify([target, source.name, !source.file, scenario]);
+    const key = JSON.stringify([target, source.name, source.file.size]);
     if (key === signature.current && values) return setStep(1);
     setBusy(true);
-    setProgress("Préparation de la vérification…");
-    timer.current = window.setTimeout(() => {
-      setBusy(false);
-      setProgress("");
+    setProgress("Lecture du document par l’IA… Cela peut prendre une minute.");
+    try {
+      const found = await api.extractDocument({
+        type: source.file.type,
+        content: await readFile(source.file),
+      });
       signature.current = key;
-      setValues(suggestions(scenario, !source.file, source.name, targetAnimal));
-      setOptions({ identity: creating, event: false, reminder: false });
+      setReadable(found.readable);
+      const pet = creating ? undefined : targetAnimal;
+      setValues({
+        title: found.title || source.name.replace(/.[a-z0-9]+$/i, ""),
+        category: found.category,
+        date: found.date,
+        name: found.name || pet?.name || "",
+        species: found.species || pet?.species || "Chien",
+        breed: found.breed,
+        sex: found.sex,
+        dob: found.dob,
+        identifier: found.identifier,
+        eventType: found.eventType,
+        note: found.note,
+        reminderName: found.reminderName,
+        reminderDate: found.reminderDate,
+      });
+      setOptions({
+        identity: creating,
+        event: Boolean(found.note && found.date),
+        reminder: Boolean(found.reminderName && found.reminderDate >= today()),
+      });
       setVerified(false);
       setStep(1);
-    }, 450);
+    } catch (failure) {
+      fail(errorMessage(failure), "file");
+      // L’échec est signalé à l’assistance pour le suivi des imports.
+      void adminApi
+        .registerImport({
+          name: source.name,
+          kind: "Fichier",
+          status: "Échoué",
+          issue: errorMessage(failure),
+        })
+        .catch(() => {});
+    } finally {
+      setBusy(false);
+      setProgress("");
+    }
   }
 
   function change(name: keyof Values, value: string) {
@@ -270,23 +268,62 @@ export default function AiImport({
   const [tracking, setTracking] = useState<{ id?: string; error?: string }>({});
   async function submit(event: FormEvent) {
     event.preventDefault();
-    const invalid = values && validate(values);
+    if (busy || !values || !source?.file) return;
+    const invalid = validate(values);
     if (invalid) return fail(...invalid);
     setError(null);
-    setDirty(false);
     setBusy(true);
+    setProgress("Enregistrement dans le carnet…");
+    const v = values;
+    // Identité : seuls les champs remplis sont envoyés, les autres restent inchangés.
+    const identity = Object.fromEntries(
+      (["name", "species", "breed", "sex", "dob", "identifier"] as const)
+        .filter((key) => v[key].trim() && v[key] !== "Non renseigné")
+        .map((key) => [key, v[key].trim()]),
+    );
     try {
-      const started = await adminApi.registerImport({
-        name: values!.title.trim(),
-        kind: source?.file ? "Fichier" : "Exemple intégré",
+      let pet = target;
+      if (creating) pet = (await api.addAnimal(identity)).id;
+      else if (options.identity) await api.editAnimal(target, identity);
+      await api.addDocument({
+        name: v.title.trim(),
+        animal: pet,
+        category: v.category,
+        type: source.file.type,
+        content: await readFile(source.file),
       });
-      setTracking({ id: started.id });
+      if (options.event)
+        await api.saveEvent(undefined, {
+          animal: pet,
+          type: v.eventType,
+          date: v.date,
+          note: v.note.trim(),
+        });
+      if (options.reminder)
+        await api.addReminder({
+          name: v.reminderName.trim(),
+          animal: pet,
+          date: v.reminderDate,
+        });
+      setSavedAnimal(pet);
+      setDirty(false);
+      try {
+        const started = await adminApi.registerImport({
+          name: v.title.trim(),
+          kind: "Fichier",
+          status: "Terminé",
+        });
+        setTracking({ id: started.id });
+      } catch (failure) {
+        setTracking({ error: errorMessage(failure) });
+      }
+      setStep(2);
     } catch (failure) {
-      setTracking({ error: errorMessage(failure) });
+      fail(errorMessage(failure));
     } finally {
       setBusy(false);
+      setProgress("");
     }
-    setStep(2);
   }
 
   function askClose() {
@@ -338,7 +375,7 @@ export default function AiImport({
     <Modal busy={false} onClose={askClose} header={false} className="ai-import">
       <div className="ai-heading">
         <div>
-          <p className="ai-eyebrow">IMPORT ASSISTÉ · DÉMONSTRATION</p>
+          <p className="ai-eyebrow">IMPORT ASSISTÉ PAR IA</p>
           <h2 id="action-title" tabIndex={-1}>
             {TITLES[step]}
           </h2>
@@ -361,11 +398,10 @@ export default function AiImport({
             les vérifier ensemble.
           </p>
           <div className="ai-notice">
-            <strong>Extraction IA simulée</strong>
+            <strong>Lecture par l’IA</strong>
             <p>
-              Aucun fichier n’est envoyé ni analysé par une IA. L’exemple
-              contient des données fictives ; avec votre fichier, les champs
-              seront à renseigner.
+              Le document est analysé par l’IA pour préremplir les champs. Rien
+              n’est enregistré avant votre vérification.
             </p>
           </div>
           <div
@@ -401,37 +437,10 @@ export default function AiImport({
               PDF, JPEG ou PNG · 10 Mo maximum · Un fichier à la fois
             </p>
             <p role="status">
-              {source
-                ? source.file
-                  ? `${source.name} · ${(source.file.size / 1048576).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} Mo`
-                  : source.name
+              {source?.file
+                ? `${source.name} · ${(source.file.size / 1048576).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} Mo`
                 : "Aucun fichier sélectionné"}
             </p>
-          </div>
-          <div className="ai-example">
-            <div className="field">
-              <label htmlFor="ai-scenario">
-                Exemple intégré pour la démonstration
-              </label>
-              <select
-                id="ai-scenario"
-                value={scenario}
-                onChange={(e) => setScenario(e.target.value as Scenario)}
-              >
-                {SCENARIOS.map(([key, label]) => (
-                  <option key={key} value={key}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button
-              type="button"
-              className="button outline"
-              onClick={useExample}
-            >
-              Utiliser cet exemple
-            </button>
           </div>
           <div className="field">
             <label htmlFor="ai-target">Associer à un animal *</label>
@@ -469,9 +478,9 @@ export default function AiImport({
               type="button"
               className="button"
               disabled={busy}
-              onClick={extract}
+              onClick={() => void extract()}
             >
-              Continuer vers la vérification
+              {busy ? "Analyse…" : "Analyser le document"}
             </button>
           </div>
         </>
@@ -487,32 +496,22 @@ export default function AiImport({
             <aside className="ai-source-panel">
               <h3>Document source</h3>
               <p className="ai-filename">{source.name}</p>
-              <SourcePreview
-                source={source}
-                scenario={scenario}
-                values={values}
-              />
+              <SourcePreview source={source} />
               <p className="ai-muted">
-                {source.file
-                  ? "Fichier local, visible uniquement dans cette fenêtre."
-                  : "Exemple intégré, sans valeur médicale."}
+                Le document sera enregistré dans le carnet après validation.
               </p>
             </aside>
             <form noValidate onSubmit={submit}>
               <div className="ai-notice">
                 <strong>
-                  {source.file
-                    ? "Saisie à compléter"
-                    : scenario === "unreadable"
-                      ? "Aucune information extraite"
-                      : "Suggestions de démonstration"}
+                  {readable
+                    ? "Informations proposées par l’IA"
+                    : "Aucune information lisible"}
                 </strong>
                 <p>
-                  {source.file
-                    ? "Votre fichier n’a pas été analysé. Renseignez uniquement les informations que vous y lisez."
-                    : scenario === "unreadable"
-                      ? "Complétez manuellement ou revenez au choix du document."
-                      : "Ces informations sont fictives. Corrigez-les avant de valider."}
+                  {readable
+                    ? "Comparez chaque champ au document et corrigez-le si besoin avant de valider."
+                    : "L’IA n’a rien pu lire de fiable. Complétez les champs vous-même ou choisissez une photo plus nette."}
                 </p>
               </div>
               <h3>Le document</h3>
@@ -604,16 +603,17 @@ export default function AiImport({
               <div className="ai-actions">
                 <button
                   type="button"
-                  className="button outline"
+                  className="button outline icon-back"
+                  aria-label="Revenir au choix du document"
                   onClick={() => {
                     setError(null);
                     setStep(0);
                   }}
                 >
-                  Retour au document
+                  <Icon name="back" />
                 </button>
-                <button type="submit" className="button">
-                  Valider et enregistrer
+                <button type="submit" className="button" disabled={busy}>
+                  {busy ? "Enregistrement…" : "Valider et enregistrer"}
                 </button>
               </div>
             </form>
@@ -629,26 +629,20 @@ export default function AiImport({
               <path d="m7 12 3 3 7-7" />
             </svg>
             <h3>
-              Import vérifié pour{" "}
+              Import enregistré pour{" "}
               {creating || options.identity ? values.name : targetAnimal?.name}
             </h3>
             <ul>
-              <li>
-                Document « {values.title.trim()} » prêt à être enregistré.
-              </li>
+              <li>Document « {values.title.trim()} » ajouté au carnet.</li>
               {options.identity && (
                 <li>
-                  {creating ? "Profil à créer" : "Identité à mettre à jour"}{" "}
-                  avec les informations validées.
+                  {creating ? "Profil créé" : "Identité mise à jour"} avec les
+                  informations validées.
                 </li>
               )}
-              {options.event && <li>Événement à ajouter au suivi.</li>}
-              {options.reminder && <li>Rappel à ajouter aux échéances.</li>}
+              {options.event && <li>Événement ajouté au suivi.</li>}
+              {options.reminder && <li>Rappel ajouté aux échéances.</li>}
             </ul>
-            <p className="ai-notice">
-              Démonstration : rien n’a encore été ajouté à votre espace.
-              L’enregistrement sera disponible avec l’import réel.
-            </p>
             {tracking.error ? (
               <p className="ai-muted" role="status">
                 Le suivi de cet import n’a pas pu être enregistré pour
@@ -663,16 +657,22 @@ export default function AiImport({
             <ImportFeedback importId={tracking.id} />
           </div>
           <div className="ai-actions">
-            {!creating && targetAnimal && (
+            {savedAnimal && (
               <a
                 className="button outline"
-                href={`#animaux/${targetAnimal.id}/documents`}
-                onClick={onClose}
+                href={`#animaux/${savedAnimal}/documents`}
+                onClick={() =>
+                  void onSaved("Import enregistré dans le carnet.")
+                }
               >
                 Voir le carnet
               </a>
             )}
-            <button type="button" className="button" onClick={onClose}>
+            <button
+              type="button"
+              className="button"
+              onClick={() => void onSaved("Import enregistré dans le carnet.")}
+            >
               Terminer
             </button>
           </div>
@@ -778,18 +778,8 @@ function OptionBlock({
   );
 }
 
-/** Aperçu du fichier choisi, ou document fictif pour un exemple intégré. */
-function SourcePreview({
-  source,
-  scenario,
-  values,
-}: {
-  source: Source;
-  scenario: Scenario;
-  values: Values;
-}) {
-  // L’aperçu fictif reste celui de l’extraction, même si les champs sont corrigés.
-  const [shown] = useState(values);
+/** Aperçu du fichier choisi, visible uniquement dans cette fenêtre. */
+function SourcePreview({ source }: { source: Source }) {
   if (source.file && source.url)
     return source.file.type.startsWith("image/") ? (
       <img
@@ -809,45 +799,5 @@ function SourcePreview({
         </a>
       </>
     );
-  if (scenario === "unreadable")
-    return (
-      <div className="ai-paper">
-        <h3>Document illisible</h3>
-        <p>Aucune information exploitable dans cet exemple.</p>
-        <p>
-          Vous pouvez changer de document ou compléter les champs vous-même.
-        </p>
-      </div>
-    );
-  return (
-    <div className="ai-paper">
-      <small>ANIVAYA · DOCUMENT FICTIF</small>
-      <h3>
-        {scenario === "identity"
-          ? "Identification de l’animal"
-          : "Compte rendu de consultation"}
-      </h3>
-      <p>
-        <strong>{shown.name}</strong>
-        <br />
-        {shown.species} · {shown.breed}
-      </p>
-      <dl>
-        <dt>Identifiant</dt>
-        <dd>{shown.identifier}</dd>
-        <dt>Date du document</dt>
-        <dd>12 octobre 2026</dd>
-      </dl>
-      {scenario === "consultation" && (
-        <p>
-          Visite de suivi à confirmer.
-          <br />
-          Prochain rendez-vous : 15 novembre 2026.
-        </p>
-      )}
-      <p className="ai-muted">
-        Exemple de démonstration, sans valeur médicale.
-      </p>
-    </div>
-  );
+  return null;
 }

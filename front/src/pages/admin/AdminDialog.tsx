@@ -336,8 +336,7 @@ export default function AdminDialog({
                 "Professionnel",
               ])}
             <p className="admin-note">
-              L’adresse sert à la connexion. Les comptes de démonstration
-              conservent leur adresse d’origine. Les droits d’administration se
+              L’adresse sert à la connexion. Les droits d’administration se
               gèrent dans Équipe.
             </p>
           </>
@@ -374,21 +373,20 @@ export default function AdminDialog({
         )}
         {action === "reset" && (
           <p className="admin-note">
-            Aucun e-mail n’est envoyé pour le moment : la demande est tracée
-            dans l’historique du compte et la personne peut utiliser « Mot de
-            passe oublié » depuis la connexion.
+            Un lien de réinitialisation, valable une heure, est envoyé à
+            l’adresse du compte. La demande est tracée dans l’historique.
           </p>
         )}
         {action === "retry" && (
           <p className="admin-note">
-            Le service d’extraction n’est pas configuré : la relance consigne
-            l’échec et son motif pour le suivi.
+            La personne reçoit un e-mail l’invitant à importer de nouveau son
+            document. L’échec et son motif restent consignés pour le suivi.
           </p>
         )}
         {action === "renew" && (
           <p className="admin-note">
-            L’invitation sera valable 14 jours de plus. Aucun e-mail n’est
-            envoyé : transmettez le lien d’inscription à la personne.
+            L’invitation sera valable 14 jours de plus et un nouvel e-mail
+            d’invitation sera envoyé.
           </p>
         )}
         {action === "cancel" && (
@@ -587,8 +585,8 @@ export default function AdminDialog({
         {action === "new" && resource === "team" && (
           <p className="admin-note">
             Si la personne possède déjà un compte, l’accès est accordé
-            immédiatement. Sinon, une invitation valable 14 jours s’applique à
-            sa première connexion ; aucun e-mail n’est envoyé.
+            immédiatement. Sinon, elle reçoit par e-mail une invitation valable
+            14 jours, appliquée à sa première connexion.
           </p>
         )}
       </div>

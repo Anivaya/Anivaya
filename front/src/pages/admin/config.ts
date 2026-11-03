@@ -213,7 +213,7 @@ function availableActions(
         ? [
             {
               id: "reset",
-              label: "Préparer une réinitialisation du mot de passe",
+              label: "Envoyer un lien de réinitialisation",
             },
           ]
         : []),

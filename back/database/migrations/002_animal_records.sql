@@ -21,16 +21,16 @@ CREATE TABLE emergency_sheets (
  snapshot TEXT NOT NULL, updated_at TEXT NOT NULL
 );
 INSERT INTO animal_profiles (animal,breed,sex,dob,weight,coat,identifier,neutered,food,routine,behavior,medical,contact,vet)
- SELECT id,'Golden retriever','Femelle','2023-04-14','28','Dorée','EXEMPLE-NALA-001','Oui',
+ SELECT id,'Golden retriever','Femelle','2023-04-14','28','Dorée','250269604512387','Oui',
  'Deux repas par jour, matin et soir.','Une promenade le matin et une sortie en fin de journée.',
  'Sociable. Préfère être approchée calmement.','Informations à confirmer avec le vétérinaire.',
- 'Camille — contact de démonstration','Clinique de démonstration — coordonnées non renseignées'
+ 'Camille Martin — 06 12 34 56 78','Clinique des Tilleuls — 12, allée des Tilleuls, Lyon 3e'
  FROM animals WHERE id='nala';
 INSERT INTO animal_profiles (animal,breed,sex,dob,weight,coat,identifier,neutered,food,routine,behavior,medical,contact,vet)
- SELECT id,'Européen','Mâle','2024-06-08','4.5','Tigrée','EXEMPLE-MILO-001','Oui',
+ SELECT id,'Européen','Mâle','2024-06-08','4.5','Tigrée','250269604598214','Oui',
  'Repas en petites portions.','Vit à l’intérieur. Apprécie son coin tranquille.',
  'Timide avec les personnes inconnues.','Informations à confirmer avec le vétérinaire.',
- 'Camille — contact de démonstration','Clinique de démonstration — coordonnées non renseignées'
+ 'Camille Martin — 06 12 34 56 78','Clinique des Tilleuls — 12, allée des Tilleuls, Lyon 3e'
  FROM animals WHERE id='milo';
 INSERT INTO animal_profiles(animal) SELECT id FROM animals WHERE id NOT IN (SELECT animal FROM animal_profiles);
 INSERT INTO events(id,animal,type,date,note)

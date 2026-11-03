@@ -485,3 +485,57 @@ dialog.sharing-modal select:focus-visible,
     margin-left: 0;
   }
 }
+/*
+ * Mobile, page Partage : icône et informations en haut ; en bas à droite, le statut puis les
+ * actions (Documents partagés, Partagé avec moi) ; en bas à gauche, les actions des personnes.
+ */
+@media (max-width: 620px) {
+  .sharing-panel .access-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    column-gap: 12px;
+    row-gap: 0;
+    align-items: start;
+  }
+  .sharing-panel .access-row > :first-child {
+    grid-column: 1;
+    grid-row: 1 / span 4;
+  }
+  .sharing-panel .access-row > .person-info {
+    display: contents;
+  }
+  .sharing-panel .access-row > .person-info > * {
+    grid-column: 2 / -1;
+  }
+  .sharing-panel
+    .access-row
+    > .person-info
+    > :is(.access-state, .received-state) {
+    grid-column: 3;
+    order: 1;
+    align-self: center;
+    justify-self: end;
+    margin-top: 10px;
+    white-space: nowrap;
+  }
+  .sharing-panel .access-row > .row-buttons {
+    grid-column: 4;
+    order: 1;
+    width: auto;
+    margin: 10px 0 0;
+    align-self: center;
+    justify-content: flex-end;
+  }
+  .sharing-panel .person-card {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    column-gap: 12px;
+    row-gap: 6px;
+    align-items: start;
+  }
+  .sharing-panel .person-card > .row-buttons {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    margin-left: -9px;
+  }
+}

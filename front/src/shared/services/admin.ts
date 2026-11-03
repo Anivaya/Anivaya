@@ -69,8 +69,12 @@ export const adminApi = {
       "/account/deletion-request",
       post({ message }),
     ),
-  registerImport: (data: { name: string; kind: string }) =>
-    request<{ id: string; status: string }>("/imports", post(data)),
+  registerImport: (data: {
+    name: string;
+    kind: string;
+    status?: "Terminé" | "Échoué";
+    issue?: string;
+  }) => request<{ id: string; status: string }>("/imports", post(data)),
   proofFileUrl: (id: string, document: string) =>
     `/api/admin/pros/${encodeURIComponent(id)}/documents/${encodeURIComponent(document)}/file`,
 };

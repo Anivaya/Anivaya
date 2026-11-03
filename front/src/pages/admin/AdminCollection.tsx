@@ -16,6 +16,23 @@ import {
   statusTone,
 } from "./config.ts";
 
+/** Titre de la deuxième colonne (et de sa ligne dans les cartes mobiles). */
+const detailLabels: Partial<Record<AdminResource, string>> = {
+  users: "Type de compte",
+  team: "Rôle",
+  pros: "Spécialité / ville",
+  tickets: "Attribution",
+  reports: "Type",
+  history: "Auteur",
+  feedback: "Utilisateur",
+  announcements: "Audience",
+  library: "Version / relecture",
+  deletions: "Adresse e-mail",
+  imports: "Compte / source",
+  security: "Nature",
+  appeals: "Référence",
+};
+
 export default function AdminCollection({
   resource,
   role,
@@ -83,6 +100,7 @@ export default function AdminCollection({
   const requestKey = `${resource}|${query}|${retry}`;
   const loading = result?.key !== requestKey;
   const data = result?.data;
+  const detailLabel = detailLabels[resource] || "Informations";
   const error = exportError || (!loading ? result?.error : "");
   useEffect(() => {
     if (search === committed || composing) return;
@@ -226,7 +244,7 @@ export default function AdminCollection({
         <section className="admin-panel">
           <div className="admin-section-title">
             <h2>Bibliothèque éditoriale</h2>
-            <a className="admin-text-button" href="#contact/ressources">
+            <a className="admin-text-button" href="#informations/ressources">
               Voir la bibliothèque publique →
             </a>
           </div>
@@ -418,25 +436,7 @@ export default function AdminCollection({
               <thead>
                 <tr>
                   {sortHeading(titleColumn, "name")}
-                  <th scope="col">
-                    {(
-                      {
-                        users: "Type de compte",
-                        team: "Rôle",
-                        pros: "Spécialité / ville",
-                        tickets: "Attribution",
-                        reports: "Type",
-                        history: "Auteur",
-                        feedback: "Utilisateur",
-                        announcements: "Audience",
-                        library: "Version / relecture",
-                        deletions: "Adresse e-mail",
-                        imports: "Compte / source",
-                        security: "Nature",
-                        appeals: "Référence",
-                      } as Partial<Record<AdminResource, string>>
-                    )[resource] || "Informations"}
-                  </th>
+                  <th scope="col">{detailLabel}</th>
                   {resource === "reports" && (
                     <>
                       <th scope="col">Auteur</th>
@@ -474,7 +474,7 @@ export default function AdminCollection({
                           <small>{row.versions?.at(-1)?.summary}</small>
                         )}
                       </td>
-                      <td>
+                      <td data-label={detailLabel}>
                         <span className="admin-cell-text">
                           {resource === "history"
                             ? row.email
@@ -527,8 +527,8 @@ export default function AdminCollection({
                       </td>
                       {resource === "reports" && (
                         <>
-                          <td>{row.email || "—"}</td>
-                          <td>
+                          <td data-label="Auteur">{row.email || "—"}</td>
+                          <td data-label="Délai">
                             <span
                               className={`admin-badge ${row.priority === "Risque grave" ? "danger" : ""}`}
                             >
@@ -544,14 +544,20 @@ export default function AdminCollection({
                           </td>
                         </>
                       )}
-                      <td>
+                      <td data-label="État">
                         <span
                           className={`admin-badge ${statusTone(row.status)}`}
                         >
                           {row.status}
                         </span>
                       </td>
-                      <td>
+                      <td
+                        data-label={
+                          resource === "library"
+                            ? "Publication"
+                            : "Dernière activité"
+                        }
+                      >
                         {resource === "library"
                           ? row.versions?.some((v) => v.status === "Publié")
                             ? `v${row.versions.find((v) => v.status === "Publié")!.number} en ligne`
@@ -601,7 +607,7 @@ export default function AdminCollection({
                   {hasFilters
                     ? "Essayez un autre terme ou retirez les filtres."
                     : resource === "imports"
-                      ? "Les imports assistés sont encore en démonstration ; aucun traitement automatique n’est connecté."
+                      ? "Les imports assistés par IA apparaîtront ici."
                       : "Les nouvelles demandes apparaîtront ici."}
                 </p>
                 {hasFilters && (

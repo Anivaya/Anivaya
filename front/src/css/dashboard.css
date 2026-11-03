@@ -17,6 +17,13 @@
   flex-direction: column;
   padding: 22px 18px;
 }
+/* Espace particulier : quand la barre défile (menu mobile), sa barre de défilement reste cachée. */
+.workspace .sidebar {
+  scrollbar-width: none;
+}
+.workspace .sidebar::-webkit-scrollbar {
+  display: none;
+}
 /* Logo avec le nom ANIVAYA en dessous, commun à l’espace particulier et à l’administration. */
 .app-brand {
   display: flex;
@@ -62,9 +69,11 @@
   color: var(--gold);
   box-shadow: 0 6px 16px #1b3b8e2e;
 }
+/* Menu du compte un peu remonté par rapport au bas de l’écran. */
 .side-bottom {
   margin-top: auto;
   padding-top: 30px;
+  padding-bottom: 18px;
 }
 .return-site {
   display: block;
@@ -1000,12 +1009,18 @@
   margin-left: 0;
 }
 .connected-help {
-  padding: 22px 34px;
-  text-align: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 24px;
+  padding: 12px 34px;
   font-size: 12px;
   color: var(--muted);
 }
 .connected-help a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
   color: var(--muted);
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -1020,20 +1035,40 @@
     min-width: 38px;
   }
   .connected-help {
-    padding: 20px;
+    padding: 12px 20px;
   }
 }
-/* Documents récents (vue d’ensemble), mobile et tablette : icône et texte côte à côte, actions sur une ligne en dessous. */
+/* Documents récents (vue d’ensemble) : sur PC, les actions restent à droite du texte. */
+@media (min-width: 1025px) {
+  .recent-documents .document-row {
+    grid-template-columns: 42px minmax(0, 1fr) auto;
+  }
+}
+/* Tablette et mobile : icône et texte côte à côte, actions en dessous, en bas à gauche. */
 @media (max-width: 1024px) {
   .recent-documents .document-row {
     grid-template-columns: 42px minmax(0, 1fr);
     row-gap: 10px;
   }
-  /* Les actions passent sous le texte, alignées sur lui. */
   .recent-documents .doc-actions {
-    grid-column: 2;
+    grid-column: 1 / -1;
     justify-self: start;
     margin-left: -6px;
+  }
+}
+/*
+ * Tablette : le bloc prend la largeur de son contenu, au plus sa largeur habituelle ; un nom ou
+ * un détail trop long se termine par « … » (texte complet dans le document).
+ */
+@media (min-width: 621px) and (max-width: 850px) {
+  .workspace:not(.section-mode) .app-right {
+    grid-template-columns: fit-content(55%) minmax(0, 1fr);
+  }
+  .recent-documents .doc-text :is(strong, small) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow-wrap: normal;
   }
 }
 /* Page Documents : sélection et actions groupées. */

@@ -140,7 +140,7 @@ export function AnimalForm({ item, ...props }: DialogProps<Partial<Animal>>) {
       description={
         editing
           ? "Modifiez les informations de son profil."
-          : "Créez un profil de démonstration. Utilisez des informations fictives."
+          : "Créez le profil de votre animal. Vous pourrez le compléter à tout moment."
       }
       successMessage={editing ? "Profil modifié." : "Animal ajouté au foyer."}
       submitLabel={editing ? "Enregistrer" : "Ajouter"}

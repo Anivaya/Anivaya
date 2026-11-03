@@ -81,8 +81,8 @@ export default function SharingPage({
         </>
       )}
       <p className="share-note">
-        Partages en lecture seule simulés, conservés dans votre espace local.
-        Aucun accès réel ni invitation n’est envoyé.
+        Les documents sont partagés en lecture seule, jusqu’à la date choisie.
+        Vous pouvez retirer un accès à tout moment.
       </p>
     </div>
   );
@@ -142,7 +142,7 @@ function SharingContent({
       <div className="share-filters">
         <input
           aria-label="Rechercher"
-          placeholder="Rechercher une personne ou un document…"
+          placeholder="Personne ou document…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -227,9 +227,11 @@ function SharingContent({
                 {s.status === "active" && (
                   <button
                     className="red"
+                    aria-label={`Révoquer le partage de ${doc.name} avec ${s.recipient}`}
+                    title="Révoquer"
                     onClick={() => actions.openDialog("revoke-share", s)}
                   >
-                    Révoquer
+                    <Icon name="close" />
                   </button>
                 )}
               </div>

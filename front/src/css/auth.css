@@ -251,21 +251,7 @@
 .auth-page .switch-page a {
   font-weight: 800;
 }
-.auth-page .demo-note {
-  background: #fff6e0;
-  border-radius: 9px;
-  padding: 12px 14px;
-  font-size: 11px;
-  line-height: 1.6;
-  margin: 22px 0 0;
-}
-.auth-page .demo-note p {
-  margin: 0;
-}
-.auth-page .demo-note .text-button {
-  margin-top: 6px;
-  font-size: 11px;
-}
+
 .auth-page .auth-footer {
   width: 88%;
   margin: 0 auto 28px;
@@ -274,8 +260,11 @@
   text-align: center;
   line-height: 1.7;
 }
-.auth-page .auth-footer a {
-  margin-left: 12px;
+.auth-page .auth-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 22px;
 }
 .auth-page .modal {
   width: min(460px, calc(100% - 30px));
@@ -422,44 +411,15 @@
 .auth-page .brand-half.cat img {
   right: 0;
 }
-.auth-page .brand-whole {
-  display: none;
-  position: absolute;
-  z-index: -1;
-  pointer-events: none;
-  user-select: none;
-  height: auto;
-  opacity: 0.075;
-}
-@media (max-width: 1023px) {
+/* Tablette et mobile : pas de logo en fond. */
+@media (max-width: 1023px), (forced-colors: active) {
   .auth-page .brand-half {
-    display: none;
-  }
-  .auth-page .brand-whole {
-    display: block;
-    top: 210px;
-    right: -65px;
-    width: min(80vw, 620px);
-  }
-}
-@media (max-width: 600px) {
-  .auth-page .brand-whole {
-    top: 235px;
-    right: -100px;
-    width: 420px;
-    max-width: 110vw;
-    opacity: 0.065;
-  }
-}
-@media (forced-colors: active) {
-  .auth-page .brand-half,
-  .auth-page .brand-whole {
     display: none;
   }
 }
 
 /* En-tête du site public, avec liens vers les sections de home.html. */
-.auth-page .header.wrap {
+:is(.auth-page, .service-public) .header.wrap {
   width: min(1240px, 88%);
   margin-inline: auto;
   min-height: 108px;
@@ -470,25 +430,25 @@
   position: relative;
   z-index: 2;
 }
-.auth-page .header .brand img {
+:is(.auth-page, .service-public) .header .brand img {
   display: block;
   width: 88px;
   height: 77px;
   object-fit: contain;
 }
-.auth-page .header nav {
+:is(.auth-page, .service-public) .header nav {
   display: flex;
   gap: 32px;
   font-size: 14px;
   font-weight: 600;
 }
-.auth-page .header nav a {
+:is(.auth-page, .service-public) .header nav a {
   color: var(--navy);
 }
-.auth-page .header nav a:hover {
+:is(.auth-page, .service-public) .header nav a:hover {
   color: var(--blue);
 }
-.auth-page .header .button {
+:is(.auth-page, .service-public) .header .button {
   min-height: 42px;
   font-size: 13px;
   padding: 11px 20px;
@@ -497,38 +457,41 @@
   border: 0;
   white-space: nowrap;
 }
-.auth-page .header .mobile-menu {
+:is(.auth-page, .service-public) .header .mobile-menu {
   display: none;
 }
 @media (max-width: 1050px) {
-  .auth-page .header nav {
+  :is(.auth-page, .service-public) .header nav {
     gap: 20px;
     font-size: 13px;
   }
 }
 @media (max-width: 950px) {
-  .auth-page .header.wrap {
+  :is(.auth-page, .service-public) .header.wrap {
     min-height: 94px;
     gap: 10px;
   }
-  .auth-page .header .brand img {
+  :is(.auth-page, .service-public) .header .brand img {
     width: 60px;
     height: 53px;
   }
-  .auth-page .header > nav {
-    display: none;
-  }
-  .auth-page .header .button {
+  :is(.auth-page, .service-public) .header .button {
     margin-left: auto;
     font-size: 11px;
     min-height: 40px;
     padding: 10px;
   }
-  .auth-page .header .mobile-menu {
+}
+/* Tablette : les liens restent dans l’en-tête ; le menu ne sert que sur mobile. */
+@media (max-width: 620px) {
+  :is(.auth-page, .service-public) .header > nav {
+    display: none;
+  }
+  :is(.auth-page, .service-public) .header .mobile-menu {
     display: block;
     position: relative;
   }
-  .auth-page .header .mobile-menu summary {
+  :is(.auth-page, .service-public) .header .mobile-menu summary {
     cursor: pointer;
     list-style: none;
     display: flex;
@@ -541,10 +504,13 @@
     font-weight: 600;
     min-height: 40px;
   }
-  .auth-page .header .mobile-menu summary::-webkit-details-marker {
+  :is(.auth-page, .service-public)
+    .header
+    .mobile-menu
+    summary::-webkit-details-marker {
     display: none;
   }
-  .auth-page .header .mobile-menu nav {
+  :is(.auth-page, .service-public) .header .mobile-menu nav {
     position: absolute;
     right: 0;
     top: 49px;
@@ -560,42 +526,99 @@
     flex-direction: column;
     gap: 0;
   }
-  .auth-page .header .mobile-menu nav a {
+  :is(.auth-page, .service-public) .header .mobile-menu nav a {
     padding: 12px;
     font-size: 13px;
   }
 }
-.auth-page .header summary:focus-visible {
+:is(.auth-page, .service-public) .header summary:focus-visible {
   outline: 3px solid var(--gold);
   outline-offset: 3px;
 }
-/* Réinitialisation du mot de passe */
-.auth-page .reset-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  color: var(--blue);
-  font-size: 13px;
-  margin-bottom: 26px;
-}
-.auth-page .reset-back svg {
-  width: 20px;
-  height: 20px;
-  color: inherit;
-}
-.auth-page .reset-demo-states {
-  margin-top: 24px;
-  font-size: 12px;
-  color: var(--muted);
-}
-.auth-page .reset-demo-states summary {
-  cursor: pointer;
-}
-.auth-page .reset-demo-states div {
+/* Mot de passe oublié : retour en haut à gauche du formulaire, au-dessus du titre. */
+.auth-page .auth-card > .reset-back {
   display: flex;
-  gap: 22px;
-  padding: 12px 0;
+  margin: -14px 0 12px -12px;
 }
+/* Les titres reçoivent le focus par programme (annonce de l’étape) : pas de cadre. */
+.auth-page [tabindex="-1"]:focus {
+  outline: none;
+}
+
+/* Pages de compte sur mobile : le menu suffit, sans bouton de connexion ; liens du pied de page en colonne. */
+@media (max-width: 620px) {
+  .auth-page .auth-footer {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+  }
+  :is(.auth-page, .service-public) .header .auth-entry {
+    display: none;
+  }
+  :is(.auth-page, .service-public) .header .mobile-menu {
+    margin-left: auto;
+  }
+}
+
+/*
+ * PC : la page est une grille (en-tête, formulaire et logo superposés, pied de page).
+ * Le pied de page passe ainsi toujours sous le logo.
+ */
+@media (min-width: 1024px) {
+  .auth-page .auth-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .auth-page .auth-shell > .header {
+    grid-row: 1;
+  }
+  .auth-page .brand-half,
+  .auth-page .auth-layout {
+    grid-row: 2;
+    grid-column: 1;
+  }
+  .auth-page .auth-footer {
+    grid-row: 3;
+    align-self: start;
+  }
+  /*
+   * Le centre de la tête (sans les oreilles) suit le centre du formulaire : la tête va de
+   * 160 à 1000 px sur 1039 dans l’image, son centre est donc 58,5 px plus bas que celui de l’image.
+   */
+  .auth-page .brand-half {
+    position: relative;
+    top: calc(var(--art-width) * -58.5 / 1513);
+    align-self: center;
+  }
+  .auth-page .auth-layout {
+    align-self: center;
+    margin-block: 24px;
+  }
+  .auth-page .brand-half.dog {
+    right: auto;
+    justify-self: end;
+    margin-right: calc(50% + 242.5px - 1px);
+  }
+  .auth-page .brand-half.cat {
+    left: auto;
+    justify-self: start;
+    margin-left: calc(50% + 242.5px - 1px);
+  }
+  /* Connexion : l’ensemble suit l’en-tête, le pied de page vient juste après. */
+  .auth-aligned .auth-shell {
+    grid-template-rows: auto auto 1fr;
+  }
+  /* Mot de passe oublié : l’ensemble est centré dans la page, avec un logo plus petit. */
+  .auth-centered .auth-shell {
+    --art-width: min(50vw, 660px);
+    grid-template-rows: auto 1fr auto;
+  }
+  .auth-centered .auth-footer {
+    margin-top: 24px;
+  }
+}
+
 /* Connexion : ouverture du logo, puis retournement du formulaire vers l’inscription. */
 @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
   .auth-page .auth-layout {
@@ -638,5 +661,15 @@
   }
   100% {
     opacity: 1;
+  }
+}
+/* En-tête : liens au milieu de l’espace entre le logo et le bouton de connexion (PC et tablette). */
+@media (min-width: 621px) {
+  :is(.auth-page, .service-public) .header > nav {
+    flex: 1;
+    justify-content: center;
+  }
+  :is(.auth-page, .service-public) .header .button {
+    margin-left: 0;
   }
 }

@@ -12,6 +12,7 @@ import { DatabaseSync } from "node:sqlite";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Database, Input } from "../database/types.ts";
 import type { AuthUser } from "../../shared/account.ts";
+import { passwordProblem } from "../../shared/account.ts";
 import type { AdminRole } from "../../shared/admin.ts";
 import {
   openDatabase,
@@ -22,9 +23,12 @@ import { profileRepository } from "./profile.ts";
 import { mfaService } from "./mfa.ts";
 import type { SocialNotice } from "./social.ts";
 import { ApiError, text, emailAddress } from "./validation.ts";
+import { appUrl, excludeFromMail, sendMail } from "./mail.ts";
 
 const scrypt = promisify(derive);
 const SESSION_COOKIE = "anivaya_session";
+/** Durée de validité d’un lien de réinitialisation du mot de passe. */
+const RESET_MS = 60 * 60 * 1000;
 const digest = (value: string) =>
   createHash("sha256").update(value).digest("hex");
 export type Authentication = ReturnType<typeof authentication>;
@@ -74,7 +78,10 @@ function passwordValue(value: unknown) {
 export function authentication(db: Database, directory?: string) {
   db.exec(`CREATE TABLE IF NOT EXISTS accounts(id TEXT PRIMARY KEY,email TEXT NOT NULL UNIQUE,password TEXT NOT NULL,workspace TEXT NOT NULL UNIQUE);
  CREATE TABLE IF NOT EXISTS sessions(token TEXT PRIMARY KEY,account TEXT NOT NULL REFERENCES accounts(id),expires INTEGER NOT NULL);
- CREATE TABLE IF NOT EXISTS public_sheets(token TEXT PRIMARY KEY,account TEXT NOT NULL REFERENCES accounts(id),animal TEXT NOT NULL,UNIQUE(account,animal));`);
+ CREATE TABLE IF NOT EXISTS public_sheets(token TEXT PRIMARY KEY,account TEXT NOT NULL REFERENCES accounts(id),animal TEXT NOT NULL,UNIQUE(account,animal));
+ CREATE TABLE IF NOT EXISTS password_resets(token TEXT PRIMARY KEY,account TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,expires INTEGER NOT NULL);`);
+  // Les adresses des comptes de démonstration ne nous appartiennent pas : aucun e-mail.
+  excludeFromMail(demoAccounts.map((demo) => demo.email));
   // Équipe, suspensions, dossiers d’administration et MFA : après la table des comptes.
   db.exec(centralMigration("008_admin.sql"));
   db.exec(centralMigration("009_admin_extensions.sql"));
@@ -310,6 +317,38 @@ export function authentication(db: Database, directory?: string) {
       `${SESSION_COOKIE}=; HttpOnly; SameSite=Strict; Path=/api; Max-Age=0`,
     );
   }
+  /** Crée un lien de réinitialisation (une heure, usage unique) et l’envoie au titulaire. */
+  async function sendPasswordReset(account: Account) {
+    const now = Date.now();
+    db.prepare("DELETE FROM password_resets WHERE expires<?").run(now);
+    // Une demande par minute et par compte suffit.
+    const recent = db
+      .prepare(
+        "SELECT token FROM password_resets WHERE account=? AND expires>?",
+      )
+      .get(account.id, now + RESET_MS - 60_000);
+    if (recent) return;
+    const token = randomBytes(32).toString("base64url");
+    db.prepare("DELETE FROM password_resets WHERE account=?").run(account.id);
+    db.prepare("INSERT INTO password_resets VALUES (?,?,?)").run(
+      digest(token),
+      account.id,
+      now + RESET_MS,
+    );
+    await sendMail({
+      to: account.email,
+      subject: "Réinitialiser votre mot de passe Anivaya",
+      text: [
+        "Bonjour,",
+        "Une réinitialisation du mot de passe de votre compte Anivaya a été demandée. Ce lien est valable une heure et ne fonctionne qu’une seule fois.",
+        "Si vous n’êtes pas à l’origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.",
+      ].join("\n\n"),
+      action: {
+        label: "Choisir un nouveau mot de passe",
+        url: `${appUrl()}/#mot-de-passe/${token}`,
+      },
+    });
+  }
   function rate(req: IncomingMessage) {
     const key = req.socket.remoteAddress || "local",
       now = Date.now();
@@ -386,14 +425,70 @@ export function authentication(db: Database, directory?: string) {
       session(req, res, account, data.remember === true);
       return user(account);
     },
+    /**
+     * Mot de passe oublié : si l’adresse correspond à un compte, un lien valable une heure
+     * et utilisable une fois lui est envoyé. La réponse est la même dans tous les cas.
+     */
+    async requestPasswordReset(req: IncomingMessage, data: Input) {
+      await ready;
+      rate(req);
+      const email = emailAddress(data.email);
+      const account = db
+        .prepare("SELECT * FROM accounts WHERE email=?")
+        .get<Account>(email);
+      if (!account || isDemo(account)) return;
+      await sendPasswordReset(account);
+    },
+    /** Lien de réinitialisation envoyé à l’adresse du compte (aussi depuis l’administration). */
+    sendPasswordReset,
+    /** Le lien de réinitialisation est-il encore utilisable ? */
+    passwordResetStatus(token: string) {
+      const row = db
+        .prepare("SELECT expires FROM password_resets WHERE token=?")
+        .get<{ expires: number }>(digest(token));
+      return { valid: !!row && row.expires > Date.now() };
+    },
+    /** Nouveau mot de passe depuis le lien reçu : les sessions ouvertes sont fermées. */
+    async resetPassword(req: IncomingMessage, data: Input) {
+      await ready;
+      rate(req);
+      const raw = typeof data.token === "string" ? data.token : "";
+      const row = db
+        .prepare("SELECT account,expires FROM password_resets WHERE token=?")
+        .get<{ account: string; expires: number }>(digest(raw));
+      if (!row || row.expires <= Date.now())
+        throw new ApiError(
+          400,
+          "Ce lien a expiré ou a déjà servi. Demandez un nouveau lien.",
+          "token",
+        );
+      const password = passwordValue(data.password);
+      const problem = passwordProblem(password);
+      if (problem) throw new ApiError(400, problem, "password");
+      if (data.confirmPassword !== password)
+        throw new ApiError(
+          400,
+          "Les mots de passe ne correspondent pas.",
+          "confirmPassword",
+        );
+      const encoded = await hash(password);
+      db.prepare("UPDATE accounts SET password=? WHERE id=?").run(
+        encoded,
+        row.account,
+      );
+      db.prepare("DELETE FROM password_resets WHERE account=?").run(
+        row.account,
+      );
+      db.prepare("DELETE FROM sessions WHERE account=?").run(row.account);
+    },
     async register(req: IncomingMessage, res: ServerResponse, data: Input) {
       await ready;
       rate(req);
       const email = emailAddress(data.email),
         name = text(data.name, "name", 120),
         password = passwordValue(data.password);
-      if (password.length < 12)
-        throw new ApiError(400, "Utilisez au moins 12 caractères.", "password");
+      const problem = passwordProblem(password);
+      if (problem) throw new ApiError(400, problem, "password");
       if (data.confirmPassword !== password)
         throw new ApiError(
           400,
@@ -488,18 +583,19 @@ export function authentication(db: Database, directory?: string) {
       );
       return p;
     },
-    /** Dépose ou met à jour une notification « Communautés » dans l’espace d’un compte. */
-    notify(person: string, notice: SocialNotice) {
+    /** Dépose ou met à jour une notification (Communautés par défaut) dans l’espace d’un compte. */
+    notify(person: string, notice: SocialNotice, category = "social") {
       const account = db
         .prepare("SELECT * FROM accounts WHERE id=?")
         .get<Account>(person);
       if (!account) return;
       workspace(account)
         .prepare(
-          "INSERT INTO notifications(id,category,title,text,href,action,created_at,read) VALUES (?,'social',?,?,?,?,?,0) ON CONFLICT(id) DO UPDATE SET title=excluded.title,text=excluded.text,href=excluded.href,action=excluded.action,created_at=excluded.created_at,read=0",
+          "INSERT INTO notifications(id,category,title,text,href,action,created_at,read) VALUES (?,?,?,?,?,?,?,0) ON CONFLICT(id) DO UPDATE SET title=excluded.title,text=excluded.text,href=excluded.href,action=excluded.action,created_at=excluded.created_at,read=0",
         )
         .run(
           notice.id,
+          category,
           notice.title,
           notice.text,
           notice.href,

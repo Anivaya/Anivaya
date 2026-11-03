@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
-import type { AuthUser, DemoAccount } from "../../../../shared/account.ts";
+import type { AuthUser } from "../../../../shared/account.ts";
+import { PASSWORD_RULE, passwordProblem } from "../../../../shared/account.ts";
 import { errorMessage, errorField } from "../../shared/types.ts";
 import type { FormError } from "../../shared/types.ts";
 import { api } from "../../shared/services/api.ts";
@@ -21,6 +22,37 @@ export default function AuthPage({
   }, [mfaRequired]);
   const previousMode = useRef(register);
   const card = useRef<HTMLElement>(null);
+  // Changement d’onglet : le logo glisse verticalement jusqu’au centre du nouveau formulaire.
+  const logoTop = useRef<number | null>(null);
+  useLayoutEffect(() => {
+    const halves = [
+      ...(card.current
+        ?.closest(".auth-shell")
+        ?.querySelectorAll<HTMLElement>(".brand-half") ?? []),
+    ];
+    const previous = logoTop.current;
+    const top = halves[0]?.offsetTop ?? null;
+    logoTop.current = top;
+    if (
+      previous === null ||
+      top === null ||
+      previous === top ||
+      !matchMedia(
+        "(min-width:1024px) and (prefers-reduced-motion:no-preference)",
+      ).matches
+    )
+      return;
+    const animations = halves.map((half) =>
+      half.animate(
+        [
+          { transform: `translateY(${previous - top}px)` },
+          { transform: "translateY(0)" },
+        ],
+        { duration: 700, easing: "cubic-bezier(.4,0,.2,1)" },
+      ),
+    );
+    return () => animations.forEach((animation) => animation.cancel());
+  }, [register]);
   const [opening] = useState(!requestedRegister);
   const switching = register !== requestedRegister;
   useLayoutEffect(() => {
@@ -80,24 +112,18 @@ export default function AuthPage({
     }),
     [visible, setVisible] = useState(false),
     [busy, setBusy] = useState(false),
-    [error, setError] = useState<FormError | null>(null),
-    [demoAccounts, setDemoAccounts] = useState<DemoAccount[]>([]);
-  useEffect(() => {
-    let active = true;
-    api
-      .demo()
-      .then((accounts) => {
-        if (active) setDemoAccounts(accounts);
-      })
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, []);
+    [error, setError] = useState<FormError | null>(null);
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (busy || switching) return;
     setError(null);
+    // La règle du mot de passe est vérifiée avant l’envoi (et de nouveau par l’API).
+    const problem = register ? passwordProblem(form.password) : null;
+    if (problem) {
+      setError({ message: problem, field: "password" });
+      document.getElementById("auth-password")?.focus();
+      return;
+    }
     setBusy(true);
     try {
       const user = register
@@ -123,7 +149,7 @@ export default function AuthPage({
     confirmPassword: "Confirmer le mot de passe",
   };
   return (
-    <AuthLayout cardRef={card} opening={opening} switching={switching}>
+    <AuthLayout cardRef={card} opening={opening} switching={switching} aligned>
       <nav className="auth-tabs" aria-label="Accéder à mon espace">
         <a
           href="#connexion"
@@ -197,12 +223,12 @@ export default function AuthPage({
                     }
                     aria-pressed={visible}
                   >
-                    <Icon name="eye" />
+                    <Icon name={visible ? "eye-off" : "eye"} />
                   </button>
                 )}
               </div>
               {register && name === "password" && (
-                <p className="field-help">Au moins 12 caractères.</p>
+                <p className="field-help">{PASSWORD_RULE}</p>
               )}
             </div>
           );
@@ -257,75 +283,39 @@ export default function AuthPage({
           {register ? "Se connecter" : "Créer mon compte"}
         </a>
       </p>
-      {demoAccounts.length > 0 && (
-        <section
-          className="demo-accounts"
-          aria-labelledby="demo-accounts-title"
-        >
-          <h2 id="demo-accounts-title">Comptes de démonstration</h2>
-          <p>
-            Choisissez un compte pour explorer les fonctionnalités. Chacun
-            dispose de son propre espace d’exemple.
-          </p>
-          <ul>
-            {demoAccounts.map((account, index) => (
-              <li className="demo-account" key={account.email}>
-                <div>
-                  <strong>
-                    Compte {index + 1} · {account.name}
-                  </strong>
-                  <span>
-                    Identifiant : <b>{account.email}</b>
-                  </span>
-                  <span>
-                    Mot de passe : <code>{account.password}</code>
-                  </span>
-                </div>
-                <button
-                  className="text-button"
-                  type="button"
-                  aria-label={`Utiliser le compte ${account.name}`}
-                  onClick={() => {
-                    setError(null);
-                    setForm({
-                      name: account.name,
-                      email: account.email,
-                      password: account.password,
-                      confirmPassword: account.password,
-                    });
-                    if (register) window.location.hash = "connexion";
-                    else document.getElementById("auth-email")?.focus();
-                  }}
-                >
-                  Utiliser ce compte
-                </button>
-              </li>
-            ))}
-          </ul>
-          <p className="demo-disclaimer">
-            Leurs données sont fictives. Votre compte personnel possède son
-            propre espace.
-          </p>
-        </section>
-      )}
     </AuthLayout>
   );
 }
 
-/** Mise en page des pages de compte : en-tête public, logo en deux moitiés et carte centrale. */
+/**
+ * Mise en page des pages de compte : en-tête public, logo en deux moitiés et carte centrale.
+ * Le logo est centré sur le formulaire ; `aligned` (connexion) le garde sous l’en-tête,
+ * sinon (mot de passe oublié) l’ensemble est centré dans la page avec un logo plus petit.
+ */
 export function AuthLayout({
   children,
   cardRef,
   opening = false,
   switching = false,
+  aligned = false,
+  menuLogin = false,
 }: {
   children: ReactNode;
   cardRef?: React.RefObject<HTMLElement | null>;
   opening?: boolean;
   switching?: boolean;
+  aligned?: boolean;
+  /** Ajoute « Se connecter » au menu mobile (mot de passe oublié). */
+  menuLogin?: boolean;
 }) {
   return (
-    <div className={`auth-page${opening ? " auth-opening" : ""}`}>
+    <div
+      className={
+        "auth-page" +
+        (opening ? " auth-opening" : "") +
+        (aligned ? " auth-aligned" : " auth-centered")
+      }
+    >
       <a
         className="skip"
         href="#auth-content"
@@ -337,19 +327,13 @@ export function AuthLayout({
         Aller au formulaire
       </a>
       <div className="auth-shell">
-        <PublicHeader />
+        <PublicHeader account menuLogin={menuLogin} />
         <div className="brand-half dog" aria-hidden="true">
           <img src="/images/maquettes/91243d045c59766a.png" alt="" />
         </div>
         <div className="brand-half cat" aria-hidden="true">
           <img src="/images/maquettes/91243d045c59766a.png" alt="" />
         </div>
-        <img
-          className="brand-whole"
-          src="/images/maquettes/91243d045c59766a.png"
-          alt=""
-          aria-hidden="true"
-        />
         <main className="auth-layout" id="auth-content" tabIndex={-1}>
           <section
             className="auth-card"
@@ -361,9 +345,9 @@ export function AuthLayout({
           </section>
         </main>
         <footer className="auth-footer">
-          Anivaya · Votre espace personnel.
           <a href="#accueil">Retour à l’accueil</a>
-          <a href="#contact">Contact et informations</a>
+          <a href="#contact">Contact</a>
+          <a href="#informations">Informations du service</a>
         </footer>
       </div>
     </div>

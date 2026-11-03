@@ -65,14 +65,19 @@ export function AnimalsSection({
   const scrollable = animals.length > (overview ? OVERVIEW_SIZE : PAGE_SIZE);
   return (
     <section aria-labelledby="animals-title">
-      <div className="section-head">
-        <h2 id="animals-title">Mes animaux</h2>
-        {overview && (
+      {/* Sur la page Mes animaux, le titre de la page suffit : celui-ci reste pour les lecteurs d’écran. */}
+      {overview ? (
+        <div className="section-head">
+          <h2 id="animals-title">Mes animaux</h2>
           <a className="subtle" href="#animaux">
             Voir mes animaux →
           </a>
-        )}
-      </div>
+        </div>
+      ) : (
+        <h2 id="animals-title" className="sr-only">
+          Mes animaux
+        </h2>
+      )}
       {!animals.length ? (
         <div className="empty">
           <p>Votre foyer n’a pas encore d’animal.</p>

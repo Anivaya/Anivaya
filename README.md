@@ -17,15 +17,31 @@ La commande démarre React sur http://127.0.0.1:5173 et l’API sur http://127.0
 
 ## Comptes
 
-Ouvrez [la connexion](http://127.0.0.1:5173/#connexion). Trois comptes de démonstration y sont listés : **test@gmail.com**, **test2@gmail.com** et **test3@gmail.com**, tous avec le mot de passe **Anivaya2026!** ; « Utiliser ce compte » remplit les champs. Chacun a son propre espace d’exemple. Supprimer un compte de démonstration recrée son espace d’exemple au lieu de le faire disparaître.
+Comptes de démonstration (aucun n’est présélectionné sur la page de connexion) :
+
+| Identifiant | Mot de passe | Espace |
+|---|---|---|
+| test@gmail.com | Anivaya2026! | Particulier, foyer de Camille avec Nala et Milo |
+| test2@gmail.com | Anivaya2026! | Particulier |
+| test3@gmail.com | Anivaya2026! | Particulier |
+| admin@anivaya.fr | Anivaya2026! | Administrateur |
+
+Chacun a son propre espace d’exemple. Aucun e-mail n’est jamais envoyé à ces adresses, qui ne nous appartiennent pas ; leur mot de passe ne peut pas être modifié. Supprimer un compte de démonstration recrée son espace d’exemple au lieu de le faire disparaître.
 
 L’administration ajoute une seule fois, à la première ouverture d’une page admin, 24 foyers d’exemple (`sample-01` à `sample-24`, adresses en `@foyers.example`, défini dans `back/api/admin-samples.ts`). Inscrits sur les onze derniers mois dans cinq villes et quatre origines, avec des animaux, des rappels et une activité datée, ils alimentent Utilisateurs et le Pilotage. Ils n’ont aucun mot de passe utilisable. Le même jeu ajoute des dossiers à tous les états dans chaque rubrique : signalements, recours, demandes, imports, retours, annonces, guides, suppressions, alertes de sécurité, équipe et historique.
 
-L’inscription crée un vrai compte avec un espace vide. Le mot de passe doit comporter 12 à 256 caractères ; il est haché avec scrypt et un sel aléatoire. La session est stockée côté serveur ; le navigateur reçoit un cookie HttpOnly et SameSite=Strict, valable au maximum 24 heures sans option de mémorisation.
+L’inscription crée un vrai compte avec un espace vide. Le mot de passe doit comporter 8 à 256 caractères, dont une majuscule, une minuscule et un caractère spécial ; il est haché avec scrypt et un sel aléatoire. La session est stockée côté serveur ; le navigateur reçoit un cookie HttpOnly et SameSite=Strict, valable au maximum 24 heures sans option de mémorisation.
 
 Chaque compte, y compris les comptes de démonstration, dispose d’une base dans `back/database/data/accounts/`. La base principale conserve les comptes, les sessions, les jetons des fiches publiques et les communautés, partagées entre comptes. L’ancien espace de démonstration, stocké dans la base principale, est copié une seule fois dans `accounts/demo.sqlite` au démarrage. L’API choisit la base depuis la session, jamais depuis un identifiant de compte envoyé par le client. Les bases et les fichiers importés qu’elles contiennent sont exclus de Git.
 
-La récupération de mot de passe par e-mail n’est pas configurée : le parcours de réinitialisation est simulé et ne modifie aucun mot de passe. Le formulaire de contact n’envoie ni ne conserve les messages. Les notifications, les invitations de partage et les paiements ne sont pas envoyés à un service externe. Les professionnels et leurs disponibilités sont fictifs ; les réservations sont enregistrées pour tester les parcours, sans engager un prestataire ni débiter une carte.
+## E-mails et import par IA
+
+Copiez `.env.example` en `.env` à la racine (jamais commité) :
+
+- **E-mails** (`SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `MAIL_FROM`, `APP_URL`) : mot de passe oublié (lien valable une heure, à usage unique), invitations de l’équipe, partages de documents, confirmations, déplacements et annulations de réservation avec reçu, accusé de réception et réponses du support, décisions de modération, rappels selon le délai choisi (vérifiés toutes les heures, si « Rappels » est activé dans les préférences). Sans `SMTP_HOST`, chaque e-mail est déposé dans `back/database/data/outbox/` pour être consulté. Aucun e-mail n’est envoyé aux adresses des comptes de démonstration ni aux domaines réservés (`.example`, `.test`).
+- **Import par IA** (`ANTHROPIC_API_KEY`) : le document (photo ou PDF) est lu par l’API Claude (`claude-opus-5-5`, repli automatique en cas de refus) ; les champs proposés sont vérifiés par la personne, puis le document, l’identité, l’événement et le rappel choisis sont enregistrés dans le carnet. Sans clé, l’import affiche un message de configuration.
+
+Le paiement des réservations reste simulé (aucun débit) ; la confirmation et le reçu sont envoyés par e-mail.
 
 ## Structure et ordre de lecture
 
@@ -38,14 +54,14 @@ front-back/
 │       ├── App.tsx                # Session, routes, espace connecté et choix des fenêtres
 │       ├── pages/
 │       │   ├── home/              # Accueil public
-│       │   ├── auth/              # Connexion, inscription et réinitialisation simulée du mot de passe
+│       │   ├── auth/              # Connexion, inscription et réinitialisation du mot de passe par e-mail
 │       │   ├── profile/           # Profil, photo et préférences
 │       │   ├── directory/         # Annuaire, réservations et parcours de réservation
 │       │   ├── dashboard/         # Vue d’ensemble et panneaux
 │       │   ├── animals/           # AnimalsPage, AnimalDialogs, carnet, fiche d’urgence et fiche publique
 │       │   ├── reminders/         # RemindersPage et ReminderDialogs
 │       │   ├── documents/         # DocumentsPage et DocumentDialogs
-│       │   ├── sharing/           # SharingPage et SharingDialogs (contacts, associations, partages simulés)
+│       │   ├── sharing/           # SharingPage et SharingDialogs (contacts, associations, partages entre comptes)
 │       │   ├── notifications/     # Centre de notifications (filtres, lu / non lu)
 │       │   └── contact/           # Contact et informations, publique ou dans l’espace
 │       ├── shared/
@@ -101,18 +117,18 @@ Côté API, chaque route est une ligne de `back/api/app.ts`, par exemple `api.pa
 - Partage avec moi : invitations reçues d’autres propriétaires (exemples sur les comptes de démonstration), acceptation ou refus, consultation en lecture seule des accès actifs, recherche et filtre par statut.
 - Communautés : communautés, événements et messagerie partagés entre tous les comptes (exemples communs aux comptes de démonstration, avec Claire et Samir, membres fictifs). Rejoindre ou quitter, créer et gérer ses communautés et événements, places limitées, discussions de groupe, messages privés et groupes privés, photos jointes (1 Mo), « Envoyé » / « Lu », amis, blocage et signalement. Chaque nouveau message ou demande d’ami crée une notification chez le destinataire.
 - Documents : téléchargement direct, et sur la page Documents sélection multiple pour partager, télécharger (archive ZIP) ou supprimer plusieurs documents.
-- Notifications : cloche avec le nombre de non lues dans la barre du haut, filtres Toutes / Non lues et par catégorie, lu / non lu, tout marquer comme lu. Enregistrées par compte, sans envoi externe.
-- Contact et informations : formulaire simulé, présentation du service et données, accessible sans compte ou depuis l’espace.
-- Annuaire : six professionnels fictifs, filtres et favoris privés. Réservation en trois étapes, créneaux, paiement accepté/refusé simulé, déplacement et annulation persistants.
+- Notifications : cloche avec le nombre de non lues dans la barre du haut, filtres Toutes / Non lues et par catégorie, lu / non lu, tout marquer comme lu. Rappels, partages et réservations sont aussi envoyés par e-mail selon les préférences.
+- Contact et informations : formulaire transmis au support (accusé de réception par e-mail), présentation du service et données, accessible sans compte ou depuis l’espace.
+- Annuaire : six professionnels, filtres et favoris privés. Réservation en trois étapes, créneaux, paiement simulé, déplacement et annulation persistants, confirmations et reçus par e-mail.
 - Ajout, modification et suppression d’un animal ; photo JPEG/PNG jusqu’à 2 Mo.
 - Carnet en sept onglets : vue d’ensemble, identité, suivi, documents, rappels, habitudes et personnes de confiance.
 - Événements et rappels : ajout, modification, suppression, statut, fréquence, délai, recherche et filtres.
 - Documents PDF/JPEG/PNG jusqu’à 10 Mo : import, aperçu, téléchargement, remplacement et suppression.
 - Fiche d’urgence : choix des informations visibles, aperçu, sauvegarde, QR agrandi, téléchargé ou imprimé. Le QR ouvre la fiche publique avec seulement les informations sélectionnées.
-- Contacts communs aux carnets, associations à plusieurs animaux et partages simulés avec date de fin et révocation. Aucun e-mail ni accès documentaire externe n’est créé.
+- Contacts communs aux carnets, associations à plusieurs animaux et partages réels entre comptes : invitation par e-mail, document consultable en lecture seule dans « Partage avec moi » jusqu’à la date de fin, révocation immédiate.
 - États de chargement, erreurs de validation, reprise après erreur et dialogues accessibles au clavier.
 
-Les données initiales sont fictives : Camille, Nala et Milo. Les documents initiaux sont des exemples sans fichier. Les fichiers importés sont conservés dans SQLite. Les réservations d’exemple sont ajoutées une seule fois au compte de démonstration, sans remplacer les réservations créées ensuite.
+Les comptes de démonstration contiennent des exemples : Camille, Nala et Milo. Les documents initiaux n’ont pas de fichier. Les fichiers importés sont conservés dans SQLite. Les réservations d’exemple sont ajoutées une seule fois au compte de démonstration, sans remplacer les réservations créées ensuite.
 
 ## Fiche publique et configuration
 
