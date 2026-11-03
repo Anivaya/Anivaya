@@ -19,6 +19,10 @@ import "./css/ai-import.css";
 import "./css/admin.css";
 import App from "./App.tsx";
 
+// Un rafraîchissement rouvre la page tout en haut au lieu de reprendre l’ancienne position.
+// Les discussions (messagerie, communautés, événements) se placent elles-mêmes sur leurs messages.
+if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <App />

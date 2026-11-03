@@ -562,13 +562,7 @@
   padding: 15px 0;
   border-bottom: 0;
 }
-.record-page .switch-row input {
-  width: 19px;
-  height: 19px;
-  accent-color: var(--blue);
-  cursor: pointer;
-  flex-shrink: 0;
-}
+
 .record-page .switch-row label {
   font-size: 13px;
   line-height: 1.6;
@@ -581,9 +575,7 @@
   color: var(--muted);
   font-weight: 400;
 }
-.record-page .switch-row input:disabled {
-  cursor: default;
-}
+
 .record-page .qr-panel {
   text-align: center;
 }
@@ -1310,8 +1302,28 @@ dialog:has(.record-form-grid) {
   .record-page .panel-head > :is(a, button) {
     white-space: nowrap;
   }
+  /* Boutons d’un en-tête de section (Associer, Ajouter une personne) centrés sous le titre. */
+  .record-page .panel-head > .row-buttons {
+    width: 100%;
+    justify-content: center;
+  }
   .record-page .done-check {
     width: 24px;
     height: 24px;
+  }
+}
+/* Boutons d’action de la fiche : centrés sur tablette, deux par deux sur mobile. */
+@media (max-width: 1024px) {
+  .record-page .pet-header > .actions {
+    justify-content: center;
+  }
+}
+@media (max-width: 620px) {
+  .record-page .pet-header > .actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .record-page .pet-header > .actions .button {
+    width: 100%;
   }
 }

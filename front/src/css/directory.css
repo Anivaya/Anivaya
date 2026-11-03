@@ -1040,7 +1040,7 @@
   }
   .directory-page .welcome > .button,
   .directory-dialog .welcome > .button {
-    max-width: 170px;
+    white-space: nowrap;
   }
 }
 @media (max-width: 760px) {

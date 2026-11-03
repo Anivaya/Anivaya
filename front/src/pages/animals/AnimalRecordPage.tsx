@@ -244,13 +244,14 @@ export default function AnimalRecordPage({
               {pet.breed || "Race non renseignée"} ·{" "}
               {pet.sex || "Sexe non renseigné"} · {age(pet.dob)}
             </p>
-            <span className="badge">Dossier privé</span>
             {(!pet.breed || !pet.dob || !pet.identifier) && (
               <p className="muted">
                 Profil incomplet : complétez les informations avec « Modifier le
                 profil ».
               </p>
             )}
+            {/* Le statut vient en dernier, après l’éventuel message de profil incomplet. */}
+            <span className="badge">Dossier privé</span>
           </div>
           <div className="actions">
             <a className="button" href={link("urgence")}>

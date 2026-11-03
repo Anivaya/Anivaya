@@ -84,14 +84,13 @@ export function AnimalDetails({
       ) : (
         <>
           {title(pet.name)}
-          <div className="detail-meta">
-            <div>
-              <small>Race</small>
-              <strong>{pet.breed || pet.description}</strong>
-            </div>
+          {/* Un seul bloc : l’identifiant en haut, la race en dessous. */}
+          <div className="detail-meta single">
             <div>
               <small>Identifiant</small>
               <strong>{pet.identifier || "Non renseigné"}</strong>
+              <small>Race</small>
+              <strong>{pet.breed || pet.description}</strong>
             </div>
           </div>
         </>

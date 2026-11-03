@@ -557,6 +557,15 @@ a.admin-stat:hover {
 .admin-dialog-actions .danger:not(.danger ~ .danger) {
   margin-left: auto;
 }
+/* Mobile : actions du dossier centrées, suppression comprise. */
+@media (max-width: 620px) {
+  .admin-dialog-actions {
+    justify-content: center;
+  }
+  .admin-dialog-actions .danger:not(.danger ~ .danger) {
+    margin-left: 0;
+  }
+}
 .admin-form-fields {
   display: grid;
   gap: 16px;
