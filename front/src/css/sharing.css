@@ -499,7 +499,7 @@ dialog.sharing-modal select:focus-visible,
   }
   .sharing-panel .access-row > :first-child {
     grid-column: 1;
-    grid-row: 1 / span 4;
+    grid-row: 1 / span 5;
   }
   .sharing-panel .access-row > .person-info {
     display: contents;
@@ -535,7 +535,72 @@ dialog.sharing-modal select:focus-visible,
   }
   .sharing-panel .person-card > .row-buttons {
     grid-column: 1 / -1;
-    justify-content: flex-start;
-    margin-left: -9px;
+    justify-content: flex-end;
+    margin-right: -9px;
+  }
+  .sharing-heading .row-buttons > .button:not(.outline) {
+    order: -1;
+  }
+}
+/*
+ * Partagé avec moi : icône, informations, puis statut et action.
+ * PC et tablette : statut à côté de l’action, au centre à droite de la carte.
+ * Mobile : statut en bas à gauche, action en bas à droite.
+ */
+.sharing-panel .received-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  column-gap: 14px;
+  row-gap: 0;
+  align-items: start;
+}
+.sharing-panel .received-row > :first-child {
+  grid-column: 1;
+  grid-row: 1 / span 5;
+}
+.sharing-panel .received-row > .person-info {
+  display: contents;
+}
+.sharing-panel .received-row > .person-info > .received-state,
+.sharing-panel .received-row > .row-buttons button {
+  white-space: nowrap;
+}
+.sharing-panel .received-row > .row-buttons {
+  width: auto;
+  justify-content: flex-end;
+}
+@media (min-width: 621px) {
+  .sharing-panel .received-row > .person-info > * {
+    grid-column: 2;
+  }
+  .sharing-panel .received-row > .person-info > .received-state {
+    grid-column: 3;
+    grid-row: 1 / span 5;
+    align-self: center;
+    margin: 0;
+  }
+  .sharing-panel .received-row > .row-buttons {
+    grid-column: 4;
+    grid-row: 1 / span 5;
+    align-self: center;
+    margin: 0;
+  }
+}
+@media (max-width: 620px) {
+  .sharing-panel .received-row > .person-info > * {
+    grid-column: 2 / -1;
+  }
+  .sharing-panel .received-row > .person-info > .received-state {
+    grid-column: 1 / 3;
+    order: 1;
+    justify-self: start;
+    align-self: center;
+    margin-top: 10px;
+  }
+  .sharing-panel .received-row > .row-buttons {
+    grid-column: 4;
+    order: 1;
+    align-self: center;
+    margin: 10px 0 0;
   }
 }

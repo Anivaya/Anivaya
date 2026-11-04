@@ -1347,3 +1347,11 @@ dialog:has(.record-form-grid) {
     width: 100%;
   }
 }
+/* Fermeture « X » : même fond blanc que dans le reste du site. */
+.record-page .close {
+  background: white;
+  border: 1px solid var(--border);
+}
+.record-page .close:hover {
+  background: var(--pale);
+}

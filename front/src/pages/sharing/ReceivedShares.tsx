@@ -112,11 +112,11 @@ export default function ReceivedShares({
             <p>
               De {share.sender} · {share.email}
             </p>
+            <p>{share.permission}</p>
             <p>
               {share.kind === "animal"
                 ? "Informations de l’animal sélectionnées par son propriétaire"
-                : "Un document uniquement"}{" "}
-              · {share.permission}
+                : "Un document uniquement"}
             </p>
             <p>Jusqu’au {fullDate(share.until)}</p>
             <span className={`received-state ${share.state}`}>
@@ -266,7 +266,7 @@ function ReceivedDetail({
           )}
           <div className="dialog-actions">
             <button
-              className="button outline"
+              className="button outline cancel"
               disabled={busy}
               onClick={() => setDeclining(true)}
             >

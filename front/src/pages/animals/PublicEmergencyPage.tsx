@@ -76,7 +76,7 @@ function ReportForm({ token }: { token: string }) {
       <div className="dialog-actions">
         <button
           type="button"
-          className="button outline"
+          className="button outline cancel"
           disabled={busy}
           onClick={() => setOpen(false)}
         >

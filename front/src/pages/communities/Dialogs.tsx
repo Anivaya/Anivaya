@@ -65,7 +65,11 @@ export default function SocialDialogView({
         <>
           <p className="social-copy">{dialog.text}</p>
           <div className="dialog-actions">
-            <button type="button" className="button outline" onClick={onClose}>
+            <button
+              type="button"
+              className="button outline cancel"
+              onClick={onClose}
+            >
               Annuler
             </button>
             <button
@@ -310,7 +314,7 @@ function CommunityEditor({
         votre adresse personnelle.
       </p>
       <div className="dialog-actions">
-        <button type="button" className="button outline" onClick={close}>
+        <button type="button" className="button outline cancel" onClick={close}>
           Annuler
         </button>
         <button className="button" type="submit">
@@ -415,7 +419,7 @@ function EventEditor({
         votre adresse personnelle.
       </p>
       <div className="dialog-actions">
-        <button type="button" className="button outline" onClick={close}>
+        <button type="button" className="button outline cancel" onClick={close}>
           Annuler
         </button>
         <button className="button" type="submit">
@@ -895,7 +899,7 @@ function NewThread({
         </p>
       )}
       <div className="dialog-actions">
-        <button type="button" className="button outline" onClick={close}>
+        <button type="button" className="button outline cancel" onClick={close}>
           Annuler
         </button>
         <button className="button" type="submit">
@@ -947,7 +951,7 @@ function Report({
         notification n’est envoyée à la personne concernée.
       </p>
       <div className="dialog-actions">
-        <button type="button" className="button outline" onClick={close}>
+        <button type="button" className="button outline cancel" onClick={close}>
           Annuler
         </button>
         <button className="button" type="submit">

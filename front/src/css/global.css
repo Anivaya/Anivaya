@@ -163,16 +163,17 @@ dialog::backdrop {
   font-size: 11px;
   letter-spacing: 1.5px;
 }
+/* Bouton de fermeture « X » : fond blanc et bord fin, bleu clair seulement au survol. */
 .close {
-  background: var(--pale);
-  border: 0;
+  background: white;
+  border: 1px solid var(--border);
   border-radius: 50%;
   width: 36px;
   height: 36px;
   font-size: 25px;
 }
 .close:hover {
-  background: var(--border);
+  background: var(--pale);
 }
 .demo-row {
   display: flex;
@@ -365,10 +366,10 @@ html {
   -webkit-tap-highlight-color: transparent;
 }
 /*
- * Cases à cocher de choix (exportation, confirmation de suppression, visibilité de la fiche
- * d’urgence) : la case se remplit de bleu et la coche apparaît en rebondissant.
+ * Toutes les cases à cocher du site, même modèle : la case se remplit de bleu et la coche
+ * apparaît en rebondissant (les interrupteurs des préférences ont leur propre forme).
  */
-:is(.export-choice, .delete-consent, .switch-row) input[type="checkbox"] {
+input[type="checkbox"]:not(.notification-row input) {
   appearance: none;
   width: 22px;
   height: 22px;
@@ -380,33 +381,36 @@ html {
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
   cursor: pointer;
   transition:
-    background-color 0.18s ease,
-    border-color 0.18s ease,
-    background-size 0.24s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color 0.5s ease,
+    border-color 0.5s ease,
+    background-size 0.55s cubic-bezier(0.34, 1.56, 0.64, 1),
     transform 0.1s ease;
 }
-:is(.export-choice, .delete-consent, .switch-row)
-  input[type="checkbox"]:checked {
+input[type="checkbox"]:not(.notification-row input):checked {
   background-color: var(--blue);
   border-color: var(--blue);
   background-size: 16px;
 }
-:is(.export-choice, .delete-consent, .switch-row)
-  input[type="checkbox"]:active:not(:disabled) {
+/* Sélection partielle (« Tout sélectionner » quand une partie est cochée) : un trait blanc. */
+input[type="checkbox"]:not(.notification-row input):indeterminate {
+  background-color: var(--blue);
+  border-color: var(--blue);
+  background-size: 14px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.4' stroke-linecap='round'%3E%3Cpath d='M6 12h12'/%3E%3C/svg%3E");
+}
+input[type="checkbox"]:not(.notification-row input):active:not(:disabled) {
   transform: scale(0.88);
 }
-:is(.export-choice, .delete-consent, .switch-row)
-  input[type="checkbox"]:disabled {
+input[type="checkbox"]:not(.notification-row input):disabled {
   opacity: 0.5;
   cursor: default;
 }
-:is(.export-choice, .delete-consent, .switch-row)
-  input[type="checkbox"]:focus-visible {
+input[type="checkbox"]:not(.notification-row input):focus-visible {
   outline: 3px solid var(--gold);
   outline-offset: 2px;
 }
 @media (prefers-reduced-motion: reduce) {
-  :is(.export-choice, .delete-consent, .switch-row) input[type="checkbox"] {
+  input[type="checkbox"]:not(.notification-row input) {
     transition: none;
   }
 }
@@ -534,4 +538,78 @@ html {
 input::-ms-reveal,
 input::-ms-clear {
   display: none;
+}
+/*
+ * Cases à cocher et interrupteurs : effet de 0,6 s à l’activation (la case grossit puis se pose)
+ * et à la désactivation (elle se resserre puis reprend sa taille), sans halo autour.
+ */
+input[type="checkbox"].bool-on,
+input[type="checkbox"].bool-on + .switch-track {
+  animation: bool-on 0.6s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+input[type="checkbox"].bool-off,
+input[type="checkbox"].bool-off + .switch-track {
+  animation: bool-off 0.6s ease;
+}
+@keyframes bool-on {
+  0% {
+    transform: scale(0.85);
+  }
+  45% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes bool-off {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(0.88);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  input[type="checkbox"]:is(.bool-on, .bool-off),
+  input[type="checkbox"]:is(.bool-on, .bool-off) + .switch-track {
+    animation: none;
+  }
+}
+/*
+ * Fenêtres et formulaires avec « Annuler » : le bouton qui confirme en haut, « Annuler » en
+ * rouge juste en dessous, tous deux sur toute la largeur (sélecteurs doublés pour l’emporter
+ * sur les dispositions propres à chaque page).
+ */
+.dialog-actions.dialog-actions:has(> .cancel),
+.ai-actions.ai-actions:has(> .cancel) {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 10px;
+}
+.dialog-actions.dialog-actions:has(> .cancel) > *,
+.ai-actions.ai-actions:has(> .cancel) > * {
+  width: 100% !important;
+  margin: 0 !important;
+  justify-content: center;
+}
+.dialog-actions.dialog-actions > .cancel,
+.ai-actions.ai-actions > .cancel {
+  order: 1;
+}
+.button.outline.cancel {
+  color: #a52b38 !important;
+  border-color: #e9b7bd !important;
+  background: white !important;
+}
+.button.outline.cancel:hover:not(:disabled) {
+  color: #a52b38 !important;
+  border-color: #a52b38 !important;
+  background: #fdecee !important;
+  box-shadow: none;
 }

@@ -59,3 +59,16 @@ export function useDialogAction(setBusy: DialogControls["setBusy"]) {
   }
   return { error, run };
 }
+
+/** Vrai tant que la requête média correspond (suit les changements de taille d’écran). */
+export function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(() => matchMedia(query).matches);
+  useEffect(() => {
+    const media = matchMedia(query);
+    const update = () => setMatches(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, [query]);
+  return matches;
+}

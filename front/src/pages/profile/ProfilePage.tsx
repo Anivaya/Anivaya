@@ -416,17 +416,19 @@ export default function ProfilePage({
                 ? "Modifications non enregistrées"
                 : "Vos paramètres sont à jour"}
             </span>
-            <button
-              type="button"
-              className="button outline"
-              disabled={busy}
-              onClick={reset}
-            >
-              Annuler les modifications
-            </button>
-            <button className="button" disabled={busy}>
-              {busy ? "Enregistrement…" : "Enregistrer les modifications"}
-            </button>
+            <div className="save-buttons">
+              <button
+                type="button"
+                className="button outline"
+                disabled={busy}
+                onClick={reset}
+              >
+                Annuler les modifications
+              </button>
+              <button className="button" disabled={busy}>
+                {busy ? "Enregistrement…" : "Enregistrer les modifications"}
+              </button>
+            </div>
           </div>
         </fieldset>
       </form>

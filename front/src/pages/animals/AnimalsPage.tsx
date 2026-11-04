@@ -5,6 +5,7 @@ import { AiImportButton } from "../documents/AiImport.tsx";
 import Icon from "../../shared/ui/Icon.tsx";
 import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
+import { useMediaQuery } from "../../shared/hooks.ts";
 
 const OVERVIEW_SIZE = 2;
 const PAGE_SIZE = 6;
@@ -62,7 +63,10 @@ export function AnimalsSection({
   onOpen: (animal: Animal) => void;
   onAdd: () => void;
 }) {
-  const scrollable = animals.length > (overview ? OVERVIEW_SIZE : PAGE_SIZE);
+  // Sur mobile, la vue d’ensemble montre une seule fiche à la fois.
+  const mobile = useMediaQuery("(max-width: 620px)");
+  const perView = overview ? (mobile ? 1 : OVERVIEW_SIZE) : 1;
+  const scrollable = animals.length > (overview ? perView : PAGE_SIZE);
   return (
     <section aria-labelledby="animals-title">
       {/* Sur la page Mes animaux, le titre de la page suffit : celui-ci reste pour les lecteurs d’écran. */}
@@ -86,7 +90,12 @@ export function AnimalsSection({
           </button>
         </div>
       ) : scrollable ? (
-        <AnimalCarousel animals={animals} overview={overview} onOpen={onOpen} />
+        <AnimalCarousel
+          animals={animals}
+          overview={overview}
+          perView={perView}
+          onOpen={onOpen}
+        />
       ) : (
         <AnimalGrid animals={animals} overview={overview} onOpen={onOpen} />
       )}
@@ -129,10 +138,13 @@ function AnimalGrid({
 function AnimalCarousel({
   animals,
   overview,
+  perView,
   onOpen,
 }: {
   animals: Animal[];
   overview?: boolean;
+  /** Fiches visibles en même temps (vue d’ensemble) ; une page de six sinon. */
+  perView: number;
   onOpen: (animal: Animal) => void;
 }) {
   const [position, setPosition] = useState(0);
@@ -147,7 +159,6 @@ function AnimalCarousel({
     const timer = setTimeout(() => setSlide(null), SLIDE_TIMEOUT_MS);
     return () => clearTimeout(timer);
   }, [slide]);
-  const perView = overview ? OVERVIEW_SIZE : 1;
   const units = overview
     ? animals.length
     : Math.ceil(animals.length / PAGE_SIZE);

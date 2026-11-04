@@ -87,7 +87,7 @@ export default function SubmissionForm({
         <FormAlert message={error?.message} />
         <div className="dialog-actions">
           <button
-            className="button outline"
+            className="button outline cancel"
             type="button"
             disabled={busy}
             onClick={onClose}

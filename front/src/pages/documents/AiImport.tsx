@@ -471,7 +471,11 @@ export default function AiImport({
             {progress}
           </p>
           <div className="ai-actions">
-            <button type="button" className="button outline" onClick={askClose}>
+            <button
+              type="button"
+              className="button outline cancel"
+              onClick={askClose}
+            >
               Annuler
             </button>
             <button

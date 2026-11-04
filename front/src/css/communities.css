@@ -1628,3 +1628,69 @@ a.event-date:focus-visible {
     flex-wrap: wrap;
   }
 }
+/* Retour dans le bloc de détail, en haut à gauche, avant la première ligne. */
+.detail-heading > .social-back {
+  flex-shrink: 0;
+  margin: 0;
+}
+.detail-heading > .social-back + div {
+  flex: 1;
+  min-width: 0;
+}
+.community-presentation .detail-heading {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+.community-presentation .detail-heading > .social-back {
+  grid-column: 1;
+  grid-row: 1;
+}
+.community-presentation .detail-heading > .social-kicker {
+  grid-column: 2;
+}
+.community-presentation .detail-heading > .social-actions {
+  grid-column: 3;
+}
+/*
+ * Événement, comme une communauté : retour, statut et actions sur la première ligne ;
+ * le titre en dessous, aligné à gauche sur toute la largeur du bloc.
+ */
+.social-detail:not(.community-presentation)
+  .detail-heading:has(> .social-back) {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px 14px;
+}
+.social-detail:not(.community-presentation)
+  .detail-heading:has(> .social-back)
+  > div {
+  display: contents;
+}
+.social-detail:not(.community-presentation)
+  .detail-heading:has(> .social-back)
+  .social-kicker {
+  grid-column: 2;
+  grid-row: 1;
+}
+.social-detail:not(.community-presentation)
+  .detail-heading:has(> .social-back)
+  h2 {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  margin: 0 0 8px;
+}
+.social-detail:not(.community-presentation)
+  .detail-heading:has(> .social-back)
+  > .social-actions {
+  grid-column: 3;
+  grid-row: 1;
+  justify-self: end;
+}
+/* Fermeture « X » : même fond blanc que dans le reste du site. */
+.social-modal .close {
+  background: white;
+  border: 1px solid var(--border);
+}
+.social-modal .close:hover {
+  background: var(--pale);
+}

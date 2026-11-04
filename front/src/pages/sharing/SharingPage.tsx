@@ -311,11 +311,13 @@ export function PeopleList({
         <div className="row-buttons">
           {!animal && (
             <button
+              aria-label={`Associer ${person.name} à des animaux`}
+              title="Associer aux animaux"
               onClick={() =>
                 actions.openDialog("associate-people", { person: person.id })
               }
             >
-              Associer
+              <Icon name="paw" />
             </button>
           )}
           <button

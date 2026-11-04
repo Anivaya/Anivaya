@@ -89,7 +89,7 @@ export function DocumentForm({
       description={
         editing
           ? "Modifiez son nom ou l’animal auquel il est associé."
-          : "Le fichier sera enregistré dans votre base locale. Utilisez un fichier de test."
+          : "Le fichier est enregistré dans votre espace privé."
       }
       successMessage={editing ? "Document modifié." : "Document enregistré."}
       submitLabel={editing ? "Enregistrer" : "Ajouter"}
@@ -197,7 +197,11 @@ export function DeleteDocument({
       </p>
       <FormAlert message={error} />
       <div className="dialog-actions">
-        <button className="button outline" onClick={onClose} disabled={busy}>
+        <button
+          className="button outline cancel"
+          onClick={onClose}
+          disabled={busy}
+        >
           Annuler
         </button>
         <button
@@ -331,7 +335,11 @@ export function DeleteDocuments({
       </p>
       <FormAlert message={error} />
       <div className="dialog-actions">
-        <button className="button outline" onClick={onClose} disabled={busy}>
+        <button
+          className="button outline cancel"
+          onClick={onClose}
+          disabled={busy}
+        >
           Annuler
         </button>
         <button

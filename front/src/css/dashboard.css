@@ -69,11 +69,28 @@
   color: var(--gold);
   box-shadow: 0 6px 16px #1b3b8e2e;
 }
-/* Menu du compte un peu remonté par rapport au bas de l’écran. */
 .side-bottom {
   margin-top: auto;
   padding-top: 30px;
-  padding-bottom: 18px;
+}
+/*
+ * PC : trois blocs. Le logo en haut et le profil en bas gardent leur taille ; seuls les liens
+ * défilent (sans barre visible) si l’écran est trop bas, pour que le profil reste toujours visible.
+ */
+@media (min-width: 1025px) {
+  .workspace .sidebar > .app-brand,
+  .workspace .sidebar > .side-bottom {
+    flex-shrink: 0;
+  }
+  .workspace .sidebar > .side-nav {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .workspace .sidebar > .side-nav::-webkit-scrollbar {
+    display: none;
+  }
 }
 .return-site {
   display: block;
@@ -1124,7 +1141,7 @@
   cursor: not-allowed;
 }
 .document-row.selectable {
-  grid-template-columns: 18px 42px minmax(0, 1fr) auto;
+  grid-template-columns: 22px 42px minmax(0, 1fr) auto;
 }
 /* La case reste cliquable au-dessus de la zone qui ouvre le document. */
 .document-select {
@@ -1156,7 +1173,7 @@
 }
 @media (max-width: 1100px) and (min-width: 851px), (max-width: 420px) {
   .document-row.selectable {
-    grid-template-columns: 18px 42px minmax(0, 1fr);
+    grid-template-columns: 22px 42px minmax(0, 1fr);
   }
   .document-row.selectable .doc-actions {
     grid-column: 3;
@@ -1196,5 +1213,14 @@
   .document-select {
     width: 24px;
     height: 24px;
+  }
+}
+/* Mobile, page Mes animaux : une seule fiche par ligne, photo un peu plus haute. */
+@media (max-width: 620px) {
+  .section-mode .animal-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .section-mode .animal-grid .pet-picture {
+    height: 190px;
   }
 }

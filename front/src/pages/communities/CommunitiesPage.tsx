@@ -178,8 +178,8 @@ const filters: Record<SocialTab, [string, string][]> = {
     ["mine", "Mes communautés"],
   ],
   evenements: [
-    ["", "À venir"],
     ["mine", "Mes participations"],
+    ["", "À venir"],
     ["past", "Passés"],
     ["cancelled", "Annulés"],
   ],
@@ -214,7 +214,8 @@ function SocialList({
 }) {
   const { data } = ctx;
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("");
+  // Événements : « Mes participations » d’abord ; les autres onglets montrent tout.
+  const [filter, setFilter] = useState(tab === "evenements" ? "mine" : "");
   const [limit, setLimit] = useState(PAGE_SIZE);
   const communities = data.communities.filter(
     (g) =>

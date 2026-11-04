@@ -30,9 +30,9 @@ export function CommunityDetail({
   );
   return (
     <>
-      <BackLink tab="communautes" />
       <section className="social-detail community-presentation">
         <div className="detail-heading">
+          <BackLink tab="communautes" />
           <span className="social-kicker">
             {group.city} · {group.topic}
           </span>
@@ -188,9 +188,9 @@ export function EventDetail({ ctx, id }: { ctx: SocialContext; id: string }) {
   const community = data.communities.find((g) => g.id === event.community);
   return (
     <>
-      <BackLink tab="evenements" />
       <section className="social-detail">
         <div className="detail-heading">
+          <BackLink tab="evenements" />
           <div>
             <span
               className={`social-kicker ${event.cancelled ? "danger" : ""}`}

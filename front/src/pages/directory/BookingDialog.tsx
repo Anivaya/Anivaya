@@ -269,7 +269,7 @@ export default function BookingDialog({
           <div className="dialog-actions">
             <button
               type="button"
-              className="button outline back"
+              className="button outline back cancel"
               onClick={onClose}
             >
               Annuler

@@ -281,7 +281,11 @@ export function RecordAction({ kind, item, ...props }: DialogProps) {
         </p>
         <FormAlert message={error} />
         <div className="dialog-actions">
-          <button className="button outline" disabled={busy} onClick={onClose}>
+          <button
+            className="button outline cancel"
+            disabled={busy}
+            onClick={onClose}
+          >
             Annuler
           </button>
           <button

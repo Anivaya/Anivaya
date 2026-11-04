@@ -480,4 +480,8 @@
 }
 .public-emergency .public-note > .text-button {
   color: #a52b38;
+  text-decoration: none;
+}
+.public-emergency .public-note > .text-button:hover {
+  text-decoration: underline;
 }

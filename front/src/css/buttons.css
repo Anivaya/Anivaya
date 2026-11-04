@@ -1,0 +1,181 @@
+/* Boutons communs à tout le site, chargés en dernier pour l’emporter sur chaque page. */
+
+/*
+ * Tous les boutons de fermeture « X » (fenêtres, import, administration, recherche) : même
+ * pastille rouge clair, croix rouge ; au survol le rouge se renforce, à l’appui elle se resserre.
+ * Feuille chargée en dernier et sélecteurs doublés : la règle l’emporte sur chaque page.
+ */
+:is(.close, .admin-close, .social-icon.close-icon):is(button, a) {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  padding: 0;
+  border: 1px solid #f3c2c8 !important;
+  border-radius: 50% !important;
+  background: #fdecee !important;
+  color: #a52b38 !important;
+  box-shadow: none;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease;
+}
+:is(.close, .admin-close, .social-icon.close-icon):is(button, a) svg {
+  width: 18px;
+  height: 18px;
+  color: inherit !important;
+  stroke: currentColor;
+}
+:is(.close, .admin-close, .social-icon.close-icon):is(button, a):hover:not(
+    :disabled
+  ) {
+  background: #f9d3d9 !important;
+  border-color: #a52b38 !important;
+}
+:is(.close, .admin-close, .social-icon.close-icon):is(button, a):active:not(
+    :disabled
+  ) {
+  transform: scale(0.9);
+}
+:is(.close, .admin-close, .social-icon.close-icon):is(button, a):focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.close, .admin-close, .social-icon.close-icon):is(button, a) {
+    transition: none;
+  }
+}
+
+/*
+ * Groupes de boutons d’action (titre de page, fiche animal, personnes de confiance, profil,
+ * fenêtres sans « Annuler ») : tous prennent la largeur du plus grand, calée sur son contenu.
+ * Des colonnes « 1fr » dans une grille qui se cale sur son contenu ont la taille de la plus large.
+ */
+@media (min-width: 621px) {
+  .heading-actions.heading-actions,
+  .record-page .actions.actions,
+  .sharing-heading .row-buttons.row-buttons,
+  .profile-page .save-buttons {
+    display: inline-grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    align-items: stretch;
+  }
+  :is(
+      .heading-actions,
+      .record-page .actions,
+      .sharing-heading .row-buttons,
+      .save-buttons
+    )
+    > .button {
+    width: auto;
+    margin: 0;
+  }
+  .dialog-actions.dialog-actions:not(:has(> .cancel)):has(> .button + .button) {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    width: max-content;
+    max-width: 100%;
+    margin-left: auto;
+  }
+}
+.profile-page .save-buttons {
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 12px;
+}
+/* Mobile : deux boutons côte à côte de même largeur, ou empilés à la largeur du plus grand. */
+@media (max-width: 620px) {
+  .heading-actions.heading-actions {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+  }
+  .heading-actions.heading-actions > .button {
+    padding-inline: 10px !important;
+  }
+  .sharing-heading .row-buttons.row-buttons {
+    display: grid;
+    grid-template-columns: max-content;
+    justify-content: center;
+  }
+  .sharing-heading .row-buttons.row-buttons > .button {
+    width: 100%;
+  }
+  .profile-page .save-buttons {
+    display: grid;
+    grid-auto-flow: row;
+    width: 100%;
+  }
+  .dialog-actions.dialog-actions:not(:has(> .cancel)):has(> .button + .button) {
+    display: grid;
+    grid-template-columns: max-content;
+    justify-content: center;
+  }
+  .dialog-actions.dialog-actions:not(:has(> .cancel)):has(> .button + .button)
+    > .button {
+    width: 100%;
+    margin: 0;
+  }
+}
+/*
+ * Le texte des boutons d’un groupe tient toujours sur une ligne. Sur tablette et petit PC,
+ * les boutons se resserrent (marges, taille du texte) pour que la rangée tienne sur une ligne.
+ */
+@media (min-width: 621px) {
+  :is(
+      .heading-actions,
+      .record-page .actions,
+      .sharing-heading .row-buttons,
+      .save-buttons
+    )
+    > .button {
+    white-space: nowrap;
+  }
+}
+@media (min-width: 621px) and (max-width: 1100px) {
+  .record-page .actions.actions {
+    gap: 8px;
+  }
+  .record-page .actions.actions > .button {
+    padding-inline: 10px !important;
+    font-size: 11.5px !important;
+  }
+  .heading-actions.heading-actions > .button {
+    padding-inline: 12px !important;
+    font-size: 12px !important;
+  }
+}
+/* Petite tablette : encore un peu plus serré, pour garder la même largeur sur une ligne. */
+@media (min-width: 621px) and (max-width: 720px) {
+  .record-page .actions.actions {
+    gap: 6px;
+  }
+  .record-page .actions.actions > .button {
+    padding-inline: 7px !important;
+    font-size: 10.5px !important;
+  }
+  .heading-actions.heading-actions {
+    gap: 8px;
+  }
+  .heading-actions.heading-actions > .button {
+    padding-inline: 9px !important;
+    font-size: 11px !important;
+  }
+}
+/* Titre de page à côté de ses boutons : c’est le titre qui se resserre, pas les boutons. */
+@media (min-width: 621px) {
+  .welcome > .heading-actions {
+    flex-shrink: 0;
+  }
+  .welcome > div:first-child:has(+ .heading-actions) {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}

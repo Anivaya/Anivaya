@@ -46,7 +46,9 @@ export default function DirectoryPage({
   const [data, setData] = useState<DirectoryData | null>(null),
     [error, setError] = useState(""),
     [retry, setRetry] = useState(0),
-    [busy, setBusy] = useState<string | null>(null);
+    [busy, setBusy] = useState<string | null>(null),
+    // Favori qui vient de changer : même effet que les cases à cocher (bool-on / bool-off).
+    [pulse, setPulse] = useState<{ id: string; on: boolean } | null>(null);
   const [report, setReport] = useState<Professional | null>(null);
   const [filters, setFilters] = useState(noFilters),
     [bookingFilters, setBookingFilters] = useState({
@@ -78,9 +80,11 @@ export default function DirectoryPage({
   async function favorite(p: Professional) {
     if (!data) return;
     setBusy(p.id);
+    const on = !data.favorites.includes(p.id);
     try {
-      await api.favorite(p.id, !data.favorites.includes(p.id));
+      await api.favorite(p.id, on);
       await reload();
+      setPulse({ id: p.id, on });
     } catch (e) {
       setError(errorMessage(e));
     } finally {
@@ -250,7 +254,15 @@ export default function DirectoryPage({
                     <Icon name={icons[p.icon] || p.icon} />
                   </span>
                   <button
-                    className="icon-button"
+                    className={
+                      "icon-button" +
+                      (pulse?.id === p.id
+                        ? pulse.on
+                          ? " bool-on"
+                          : " bool-off"
+                        : "")
+                    }
+                    onAnimationEnd={() => setPulse(null)}
                     aria-label={
                       (data.favorites.includes(p.id)
                         ? "Retirer des favoris : "

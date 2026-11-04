@@ -311,6 +311,7 @@ export default function HomePage({
             </div>
             <button
               type="button"
+              className="close"
               aria-label="Fermer ce message"
               onClick={onDismiss}
             >

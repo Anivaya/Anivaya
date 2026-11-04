@@ -565,7 +565,11 @@ function RenameDialog({
           </p>
         )}
         <div className="dialog-actions">
-          <button type="button" className="button outline" onClick={onClose}>
+          <button
+            type="button"
+            className="button outline cancel"
+            onClick={onClose}
+          >
             Annuler
           </button>
           <button type="submit" className="button" disabled={busy}>

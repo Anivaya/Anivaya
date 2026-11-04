@@ -17,11 +17,47 @@ import "./css/secondary.css";
 import "./css/communities.css";
 import "./css/ai-import.css";
 import "./css/admin.css";
+import "./css/buttons.css";
 import App from "./App.tsx";
 
 // Un rafraîchissement rouvre la page tout en haut au lieu de reprendre l’ancienne position.
 // Les discussions (messagerie, communautés, événements) se placent elles-mêmes sur leurs messages.
 if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+
+// Cases à cocher et interrupteurs : un court effet d’activation ou de désactivation à chaque
+// changement (bool-on / bool-off, voir global.css), jamais au chargement de la page.
+document.addEventListener("change", (event) => {
+  const input = event.target;
+  if (!(input instanceof HTMLInputElement) || input.type !== "checkbox") return;
+  input.classList.remove("bool-on", "bool-off");
+  void input.offsetWidth;
+  input.classList.add(input.checked ? "bool-on" : "bool-off");
+  input.addEventListener(
+    "animationend",
+    () => input.classList.remove("bool-on", "bool-off"),
+    { once: true },
+  );
+});
+
+// Onglets dépliables (<details>) : la classe « opening » rejoue l’effet d’ouverture à chaque
+// fois ; sans elle, le navigateur ne le joue qu’à la première ouverture.
+document.addEventListener(
+  "toggle",
+  (event) => {
+    const details = event.target;
+    if (!(details instanceof HTMLDetailsElement)) return;
+    details.classList.remove("opening");
+    if (!details.open) return;
+    void details.offsetWidth;
+    details.classList.add("opening");
+    details.addEventListener(
+      "animationend",
+      () => details.classList.remove("opening"),
+      { once: true },
+    );
+  },
+  true,
+);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

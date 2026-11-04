@@ -392,7 +392,7 @@
 .profile-page .resource-cards details[open] > summary {
   background: var(--pale);
 }
-.profile-page .resource-cards details[open] > :not(summary) {
+.profile-page .resource-cards details.opening > :not(summary) {
   animation: guide-open 0.25s ease both;
 }
 .profile-page .resource-cards article {
@@ -419,10 +419,34 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .profile-page .resource-cards details[open] > :not(summary) {
+  .profile-page .resource-cards details.opening > :not(summary) {
     animation: none;
   }
 }
 .profile-page .resource-cards summary::-webkit-details-marker {
   display: none;
+}
+/* « Avant de nous écrire » : survol en pastille, question ouverte en bleu, réponse en fondu. */
+.contact-guidance summary {
+  margin-inline: -12px;
+  padding-inline: 12px;
+  border-radius: 10px;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.contact-guidance summary:hover {
+  background: var(--pale);
+  color: var(--blue);
+}
+.contact-guidance details[open] > summary {
+  color: var(--blue);
+}
+.contact-guidance details.opening > :not(summary) {
+  animation: guide-open 0.25s ease both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .contact-guidance details.opening > :not(summary) {
+    animation: none;
+  }
 }
