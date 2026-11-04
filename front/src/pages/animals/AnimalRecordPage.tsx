@@ -11,6 +11,7 @@ import Portrait from "./components/AnimalPortrait.tsx";
 import Icon from "../../shared/ui/Icon.tsx";
 import {
   fullDate,
+  shortDate,
   svgImage,
   reminderState,
   reminderLabels,
@@ -19,6 +20,7 @@ import {
 import EmergencySheet, { QrDialog } from "./components/EmergencySheet.tsx";
 import { PeopleList } from "../sharing/SharingPage.tsx";
 import { AiImportButton } from "../documents/AiImport.tsx";
+import { useMediaQuery } from "../../shared/hooks.ts";
 
 const tabs: Record<string, string> = {
   apercu: "Vue d’ensemble",
@@ -43,6 +45,7 @@ export default function AnimalRecordPage({
   pending: string | null;
 }) {
   const [enlarged, setEnlarged] = useState(false);
+  const mobile = useMediaQuery("(max-width: 620px)");
   const pet = data.animals.find((a) => a.id === id);
   if (!pet)
     return (
@@ -116,19 +119,28 @@ export default function AnimalRecordPage({
           aria-label={`Ouvrir ${kind === "event" ? item.type : item.name}`}
         >
           <strong>{kind === "event" ? item.type : item.name}</strong>
-          <small>
-            {kind === "document" ? (
-              `${item.category} · ${item.example ? "Sans fichier" : "Fichier enregistré"}`
-            ) : kind === "event" ? (
-              <>
-                {fullDate(item.date!)}
-                <br />
-                {item.note}
-              </>
-            ) : (
-              `${fullDate(item.date!)} · ${reminderLabels[reminderState(item as Reminder, data.today)]} · ${item.repeat} · ${item.notice}`
-            )}
-          </small>
+          {kind === "reminder" ? (
+            <>
+              <small>
+                {reminderLabels[reminderState(item as Reminder, data.today)]}
+              </small>
+              <small>
+                {mobile ? shortDate(item.date!) : fullDate(item.date!)}
+              </small>
+            </>
+          ) : (
+            <small>
+              {kind === "document" ? (
+                `${item.category} · ${item.example ? "Sans fichier" : "Fichier enregistré"}`
+              ) : kind === "event" ? (
+                <>
+                  {fullDate(item.date!)}
+                  <br />
+                  {item.note}
+                </>
+              ) : null}
+            </small>
+          )}
         </button>
         {!limit && (
           <div className="row-actions">

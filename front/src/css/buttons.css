@@ -179,3 +179,1085 @@
     min-width: 0;
   }
 }
+/*
+ * Petits téléphones : icône et texte plus rapprochés (4 px). Sous 360 px, deux boutons ne
+ * tiennent plus côte à côte sans coller au bord : ils passent l’un sous l’autre, même largeur.
+ */
+@media (max-width: 620px) {
+  .heading-actions.heading-actions > .button {
+    gap: 4px;
+  }
+}
+@media (max-width: 359px) {
+  .heading-actions.heading-actions {
+    grid-auto-flow: row;
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/*
+ * Fiches de l’administration : actions en icônes sur une seule ligne. Les actions risquées
+ * (supprimer, refuser, retirer, révoquer, annuler) sont à droite, en rouge sur fond rouge clair.
+ */
+.admin-record-actions.admin-record-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
+}
+.admin-record-actions > .admin-icon-button.is-danger {
+  color: #a52b38;
+  background: #fdecee;
+  border-color: #f3c2c8;
+}
+.admin-record-actions > .admin-icon-button.is-danger:hover:not(:disabled) {
+  background: #f9d3d9;
+  border-color: #a52b38;
+}
+.admin-record-actions > .is-danger:not(.is-danger ~ .is-danger) {
+  margin-left: auto;
+}
+@media (max-width: 620px) {
+  .admin-record-actions.admin-record-actions {
+    justify-content: flex-start;
+  }
+}
+
+/*
+ * Fiches de l’administration sur mobile : le X reste en haut à droite du nom ; chaque
+ * information passe sous son libellé, pour qu’une adresse e-mail ne soit pas coupée.
+ */
+@media (max-width: 620px) {
+  .admin-dialog .admin-dialog-heading {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .admin-dialog .admin-dialog-heading > :first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .admin-dialog
+    .admin-dialog-heading
+    > :is(.admin-icon-button, div:last-child) {
+    flex-shrink: 0;
+  }
+  .admin-record-body dl > div {
+    display: block;
+  }
+  .admin-record-body dt {
+    min-width: 0;
+    font-size: 12px;
+  }
+  .admin-record-body dd {
+    overflow-wrap: break-word;
+  }
+}
+
+/* Administration, comme l’espace particulier : pastille des notifications en haut à droite. */
+.admin-alert-trigger > .admin-unread {
+  top: -5px;
+  right: -5px;
+  bottom: auto;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  border: 2px solid white;
+}
+/* Partout dans l’administration (listes, aperçus, fiches) : actions risquées sur fond rouge clair. */
+.admin-icon-button.is-danger:not(.admin-close) {
+  color: #a52b38;
+  background: #fdecee;
+  border-color: #f3c2c8;
+}
+.admin-icon-button.is-danger:not(.admin-close):hover:not(:disabled) {
+  background: #f9d3d9;
+  border-color: #a52b38;
+}
+
+/* Dépliants de l’administration (Pilotage…) : « + » qui pivote en « × » quand c’est ouvert. */
+.admin-disclosure-toggle svg {
+  transition: transform 0.25s ease;
+}
+.admin-disclosure-toggle[aria-expanded="true"] svg {
+  transform: rotate(45deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-disclosure-toggle svg {
+    transition: none;
+  }
+}
+/* Tableaux sur tablette et mobile : ils défilent toujours, mais sans barre visible. */
+@media (max-width: 1024px) {
+  .admin-table-scroll {
+    scrollbar-width: none;
+  }
+  .admin-table-scroll::-webkit-scrollbar {
+    display: none;
+  }
+}
+/*
+ * Pagination des listes : « Par page » à gauche, puis ← « Page n sur total » →, toujours sur
+ * une ligne. Sur petit téléphone, sélecteur, flèches et texte se resserrent.
+ */
+.admin-page-count {
+  white-space: nowrap;
+}
+@media (max-width: 420px) {
+  .admin-pagination.admin-pagination {
+    flex-wrap: nowrap;
+    gap: 6px;
+    padding-inline: 12px;
+  }
+  .admin-pagination label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .admin-pagination select {
+    padding: 2px 0 2px 4px;
+    min-height: 32px;
+  }
+  .admin-pagination .admin-icon-button {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    padding: 7px;
+  }
+  .admin-pagination .admin-page-count {
+    font-size: 11px;
+  }
+}
+
+/*
+ * Onglets dépliables (questions du contact, guides, contenu du QR, configuration sans QR) :
+ * comme les questions de l’accueil, un « + » qui pivote en « × » à l’ouverture.
+ */
+.toggle-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  list-style: none;
+}
+.toggle-summary::-webkit-details-marker {
+  display: none;
+}
+.toggle-summary::after {
+  content: "+";
+  flex-shrink: 0;
+  color: var(--blue);
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1;
+  transition: transform 0.25s ease;
+}
+details[open] > .toggle-summary::after {
+  transform: rotate(45deg);
+}
+/* « Lire le guide » reste une pastille : le « + » suit directement le texte. */
+.resource-cards .toggle-summary {
+  display: inline-flex;
+  justify-content: flex-start;
+  gap: 8px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .toggle-summary::after {
+    transition: none;
+  }
+}
+/*
+ * Listes de l’administration sur mobile : le tableau garde ses colonnes et défile
+ * horizontalement (barre invisible) ; les textes restent sur une ligne au lieu d’être coupés.
+ */
+@media (max-width: 620px) {
+  .admin-table-scroll table[class^="admin-table-"] {
+    min-width: 720px;
+  }
+  .admin-table-scroll
+    table[class^="admin-table-"]
+    td
+    :is(small, .admin-cell-text),
+  .admin-table-scroll table[class^="admin-table-"] td:not(:first-child) {
+    white-space: nowrap;
+    overflow-wrap: normal;
+  }
+}
+/* Sélecteur « Par page » : compact, petite flèche dessinée au lieu de celle du navigateur. */
+.admin-pagination select {
+  appearance: none;
+  height: 30px;
+  min-height: 30px !important;
+  padding: 0 20px 0 7px !important;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: white
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231b3b8e' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+    right 6px center / 10px no-repeat;
+  color: var(--navy);
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+@media (max-width: 620px) {
+  /* Texte à 12 px aussi sur mobile (au lieu des 16 px imposés aux champs). */
+  .admin-pagination select {
+    padding: 0 18px 0 6px !important;
+    background-position: right 5px center;
+    font-size: 12px !important;
+  }
+}
+
+/*
+ * Pilotage, tableau des cohortes : il défile horizontalement (colonnes lisibles) et
+ * verticalement au-delà d’une hauteur fixe (les mois futurs s’ajoutent sans allonger la page).
+ * La ligne des titres reste en haut et la colonne « Cohorte » à gauche.
+ */
+.admin-analytics .admin-table-scroll[aria-label="Cohortes par mois"] {
+  max-height: 440px;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+.admin-analytics [aria-label="Cohortes par mois"] table {
+  min-width: 560px;
+}
+.admin-analytics [aria-label="Cohortes par mois"] :is(th, td) {
+  white-space: nowrap;
+}
+.admin-analytics [aria-label="Cohortes par mois"] thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.admin-analytics [aria-label="Cohortes par mois"] :is(th, td):first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: white;
+}
+.admin-analytics [aria-label="Cohortes par mois"] thead th:first-child {
+  z-index: 3;
+  background: #f8fafd;
+}
+@media (max-width: 1024px) {
+  .admin-analytics .admin-table-scroll[aria-label="Cohortes par mois"] {
+    scrollbar-width: none;
+  }
+}
+
+/*
+ * Aperçus des indicateurs (tableau de bord de l’administration).
+ * PC et tablette : nom et détail à gauche ; à droite, le statut au-dessus des actions.
+ * Mobile : nom et détail sur toute la largeur, puis le statut à gauche et les actions à droite.
+ */
+.admin-preview-row.admin-preview-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 16px;
+  row-gap: 8px;
+  align-items: center;
+}
+.admin-preview-row > div:first-child {
+  display: contents;
+}
+.admin-preview-row > div:first-child > :not(.admin-badge) {
+  grid-column: 1;
+}
+.admin-preview-row > div:first-child > .admin-badge {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+}
+.admin-preview-row > .admin-preview-actions.admin-preview-actions {
+  grid-column: 2;
+  grid-row: 2;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+}
+@media (max-width: 620px) {
+  .admin-preview-row.admin-preview-row {
+    column-gap: 12px;
+    row-gap: 0;
+  }
+  .admin-preview-row > div:first-child > :not(.admin-badge) {
+    grid-column: 1 / -1;
+  }
+  .admin-preview-row > div:first-child > .admin-badge {
+    grid-column: 1;
+    grid-row: 3;
+    justify-self: start;
+  }
+  .admin-preview-row > .admin-preview-actions.admin-preview-actions {
+    grid-row: 3;
+  }
+}
+/*
+ * Barre des listes sur petit téléphone : la recherche sur sa ligne, puis le filtre (qui se
+ * resserre) et les boutons « + » / actualiser ensemble sur la ligne suivante.
+ */
+@media (max-width: 420px) {
+  .admin-list-panel .admin-toolbar.admin-toolbar {
+    gap: 10px;
+  }
+  .admin-list-panel .admin-toolbar > .field.field {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .admin-list-panel .admin-toolbar > .admin-toolbar-actions {
+    flex: 0 0 auto;
+    gap: 6px;
+  }
+}
+
+/*
+ * Sélecteurs (filtres et formulaires) : même design sur tout le site. Bord arrondi, petite
+ * flèche bleue dessinée au lieu de celle du navigateur, fond bleu-gris au survol et à l’ouverture.
+ * Le sélecteur « Par page », plus compact, garde son propre réglage.
+ */
+select:not([multiple], [size], .admin-pagination select) {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: white;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231b3b8e' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 13px !important;
+  padding-right: 36px !important;
+  border: 1px solid #c5d2e6;
+  border-radius: 10px;
+  color: var(--navy);
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+/* Survol, focus et liste ouverte : fond bleu-gris comme les boutons d’action, bord bleu. */
+select:not([multiple], [size]):is(:hover, :focus, :open):not(:disabled) {
+  border-color: var(--blue);
+  background-color: var(--pale) !important;
+  outline: none;
+}
+select:not([multiple], [size]):disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+/* Petit téléphone : le filtre des listes admin se resserre pour rester à côté de ses boutons. */
+@media (max-width: 420px) {
+  .admin-list-panel .admin-toolbar > .field select {
+    padding-left: 10px !important;
+    padding-right: 28px !important;
+    background-position: right 9px center !important;
+    font-size: 14px !important;
+  }
+}
+
+/*
+ * Liste des choix des sélecteurs (navigateurs récents) : même design que le reste du site.
+ * Coins arrondis, ombre légère ; le choix survolé ou sélectionné a le fond bleu-gris.
+ * Les autres navigateurs gardent leur liste habituelle.
+ */
+@supports (appearance: base-select) {
+  select:not([multiple], [size]),
+  select:not([multiple], [size])::picker(select) {
+    appearance: base-select !important;
+  }
+  select:not([multiple], [size])::picker-icon {
+    display: none;
+  }
+  select:not([multiple], [size])::picker(select) {
+    margin-top: 6px;
+    padding: 6px;
+    border: 1px solid #c5d2e6;
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 14px 32px #132e5c1f;
+  }
+  select:not([multiple], [size]) option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    color: var(--navy);
+    font-size: 14px;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
+  }
+  select:not([multiple], [size]) option:is(:hover, :focus-visible) {
+    background: var(--pale);
+    color: var(--blue);
+    outline: none;
+  }
+  select:not([multiple], [size]) option:checked {
+    background: var(--pale);
+    color: var(--blue);
+    font-weight: 700;
+  }
+  select:not([multiple], [size]) option::checkmark {
+    order: 1;
+    margin-left: auto;
+    color: var(--blue);
+  }
+  /* « Par page » : liste compacte. */
+  .admin-pagination select option {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}
+
+/* ------------------------------------------------------------------------------------------
+ * Harmonisation des éléments similaires : la version la plus courante s’applique partout.
+ * ------------------------------------------------------------------------------------------ */
+
+/* Boutons texte : 44 px de haut, texte 13 px gras, arrondi 9 px (comme profil et contact). */
+.button {
+  font-weight: 700 !important;
+}
+.button:not(.social-primary) {
+  border-radius: 9px !important;
+}
+@media (min-width: 1025px) {
+  .button:not(.social-primary) {
+    min-height: 44px !important;
+    height: auto !important;
+    padding-block: 10px !important;
+    font-size: 13px !important;
+    line-height: 1.3 !important;
+  }
+}
+/* Boutons à contour : bordure bleue partout (le bouton doré du bandeau admin garde le sien). */
+.button.outline.outline:not(
+    .danger,
+    .cancel,
+    .close-action,
+    .admin-highlight .button
+  ) {
+  border-color: var(--blue);
+}
+
+/* Boutons d’action en icône (rappels, documents, partage) : même pastille que l’administration. */
+:is(.row-buttons, .doc-actions) > button[aria-label]:not(.button, .close) {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: white;
+  color: var(--blue);
+  cursor: pointer;
+  transition:
+    background 120ms,
+    border-color 120ms;
+}
+:is(.row-buttons, .doc-actions)
+  > button[aria-label]:not(.button, .close):hover:not(:disabled) {
+  background: var(--pale);
+  border-color: var(--blue);
+}
+:is(.row-buttons, .doc-actions)
+  > button[aria-label]:is(.red, .delete-action):not(.button, .close) {
+  color: #a52b38;
+  background: #fdecee;
+  border-color: #f3c2c8;
+}
+:is(.row-buttons, .doc-actions)
+  > button[aria-label]:is(.red, .delete-action):not(.button, .close):hover:not(
+    :disabled
+  ) {
+  background: #f9d3d9;
+  border-color: #a52b38;
+}
+:is(.row-buttons, .doc-actions) > button[aria-label]:not(.button, .close) svg {
+  width: 19px;
+  height: 19px;
+}
+/* Favori de l’annuaire : même forme que les autres boutons icônes. */
+.directory-page .icon-button.icon-button {
+  border-radius: 9px;
+}
+
+/* Badges de statut et étiquettes : pastille arrondie, texte 11 px très gras (comme l’admin). */
+:is(
+  .access-state,
+  .received-state,
+  .record-page .badge,
+  .directory-page .badge,
+  .directory-page .tag,
+  .directory-dialog .badge,
+  .directory-dialog .tag,
+  .social-tags span
+) {
+  border-radius: 20px;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+/* Titres de page : 34 px, poids 750 (fiche animal et connexion compris). */
+.record-page h1 {
+  font-size: 34px;
+  font-weight: 750;
+}
+@media (max-width: 1100px) {
+  .record-page h1 {
+    font-size: 30px;
+  }
+}
+@media (max-width: 850px) {
+  .record-page h1 {
+    font-size: 29px;
+  }
+}
+.auth-page h1 {
+  font-weight: 750;
+}
+@media (min-width: 621px) {
+  .auth-page h1 {
+    font-size: 34px;
+  }
+}
+
+/*
+ * Sous-titres : trois niveaux. Sections 20 px (19 px sur mobile), cartes 18 px,
+ * fenêtres 24 px (20 px sur mobile).
+ */
+:is(
+  .section-head h2,
+  .sharing-heading h2,
+  .profile-page h2,
+  .profile-page .profile-panel h2,
+  .admin-panel h2,
+  .admin-analytics .admin-section-title h2,
+  .social-discussion > h2
+) {
+  font-size: 20px;
+}
+:is(
+  .panel h2,
+  .privacy-note h2,
+  .notification-item h2,
+  .social-card h2,
+  .conversation-header h2,
+  .record-page .saved-section h2,
+  .record-page .public-card h2
+) {
+  font-size: 18px;
+}
+:is(
+  dialog.sharing-modal h2,
+  .record-page dialog h2,
+  .directory-dialog h2,
+  .social-modal .social-modal-heading > h2,
+  .admin-dialog-heading h2
+) {
+  font-size: 24px;
+}
+@media (max-width: 620px) {
+  :is(
+    .section-head h2,
+    .sharing-heading h2,
+    .profile-page h2,
+    .profile-page .profile-panel h2,
+    .admin-panel h2,
+    .admin-analytics .admin-section-title h2,
+    .social-discussion > h2
+  ) {
+    font-size: 19px;
+  }
+  :is(
+    dialog.sharing-modal h2,
+    .record-page dialog h2,
+    .directory-dialog h2,
+    .social-modal .social-modal-heading > h2,
+    .admin-dialog-heading h2
+  ) {
+    font-size: 20px;
+  }
+}
+/* Petits intitulés qui ne sont pas des titres de section : ils gardent leur taille. */
+.profile-page .account-danger h2 {
+  font-size: 14px;
+}
+.record-page .qr-panel h2 {
+  font-size: 11px;
+}
+
+/*
+ * Champs de saisie : 44 px de haut, arrondi 8 px, texte 14 px, bordure #bdc9dc.
+ * Sur mobile, le texte reste à 16 px (sinon l’iPhone zoome). Erreur et focus gardent leur couleur.
+ */
+:is(
+  input:not(
+    [type="checkbox"],
+    [type="radio"],
+    [type="hidden"],
+    [type="file"],
+    [type="range"],
+    [type="color"],
+    [type="submit"],
+    [type="button"]
+  ),
+  textarea
+):not([aria-invalid="true"], :focus, :disabled) {
+  border-color: #bdc9dc !important;
+}
+:is(
+  input:not(
+    [type="checkbox"],
+    [type="radio"],
+    [type="hidden"],
+    [type="file"],
+    [type="range"],
+    [type="color"],
+    [type="submit"],
+    [type="button"]
+  ),
+  textarea
+) {
+  border-radius: 8px !important;
+}
+input:not(
+  [type="checkbox"],
+  [type="radio"],
+  [type="hidden"],
+  [type="file"],
+  [type="range"],
+  [type="color"],
+  [type="submit"],
+  [type="button"]
+) {
+  min-height: 44px;
+}
+@media (min-width: 621px) {
+  :is(
+    input:not(
+      [type="checkbox"],
+      [type="radio"],
+      [type="hidden"],
+      [type="file"],
+      [type="range"],
+      [type="color"],
+      [type="submit"],
+      [type="button"]
+    ),
+    textarea
+  ) {
+    font-size: 14px !important;
+  }
+}
+/* Sélecteurs : arrondi 10 px, 44 px de haut, texte 13 px (16 px sur mobile). */
+select:not([multiple], [size], .admin-pagination select) {
+  border-radius: 10px !important;
+  min-height: 44px;
+}
+@media (min-width: 621px) {
+  select:not([multiple], [size], .admin-pagination select) {
+    font-size: 13px !important;
+  }
+}
+
+/* Cartes : arrondi 13 px partout (indicateurs et Pilotage compris). */
+.admin-stat,
+.admin-analytics.admin-analytics,
+.admin-metric-card {
+  border-radius: 13px;
+}
+
+/* Focus des champs : contour doré de 3 px, comme le reste du site (les sélecteurs n’en ont pas). */
+.profile-page :is(.contact-grid, .admin-search) :is(input, textarea):focus {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+.profile-page .contact-grid select:focus {
+  outline: none;
+}
+/* Écart entre les boutons icônes ; dans « Documents récents » (colonne étroite), même design en 32 px. */
+:is(.row-buttons, .doc-actions):has(> button[aria-label]:not(.button, .close)) {
+  gap: 6px;
+}
+.workspace:not(.section-mode)
+  .app-right
+  .doc-actions
+  > button[aria-label]:not(.button, .close) {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 6px;
+}
+.workspace:not(.section-mode) .app-right .doc-actions {
+  gap: 4px;
+}
+.workspace:not(.section-mode) .app-right .doc-actions svg {
+  width: 17px;
+  height: 17px;
+}
+
+/*
+ * Fiches de rappel : nom de l’animal, statut et date chacun sur sa ligne ; les boutons
+ * d’action restent à droite de la fiche, centrés verticalement, sur tous les formats.
+ */
+.managed-reminder.managed-reminder {
+  flex-wrap: nowrap;
+  align-items: center;
+}
+.managed-reminder .reminder-open {
+  flex: 1 1 auto;
+}
+.managed-reminder .reminder-open small,
+.record-page .row-body small + small {
+  margin-top: 3px;
+}
+.managed-reminder > .row-buttons.row-buttons {
+  flex-shrink: 0;
+  margin-left: auto;
+  align-self: center;
+}
+@media (max-width: 620px) {
+  .record-page .row:has(> .done-check) {
+    flex-wrap: nowrap;
+  }
+  .record-page .row:has(> .done-check) > .row-body {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .record-page .row:has(> .done-check) > .row-actions {
+    flex-shrink: 0;
+  }
+}
+
+/* Fiche animal : boutons icônes des listes (suivi, documents, rappels) au même design que partout. */
+.record-page .row > .row-actions > .icon-btn.icon-btn {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: white;
+  color: var(--blue);
+  transition:
+    background 120ms,
+    border-color 120ms;
+}
+.record-page .row > .row-actions > .icon-btn.icon-btn:hover {
+  background: var(--pale);
+  border-color: var(--blue);
+}
+.record-page .row > .row-actions > .icon-btn.delete {
+  color: #a52b38;
+  background: #fdecee;
+  border-color: #f3c2c8;
+}
+.record-page .row > .row-actions > .icon-btn.delete:hover {
+  background: #f9d3d9;
+  border-color: #a52b38;
+}
+.record-page .row > .row-actions {
+  gap: 6px;
+}
+.record-page .row > .row-actions > .icon-btn svg {
+  width: 19px;
+  height: 19px;
+}
+
+/*
+ * Listes déroulantes : le choix affiché tient sur une ligne. S’il est trop long, il est coupé
+ * avant la flèche (Chrome, Edge) ou terminé par « … » (autres navigateurs, liste native).
+ */
+select:not([multiple], [size]) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@supports (appearance: base-select) {
+  select:not([multiple], [size]) {
+    overflow: clip;
+    overflow-clip-margin: content-box;
+  }
+}
+
+/*
+ * Étapes de la réservation sur petit téléphone : chaque étape prend un tiers de la largeur,
+ * le numéro au-dessus de son nom, pour que « Confirmation » ne soit plus coupé.
+ */
+@media (max-width: 380px) {
+  :is(.directory-page, .directory-dialog) .stepper.stepper {
+    gap: 6px;
+  }
+  :is(.directory-page, .directory-dialog) .stepper li {
+    flex: 1 1 0;
+    min-width: 0;
+    flex-direction: column;
+    gap: 5px;
+    text-align: center;
+    line-height: 1.2;
+  }
+}
+
+/*
+ * Champs fichier (document, photo de l’animal, pièce reçue en administration) : même cadre
+ * que les autres champs, et le bouton « Choisir un fichier » au style du site au lieu de
+ * celui du navigateur.
+ */
+.field input[type="file"] {
+  width: 100%;
+  min-height: 44px;
+  padding: 5px 12px 5px 5px !important;
+  border: 1px solid #bdc9dc !important;
+  border-radius: 8px !important;
+  background: white;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px !important;
+  cursor: pointer;
+}
+.field input[type="file"][aria-invalid="true"] {
+  border-color: #a52b38 !important;
+}
+.field input[type="file"]:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+.field input[type="file"]::file-selector-button {
+  min-height: 32px;
+  margin-right: 12px;
+  padding: 6px 14px;
+  border: 1px solid var(--blue);
+  border-radius: 7px;
+  background: var(--pale);
+  color: var(--blue);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+.field input[type="file"]:hover::file-selector-button {
+  background: var(--blue);
+  color: white;
+}
+
+/*
+ * Annuaire : l’icône, le service et le nom du professionnel ouvrent sa fiche.
+ * Au survol de l’un d’eux, le nom se souligne et l’icône grossit légèrement.
+ */
+.directory-page .pro-card .pro-open {
+  cursor: pointer;
+}
+.directory-page .pro-card .profession-icon.pro-open {
+  transition: transform 0.15s ease;
+}
+.directory-page .pro-card .profession-icon.pro-open:hover {
+  transform: scale(1.06);
+}
+.directory-page .pro-card h3 .pro-title {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.directory-page .pro-card:has(.pro-open:hover, .pro-title:hover) h3 .pro-title {
+  color: var(--blue);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.directory-page .pro-card h3 .pro-title:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/*
+ * Boutons rouges à contour (Signaler, Abandonner, Quitter, Supprimer…) : exactement le style
+ * de « Annuler », sur toutes les pages et dans toutes les fenêtres.
+ */
+.button.outline.danger.danger {
+  color: #a52b38 !important;
+  border: 1px solid #e9b7bd !important;
+  background: white !important;
+  box-shadow: none;
+}
+.button.outline.danger.danger:hover:not(:disabled) {
+  border-color: #a52b38 !important;
+  background: #fdecee !important;
+}
+.button.outline.danger.danger svg {
+  color: inherit;
+}
+
+/*
+ * Communautés : boutons icônes au même design que le reste du site (38 px, bordure,
+ * arrondi 9 px) ; actions risquées (supprimer, signaler, bloquer, retirer…) en rouge sur fond
+ * rouge clair. La croix « Fermer » garde la pastille ronde, l’effacement de la recherche
+ * reste discret dans le champ.
+ */
+.social-icon:not(.close-icon, .social-search *) {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: white;
+  color: var(--blue);
+  transition:
+    background 120ms,
+    border-color 120ms;
+}
+.social-icon:not(.close-icon, .social-search *):is(
+    :hover:not(:disabled),
+    .active
+  ) {
+  background: var(--pale);
+  border-color: var(--blue);
+}
+.social-icon:is(.danger, .block-action, .profile-block):not(.close-icon) {
+  color: #a52b38;
+  background: #fdecee;
+  border-color: #f3c2c8;
+}
+.social-icon:is(.danger, .block-action, .profile-block):not(
+    .close-icon
+  ):hover:not(:disabled) {
+  background: #f9d3d9;
+  border-color: #a52b38;
+}
+.social-icon:not(.close-icon, .social-search *) svg {
+  width: 19px;
+  height: 19px;
+}
+/* Sous chaque message de discussion : même design, en plus petit. */
+.message-meta .social-icon.social-icon {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  padding: 6px;
+}
+.message-meta .social-icon.social-icon svg {
+  width: 15px;
+  height: 15px;
+}
+/* Mobile : en-tête de communauté et liste des participants, boutons carrés de 34 px. */
+@media (max-width: 620px) {
+  .community-presentation .detail-heading > .social-actions .social-icon,
+  .participant-actions .social-icon.social-icon {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    padding: 7px;
+  }
+  .participant-actions.participant-actions {
+    gap: 4px;
+  }
+}
+/* Petits téléphones : les quatre actions d’un participant tiennent sur la ligne du nom. */
+@media (max-width: 380px) {
+  .participant-actions .social-icon.social-icon {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    padding: 6px;
+  }
+  .participant-actions .social-icon.social-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+  .participant-actions.participant-actions {
+    gap: 3px;
+  }
+  .participant-row > .participant-identity {
+    min-width: 0;
+  }
+}
+/* Liste des participants : la ligne ne dépasse jamais, un nom trop long se termine par « … ». */
+.social-member-list > .participant-row {
+  min-width: 0;
+}
+.participant-identity > .person-link {
+  max-width: 100%;
+  min-width: 0;
+}
+.participant-identity > .person-link > span:not(.social-avatar) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 380px) {
+  .participant-row.participant-row {
+    gap: 8px;
+  }
+}
+/* Mobile : les actions de l’en-tête d’une conversation restent sur une ligne. */
+@media (max-width: 620px) {
+  .conversation-header .social-actions.social-actions {
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+  .conversation-header .social-actions .social-icon.social-icon {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    padding: 7px;
+  }
+}
+
+/* Boutons « Signaler » en icône (drapeau rouge), placés à droite du contenu qu’ils concernent. */
+.report-icon svg {
+  width: 18px;
+  height: 18px;
+}
+/* Discussion, messages reçus : le drapeau « Signaler » suit directement la date et le statut de lecture. */
+/* Annuaire, fiche d’un professionnel : statut à gauche, drapeau à droite sur la même ligne. */
+.status-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 18px;
+}
+/*
+ * Annuaire, cartes des professionnels : le nom de l’établissement puis le type de service,
+ * à droite de l’icône ; le favori reste à droite.
+ */
+.directory-page .pro-card .pro-heading {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.directory-page .pro-card .pro-heading h3 {
+  margin: 0 0 3px;
+  overflow-wrap: anywhere;
+}
+.directory-page .pro-card .pro-heading .category {
+  margin: 0;
+}
+/* Fenêtre de la fiche : même ordre, le service sous le nom. */
+:is(.directory-page, .directory-dialog) .profile-heading h2 + .category {
+  margin: 4px 0 6px;
+}
+.directory-page .pro-card .pro-top > :is(.profession-icon, .icon-button) {
+  flex-shrink: 0;
+}

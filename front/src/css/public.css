@@ -2052,15 +2052,65 @@
   }
 }
 /* En-tête : logo à gauche, liens au centre de la page, connexion à droite. */
-@media (min-width: 951px) {
-  .public-site .header {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-  }
-  .public-site .header > .brand {
-    justify-self: start;
+@media (min-width: 1280px) {
+  .public-site .header > nav {
+    flex: 1;
+    justify-content: center;
   }
   .public-site .header > .auth-entry {
-    justify-self: end;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+}
+/*
+ * Tablette et petit PC : les huit liens ne tiennent plus sur une ligne ; ils passent dans le
+ * bouton « Menu », comme sur mobile.
+ */
+@media (max-width: 1279px) {
+  .public-site .header > nav {
+    display: none;
+  }
+  .public-site .header .button {
+    margin-left: auto;
+  }
+  .public-site .mobile-menu {
+    display: block;
+    position: relative;
+  }
+  .public-site .mobile-menu summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    min-height: 40px;
+    cursor: pointer;
+  }
+  .public-site .mobile-menu summary::-webkit-details-marker {
+    display: none;
+  }
+  .public-site .mobile-menu nav {
+    position: absolute;
+    right: 0;
+    top: 49px;
+    z-index: 5;
+    background: white;
+    border: 1px solid var(--line);
+    box-shadow: 0 10px 25px #132e5c14;
+    border-radius: 10px;
+    width: max-content;
+    max-width: calc(100vw - 32px);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .public-site .mobile-menu nav a {
+    padding: 12px;
+    font-size: 13px;
   }
 }

@@ -329,7 +329,7 @@ export default function EmergencySheet({
                     </div>
                     {sheet.payload && (
                       <details>
-                        <summary className="muted">
+                        <summary className="muted toggle-summary">
                           Voir le contenu du QR
                         </summary>
                         <pre className="qr-payload">{sheet.payload}</pre>

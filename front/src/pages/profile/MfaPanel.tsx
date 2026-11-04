@@ -178,7 +178,9 @@ export default function MfaPanel() {
                       alt="QR de configuration de votre application d’authentification"
                     />
                     <details>
-                      <summary>Configurer sans QR</summary>
+                      <summary className="toggle-summary">
+                        Configurer sans QR
+                      </summary>
                       <code>{setup.secret}</code>
                     </details>
                   </div>

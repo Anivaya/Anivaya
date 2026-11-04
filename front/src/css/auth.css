@@ -482,8 +482,8 @@
     padding: 10px;
   }
 }
-/* Tablette : les liens restent dans l’en-tête ; le menu ne sert que sur mobile. */
-@media (max-width: 620px) {
+/* Tablette et mobile : les liens de l’en-tête passent dans le bouton « Menu ». */
+@media (max-width: 1023px) {
   :is(.auth-page, .service-public) .header > nav {
     display: none;
   }
@@ -663,13 +663,22 @@
     opacity: 1;
   }
 }
-/* En-tête : liens au milieu de l’espace entre le logo et le bouton de connexion (PC et tablette). */
-@media (min-width: 621px) {
+/* En-tête : liens au milieu de l’espace entre le logo et le bouton de connexion (PC). */
+@media (min-width: 1024px) {
   :is(.auth-page, .service-public) .header > nav {
     flex: 1;
     justify-content: center;
   }
   :is(.auth-page, .service-public) .header .button {
     margin-left: 0;
+  }
+}
+/* Tablette : logo à gauche, puis connexion et « Menu » regroupés à droite. */
+@media (min-width: 621px) and (max-width: 1023px) {
+  :is(.auth-page, .service-public) .header .auth-entry {
+    margin-left: auto;
+  }
+  :is(.auth-page, .service-public) .header.wrap {
+    gap: 10px;
   }
 }

@@ -624,6 +624,7 @@ function PersonProfile(
                     <IconButton
                       label="Retirer de mes amis"
                       icon="close"
+                      danger
                       onClick={() => actions.friend(id, "remove")}
                     />
                   ) : f?.status === "pending" ? (
@@ -637,6 +638,7 @@ function PersonProfile(
                         <IconButton
                           label="Refuser la demande d’amitié"
                           icon="close"
+                          danger
                           onClick={() => actions.friend(id, "remove")}
                         />
                       </>
@@ -644,6 +646,7 @@ function PersonProfile(
                       <IconButton
                         label="Annuler ma demande d’amitié"
                         icon="close"
+                        danger
                         onClick={() => actions.friend(id, "remove")}
                       />
                     )
@@ -659,6 +662,7 @@ function PersonProfile(
               <IconButton
                 label="Signaler cette personne"
                 icon="flag"
+                danger
                 onClick={() =>
                   ctx.open({
                     kind: "report",
@@ -710,7 +714,7 @@ function PersonOptions(
       </button>
       <button
         type="button"
-        className="button outline"
+        className="button outline danger"
         onClick={() =>
           ctx.open({ kind: "report", type: "person", target: id, back: dialog })
         }

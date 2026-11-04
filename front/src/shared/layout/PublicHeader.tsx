@@ -7,11 +7,13 @@ const homeLinks = [
   ["accueil/engagement", "Notre engagement"],
   ["accueil/prochainement", "Autour de vous"],
   ["accueil/questions", "Questions"],
+  ["contact", "Nous contacter"],
+  ["informations", "Informations du service"],
 ];
 /** Pages de connexion et de mot de passe : accueil, contact et informations du service. */
 const accountLinks = [
   ["accueil", "Accueil"],
-  ["contact", "Contact"],
+  ["contact", "Nous contacter"],
   ["informations", "Informations du service"],
 ];
 
@@ -60,7 +62,9 @@ export default function PublicHeader({
             key={href}
             href={"#" + href}
             aria-current={
-              !account && activeSection === (href.split("/")[1] || "accueil")
+              !account &&
+              href.startsWith("accueil") &&
+              activeSection === (href.split("/")[1] || "accueil")
                 ? "location"
                 : undefined
             }

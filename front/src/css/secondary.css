@@ -181,22 +181,6 @@
 .contact-guidance summary::-webkit-details-marker {
   display: none;
 }
-/* Chevron dessiné : la flèche native disparaît avec l’affichage en flex. */
-.contact-guidance summary::before,
-.profile-page .resource-cards summary::before {
-  content: "";
-  flex-shrink: 0;
-  width: 7px;
-  height: 7px;
-  border-right: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
-  transform: rotate(-45deg);
-  transition: transform 0.15s;
-}
-.contact-guidance details[open] > summary::before,
-.profile-page .resource-cards details[open] > summary::before {
-  transform: rotate(45deg);
-}
 .contact-guidance a {
   color: var(--blue);
   text-decoration: underline;

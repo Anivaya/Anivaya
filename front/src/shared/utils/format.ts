@@ -8,6 +8,9 @@ export const fullDate = (value: string) =>
     month: "long",
     year: "numeric",
   });
+/** Date abrégée JJ/MM/AAAA (rappels sur mobile). */
+export const shortDate = (value: string) =>
+  parseDate(value).toLocaleDateString("fr-FR");
 /** Jour AAAA-MM-JJ décalé de `days` jours, sans dépendre du fuseau du navigateur. */
 export function addDays(day: string, days: number) {
   const date = new Date(`${day}T12:00:00Z`);

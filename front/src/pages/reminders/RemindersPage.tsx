@@ -9,6 +9,7 @@ import {
   animalName,
   parseDate,
   fullDate,
+  shortDate,
   matches,
   reminderState,
   reminderLabels,
@@ -17,6 +18,7 @@ import {
 import PageHeading from "../../shared/layout/PageHeading.tsx";
 import Icon from "../../shared/ui/Icon.tsx";
 import CollectionFilters from "../../shared/ui/CollectionFilters.tsx";
+import { useMediaQuery } from "../../shared/hooks.ts";
 
 export default function RemindersPage({ data, actions, pending }: PageProps) {
   return (
@@ -63,6 +65,7 @@ export function RemindersSection({
   const [search, setSearch] = useState(""),
     [animal, setAnimal] = useState(""),
     [status, setStatus] = useState("");
+  const mobile = useMediaQuery("(max-width: 620px)");
   const filtered = reminders
     .filter(
       (r) =>
@@ -132,13 +135,9 @@ export function RemindersSection({
                 onClick={() => onAction("reminder", r)}
               >
                 <strong>{r.name}</strong>
-                <small>
-                  {name} · {fullDate(r.date)} ·{" "}
-                  {reminderLabels[reminderState(r, today)]}
-                </small>
-                <small>
-                  {r.repeat} · {r.notice}
-                </small>
+                <small>{name}</small>
+                <small>{reminderLabels[reminderState(r, today)]}</small>
+                <small>{mobile ? shortDate(r.date) : fullDate(r.date)}</small>
               </button>
               <div className="row-buttons">
                 <button

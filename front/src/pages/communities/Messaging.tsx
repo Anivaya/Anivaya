@@ -380,6 +380,7 @@ function ThreadSettings({
         "Signaler cette personne",
         "flag",
         () => ctx.open({ kind: "report", type: "person", target: other }),
+        true,
       ],
     );
   }

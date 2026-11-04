@@ -20,7 +20,8 @@ export default function AdminDisclosure({
         aria-controls={id}
         onClick={() => setOpen((v) => !v)}
       >
-        <Icon name="arrow" />
+        {/* « + » fermé, qui pivote en « × » à l’ouverture (comme les questions de l’accueil). */}
+        <Icon name="plus" />
         {label}
       </button>
       <div

@@ -157,7 +157,11 @@ export default function AdminPreview({
                   .map((action) => (
                     <AdminIconButton
                       className="admin-text-button"
-                      icon={actionIcon(action.id, indicator.resource)}
+                      icon={actionIcon(
+                        action.id,
+                        indicator.resource,
+                        action.label,
+                      )}
                       label={`${action.label} — ${row.name}`}
                       danger={isDangerAction(action.id)}
                       disabled={busy}

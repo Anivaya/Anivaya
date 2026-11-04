@@ -76,7 +76,7 @@ export default function ResourcesPanel() {
               <h3>{g.title}</h3>
               <p>{g.summary}</p>
               <details>
-                <summary>Lire le guide</summary>
+                <summary className="toggle-summary">Lire le guide</summary>
                 <p className="admin-preserve">{g.body}</p>
                 <small>
                   Version {g.version} · Publié le{" "}

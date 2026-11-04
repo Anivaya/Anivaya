@@ -293,7 +293,7 @@ function ThreadView({
                         </span>
                       )
                     ))}
-                  {mine ? (
+                  {mine && (
                     <IconButton
                       label="Supprimer mon message"
                       icon="trash"
@@ -309,10 +309,13 @@ function ThreadView({
                         })
                       }
                     />
-                  ) : (
+                  )}
+                  {/* Signaler : en bas à droite, après le statut de lecture. */}
+                  {!mine && (
                     <IconButton
                       label="Signaler le message"
                       icon="flag"
+                      danger
                       onClick={() =>
                         ctx.open({
                           kind: "report",

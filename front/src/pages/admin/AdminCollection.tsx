@@ -580,7 +580,11 @@ export default function AdminCollection({
                             .map((action) => (
                               <AdminIconButton
                                 key={action.id}
-                                icon={actionIcon(action.id, resource)}
+                                icon={actionIcon(
+                                  action.id,
+                                  resource,
+                                  action.label,
+                                )}
                                 label={`${action.label} — ${row.name}`}
                                 danger={isDangerAction(action.id)}
                                 onClick={() => void openRecord(row, action.id)}
@@ -639,19 +643,19 @@ export default function AdminCollection({
                 ))}
               </select>
             </label>
-            <span>
-              Page {data?.page || 1} sur{" "}
-              {Math.max(
-                1,
-                Math.ceil((data?.total || 0) / (data?.pageSize || 10)),
-              )}
-            </span>
             <AdminIconButton
               icon="back"
               label="Page précédente"
               disabled={loading || !data || data.page <= 1}
               onClick={() => change("page", String(data!.page - 1))}
             />
+            <span className="admin-page-count">
+              Page {data?.page || 1} sur{" "}
+              {Math.max(
+                1,
+                Math.ceil((data?.total || 0) / (data?.pageSize || 10)),
+              )}
+            </span>
             <AdminIconButton
               icon="arrow"
               label="Page suivante"

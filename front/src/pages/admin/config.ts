@@ -296,9 +296,14 @@ export function statusTone(status?: string) {
   return "";
 }
 
-export function actionIcon(action: string, resource?: string) {
+/**
+ * Icône d’une action. `label` distingue les pièces à vérifier d’un même dossier : l’assurance
+ * garde le bouclier, les autres pièces un document ; « Examiner le dossier » prend la loupe.
+ */
+export function actionIcon(action: string, resource?: string, label = "") {
   if (action.startsWith("proof-file")) return "download";
-  if (action.startsWith("proof")) return "shield";
+  if (action.startsWith("proof"))
+    return /assurance/i.test(label) ? "shield" : "file";
   return (
     (
       {
@@ -307,7 +312,7 @@ export function actionIcon(action: string, resource?: string) {
           resource === "users"
             ? "block"
             : resource === "pros"
-              ? "shield"
+              ? "search"
               : resource === "announcements" || resource === "library"
                 ? "edit"
                 : "settings",

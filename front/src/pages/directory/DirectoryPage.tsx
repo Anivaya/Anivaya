@@ -250,9 +250,28 @@ export default function DirectoryPage({
             {list.map((p) => (
               <article className="pro-card" key={p.id}>
                 <div className="pro-top">
-                  <span className="profession-icon">
+                  {/* Icône, service et nom ouvrent la fiche ; le nom est le bouton accessible au clavier. */}
+                  <span
+                    className="profession-icon pro-open"
+                    onClick={() => setView(p)}
+                  >
                     <Icon name={icons[p.icon] || p.icon} />
                   </span>
+                  {/* Nom de l’établissement, puis type de service, à droite de l’icône. */}
+                  <div className="pro-heading">
+                    <h3>
+                      <button
+                        type="button"
+                        className="pro-title"
+                        onClick={() => setView(p)}
+                      >
+                        {p.name}
+                      </button>
+                    </h3>
+                    <p className="category pro-open" onClick={() => setView(p)}>
+                      {p.category}
+                    </p>
+                  </div>
                   <button
                     className={
                       "icon-button" +
@@ -276,8 +295,6 @@ export default function DirectoryPage({
                   </button>
                 </div>
                 <div className="pro-body">
-                  <p className="category">{p.category}</p>
-                  <h3>{p.name}</h3>
                   <p className="location">
                     <Icon name="pin" />
                     {p.district}
@@ -468,8 +485,8 @@ export default function DirectoryPage({
               <Icon name={icons[view.icon] || view.icon} />
             </span>
             <div>
-              <p className="category">{view.category}</p>
               <h2 id="action-title">{view.name}</h2>
+              <p className="category">{view.category}</p>
               <p className="location">
                 <Icon name="pin" />
                 {view.city} · {view.district}
@@ -477,22 +494,26 @@ export default function DirectoryPage({
             </div>
           </div>
           <p>{view.about}</p>
-          <p>
+          {/* Ligne du statut : le drapeau « Signaler » à droite. */}
+          <div className="status-line">
             <span className="admin-badge">
               {view.verification === "Validé"
                 ? "Dossier vérifié"
                 : "Vérification en cours"}
             </span>
-          </p>
-          <button
-            className="button outline"
-            onClick={() => {
-              setReport(view);
-              setView(null);
-            }}
-          >
-            Signaler cette fiche
-          </button>
+            <button
+              type="button"
+              className="admin-icon-button is-danger report-icon"
+              aria-label="Signaler cette fiche"
+              title="Signaler cette fiche"
+              onClick={() => {
+                setReport(view);
+                setView(null);
+              }}
+            >
+              <Icon name="flag" />
+            </button>
+          </div>
           <dl className="detail-grid">
             <div>
               <dt>Adresse</dt>

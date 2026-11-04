@@ -195,21 +195,27 @@ export default function ContactPage({
                 </div>
                 <h3>Avant de nous écrire</h3>
                 <details>
-                  <summary>Où retrouver mes documents ?</summary>
+                  <summary className="toggle-summary">
+                    Où retrouver mes documents ?
+                  </summary>
                   <p>
                     Dans votre espace, ouvrez Documents ou le carnet de l’animal
                     concerné.
                   </p>
                 </details>
                 <details>
-                  <summary>Comment gérer un partage ?</summary>
+                  <summary className="toggle-summary">
+                    Comment gérer un partage ?
+                  </summary>
                   <p>
                     La page Partage regroupe vos partages et vos personnes de
                     confiance.
                   </p>
                 </details>
                 <details>
-                  <summary>J’ai oublié mon mot de passe.</summary>
+                  <summary className="toggle-summary">
+                    J’ai oublié mon mot de passe.
+                  </summary>
                   <p>
                     <a href="#reinitialisation">
                       Demander une réinitialisation

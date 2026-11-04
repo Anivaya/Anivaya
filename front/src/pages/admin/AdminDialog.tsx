@@ -10,7 +10,13 @@ import SubmissionForm, { Field } from "../../shared/forms/SubmissionForm.tsx";
 import type { ValidationState } from "../../shared/types.ts";
 import { adminApi } from "../../shared/services/admin.ts";
 import { readFile } from "../../shared/services/api.ts";
-import { actionsFor, adminLink, isDangerAction, statusTone } from "./config.ts";
+import {
+  actionIcon,
+  actionsFor,
+  adminLink,
+  isDangerAction,
+  statusTone,
+} from "./config.ts";
 import AdminIconButton from "./AdminIconButton.tsx";
 
 const PROOF_TYPES = ["application/pdf", "image/jpeg", "image/png"];
@@ -716,17 +722,19 @@ export default function AdminDialog({
                 accessibles depuis cet écran.
               </p>
             )}
-            <div className="admin-dialog-actions">
-              {actions.map((a) => (
-                <button
+            {/* Actions en icônes sur une ligne : les autres à gauche, les risquées à droite. */}
+            <div className="admin-dialog-actions admin-record-actions">
+              {[
+                ...actions.filter((a) => !isDangerAction(a.id)),
+                ...actions.filter((a) => isDangerAction(a.id)),
+              ].map((a) => (
+                <AdminIconButton
                   key={a.id}
-                  className={
-                    "button outline" + (isDangerAction(a.id) ? " danger" : "")
-                  }
+                  icon={actionIcon(a.id, resource, a.label)}
+                  label={a.label}
+                  danger={isDangerAction(a.id)}
                   onClick={() => setAction(a.id)}
-                >
-                  {a.label}
-                </button>
+                />
               ))}
             </div>
           </>
