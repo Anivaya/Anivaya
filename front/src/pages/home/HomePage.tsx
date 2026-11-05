@@ -118,10 +118,8 @@ function useHomeMotion(
           if (photo)
             animate(
               photo,
-              [
-                { opacity: 0, transform: "scale(1.045)" },
-                { opacity: 1, transform: "scale(1)" },
-              ],
+              // Simple fondu, sans effet d’agrandissement.
+              [{ opacity: 0 }, { opacity: 1 }],
               { duration: 800 },
             );
           screen.querySelector(".steps")?.classList.add("steps-revealed");

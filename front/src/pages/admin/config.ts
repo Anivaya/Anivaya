@@ -1,9 +1,87 @@
 import type { CSSProperties } from "react";
+import type { EmptyKind } from "../../shared/ui/EmptyIllustration.tsx";
 import type {
   AdminResource,
   AdminRole,
   AdminRecord,
 } from "../../../../shared/admin.ts";
+export const adminEmptyStates: Record<
+  AdminResource,
+  { kind: EmptyKind; title: string; description: string }
+> = {
+  users: {
+    kind: "people",
+    title: "Aucun compte à afficher",
+    description: "Les comptes inscrits sur Anivaya apparaîtront ici.",
+  },
+  pros: {
+    kind: "people",
+    title: "Aucun professionnel à afficher",
+    description: "Les inscriptions des professionnels apparaîtront ici.",
+  },
+  team: {
+    kind: "people",
+    title: "Aucun membre à afficher",
+    description: "Les membres de votre équipe apparaîtront ici.",
+  },
+  reports: {
+    kind: "actions",
+    title: "Aucun signalement à traiter",
+    description: "Les nouveaux signalements apparaîtront ici.",
+  },
+  appeals: {
+    kind: "actions",
+    title: "Aucun recours à examiner",
+    description: "Les demandes de nouvel examen apparaîtront ici.",
+  },
+  deletions: {
+    kind: "actions",
+    title: "Aucune demande de suppression",
+    description: "Les demandes des utilisateurs apparaîtront ici.",
+  },
+  tickets: {
+    kind: "conversations",
+    title: "Aucune demande d’assistance",
+    description: "Les échanges avec les utilisateurs apparaîtront ici.",
+  },
+  feedback: {
+    kind: "conversations",
+    title: "Aucun retour utilisateur",
+    description: "Les remarques et suggestions apparaîtront ici.",
+  },
+  imports: {
+    kind: "documents",
+    title: "Aucun import à afficher",
+    description: "Les imports assistés par IA apparaîtront ici.",
+  },
+  library: {
+    kind: "documents",
+    title: "Aucun contenu à afficher",
+    description: "Les guides et leurs versions apparaîtront ici.",
+  },
+  announcements: {
+    kind: "documents",
+    title: "Aucune annonce à afficher",
+    description:
+      "Les annonces préparées pour vos utilisateurs apparaîtront ici.",
+  },
+  security: {
+    kind: "actions",
+    title: "Aucune action de sécurité",
+    description: "Les événements de sécurité apparaîtront ici.",
+  },
+  history: {
+    kind: "actions",
+    title: "Aucune action enregistrée",
+    description: "Les actions de votre équipe apparaîtront ici.",
+  },
+  alerts: {
+    kind: "reminders",
+    title: "Vous êtes à jour",
+    description: "Les dossiers nécessitant votre attention apparaîtront ici.",
+  },
+};
+
 export const adminPages: Record<
   string,
   {

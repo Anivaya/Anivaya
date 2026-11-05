@@ -234,7 +234,7 @@
 }
 dialog.sharing-modal {
   width: min(640px, calc(100% - 30px));
-  max-height: 90vh;
+  max-height: calc(90vh / var(--zoom, 1));
   overflow: auto;
 }
 dialog.sharing-modal h2 {

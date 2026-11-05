@@ -77,7 +77,7 @@
 .auth-page .auth-shell {
   position: relative;
   isolation: isolate;
-  min-height: 100vh;
+  min-height: calc(100vh / var(--zoom, 1));
   overflow: hidden;
 }
 .auth-page .brand img {
@@ -268,7 +268,7 @@
 }
 .auth-page .modal {
   width: min(460px, calc(100% - 30px));
-  max-height: calc(100dvh - 30px);
+  max-height: calc(calc(100dvh / var(--zoom, 1)) - 30px);
   overflow: auto;
   border: 1px solid var(--line);
   border-radius: 15px;

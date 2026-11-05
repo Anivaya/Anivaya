@@ -1,3 +1,4 @@
+import EmptyState from "../../shared/ui/EmptyState.tsx";
 import type { PageProps, Actions, Animal, Person } from "../../shared/types.ts";
 import { useState } from "react";
 import PageHeading from "../../shared/layout/PageHeading.tsx";
@@ -17,6 +18,9 @@ export default function SharingPage({
 }: PageProps) {
   const peopleTab = section === "personnes";
   const receivedTab = section === "recus";
+  const hasContent =
+    (receivedTab ? data.receivedShares : peopleTab ? data.people : data.shares)
+      .length > 0;
   const pending = data.receivedShares.filter(
     (s) => s.state === "pending",
   ).length;
@@ -24,6 +28,7 @@ export default function SharingPage({
     <div className="sharing-page">
       <PageHeading
         title="Partage"
+        hasContent={hasContent}
         description="Les bonnes informations, aux personnes que vous choisissez."
         actionLabel="Partager des documents"
         showPlus={false}
@@ -53,24 +58,31 @@ export default function SharingPage({
       </nav>
       {receivedTab ? (
         <>
-          <div className="sharing-summary">
-            <span>{pending} invitation(s) en attente</span>
-            <span>
-              {data.receivedShares.filter((s) => s.state === "accepted").length}{" "}
-              accès actif(s)
-            </span>
-          </div>
+          {hasContent && (
+            <div className="sharing-summary">
+              <span>{pending} invitation(s) en attente</span>
+              <span>
+                {
+                  data.receivedShares.filter((s) => s.state === "accepted")
+                    .length
+                }{" "}
+                accès actif(s)
+              </span>
+            </div>
+          )}
           <ReceivedShares shares={data.receivedShares} actions={actions} />
         </>
       ) : (
         <>
-          <div className="sharing-summary">
-            <span>{data.people.length} personne(s)</span>
-            <span>
-              {data.shares.filter((s) => s.status === "active").length}{" "}
-              partage(s) actif(s)
-            </span>
-          </div>
+          {hasContent && (
+            <div className="sharing-summary">
+              <span>{data.people.length} personne(s)</span>
+              <span>
+                {data.shares.filter((s) => s.status === "active").length}{" "}
+                partage(s) actif(s)
+              </span>
+            </div>
+          )}
           <SharingContent
             key={`${peopleTab}-${animal}`}
             data={data}
@@ -80,10 +92,12 @@ export default function SharingPage({
           />
         </>
       )}
-      <p className="share-note">
-        Les documents sont partagés en lecture seule, jusqu’à la date choisie.
-        Vous pouvez retirer un accès à tout moment.
-      </p>
+      {hasContent && (
+        <p className="share-note">
+          Les documents sont partagés en lecture seule, jusqu’à la date choisie.
+          Vous pouvez retirer un accès à tout moment.
+        </p>
+      )}
     </div>
   );
 }
@@ -116,6 +130,21 @@ function SharingContent({
       ? [{ share, doc }]
       : [];
   });
+  if (!(peopleTab ? data.people : data.shares).length)
+    return (
+      <EmptyState
+        kind={peopleTab ? "people" : "documents"}
+        title={
+          peopleTab ? "Aucune personne de confiance" : "Aucun document partagé"
+        }
+        description={
+          peopleTab
+            ? "Vos proches et professionnels de confiance apparaîtront ici."
+            : "Les documents que vous partagez apparaîtront ici."
+        }
+        className="sharing-panel"
+      />
+    );
   return (
     <section className="sharing-panel">
       <div className="sharing-heading">
@@ -179,23 +208,7 @@ function SharingContent({
             actions={actions}
           />
         ) : (
-          <div className="share-empty">
-            <h3>
-              {data.people.length
-                ? "Aucune personne pour ces filtres"
-                : "Entourez vos compagnons"}
-            </h3>
-            <p>
-              Enregistrez un proche ou un professionnel, puis choisissez les
-              animaux auxquels l’associer.
-            </p>
-            <button
-              className="button outline"
-              onClick={() => actions.openDialog("add-person", { animal })}
-            >
-              Ajouter une personne
-            </button>
-          </div>
+          <EmptyState kind="people" className="share-empty" filtered />
         )
       ) : (
         <>
@@ -238,25 +251,7 @@ function SharingContent({
             </article>
           ))}
           {!shares.length && (
-            <div className="share-empty">
-              <h3>
-                {data.shares.length
-                  ? "Aucun partage pour ces filtres"
-                  : "Vous choisissez ce que vous partagez"}
-              </h3>
-              <p>
-                Sélectionnez vos documents et une ou plusieurs personnes. Chaque
-                partage possède sa propre date de fin.
-              </p>
-              <button
-                className="button outline"
-                onClick={() =>
-                  actions.openDialog("share-documents", { animal })
-                }
-              >
-                Partager des documents
-              </button>
-            </div>
+            <EmptyState kind="documents" className="share-empty" filtered />
           )}
         </>
       )}
@@ -280,9 +275,12 @@ export function PeopleList({
 }) {
   if (!people.length)
     return (
-      <p className="share-empty">
-        Aucune personne de confiance pour le moment.
-      </p>
+      <EmptyState
+        kind="people"
+        compact
+        title="Aucune personne de confiance"
+        description="Les contacts associés à ce carnet apparaîtront ici."
+      />
     );
   return people.map((person) => (
     <article className="person-card" key={person.id}>

@@ -77,10 +77,10 @@
 .record-page .layout {
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr);
-  min-height: 100vh;
+  min-height: calc(100vh / var(--zoom, 1));
 }
 .record-page .sidebar {
-  height: 100vh;
+  height: calc(100vh / var(--zoom, 1));
   position: sticky;
   top: 0;
   background: white;
@@ -521,7 +521,7 @@
   border-radius: 18px;
   padding: 25px;
   color: var(--navy);
-  max-height: 90vh;
+  max-height: calc(90vh / var(--zoom, 1));
   overflow: auto;
 }
 .record-page dialog::backdrop {

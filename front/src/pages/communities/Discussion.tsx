@@ -26,7 +26,7 @@ export default function Discussion({
 }) {
   if (!thread)
     return (
-      <Empty title="Discussion inaccessible">
+      <Empty kind={null} title="Discussion inaccessible">
         Vous n’avez pas accès à cette conversation.
       </Empty>
     );
@@ -76,14 +76,13 @@ function ThreadView({
     const element = list.current;
     if (element && pinned.current) element.scrollTop = element.scrollHeight;
   };
-  // À l’ouverture : bas de la discussion, et la page amène la discussion à l’écran.
+  // À l’ouverture : bas de la discussion. Seule la messagerie amène la discussion à l’écran ;
+  // les pages de communauté et d’événement s’ouvrent en haut.
   useEffect(() => {
     const element = list.current;
     if (!element) return;
     element.scrollTop = element.scrollHeight;
-    element
-      .closest(".social-discussion, .conversation-detail")
-      ?.scrollIntoView({ block: "end" });
+    element.closest(".conversation-detail")?.scrollIntoView({ block: "end" });
   }, []);
   // Nouveau message : on suit s’il était déjà en bas.
   useEffect(stickToBottom, [lastId]);
@@ -331,9 +330,11 @@ function ThreadView({
           })}
         </ol>
         {!messages.length && (
-          <p className="chat-start">
-            La conversation commence ici. Un petit bonjour ?
-          </p>
+          <Empty title="La conversation commence ici">
+            {thread.canSend
+              ? "Envoyez un premier bonjour aux participants."
+              : "Les premiers messages apparaîtront ici."}
+          </Empty>
         )}
         <div ref={sentinel} aria-hidden="true" />
       </div>

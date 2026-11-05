@@ -1,3 +1,4 @@
+import EmptyState from "../../shared/ui/EmptyState.tsx";
 import { useEffect, useRef, useState } from "react";
 import type {
   AdminAnalytics as Analytics,
@@ -76,94 +77,114 @@ export default function AdminAnalytics() {
               : `Photographie au ${new Date(data.asOf).toLocaleDateString("fr-FR")} des comptes de cette installation. L’activité est mesurée depuis la mise en place du suivi : les carnets plus anciens comptent à partir de cette date.`}
           </p>
         )}
-        <div className="admin-toolbar admin-metric-filters">
-          <label>
-            Zone
-            <select value={zone} onChange={(e) => setZone(e.target.value)}>
-              <option value="">Toutes les zones</option>
-              {data?.zones.map((v) => (
-                <option key={v}>{v}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Origine
-            <select
-              value={channel}
-              onChange={(e) => setChannel(e.target.value)}
+        {(!!data?.cohorts.length || zone || channel) && (
+          <div className="admin-toolbar admin-metric-filters">
+            <label>
+              Zone
+              <select value={zone} onChange={(e) => setZone(e.target.value)}>
+                <option value="">Toutes les zones</option>
+                {data?.zones.map((v) => (
+                  <option key={v}>{v}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Origine
+              <select
+                value={channel}
+                onChange={(e) => setChannel(e.target.value)}
+              >
+                <option value="">Toutes les origines</option>
+                {data?.channels.map((v) => (
+                  <option key={v}>{v}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+        )}
+        {data &&
+        !updating &&
+        !result?.error &&
+        !values.some((value) => value.total > 0) ? (
+          <EmptyState kind="data" />
+        ) : (
+          <>
+            <div
+              className="admin-metric-grid"
+              style={indicatorColumns(values.length)}
             >
-              <option value="">Toutes les origines</option>
-              {data?.channels.map((v) => (
-                <option key={v}>{v}</option>
+              {[
+                "Activation sous 7 jours",
+                "Animaux activement suivis",
+                "Rétention J30",
+                "Rétention M3",
+                "Rétention M6",
+              ].map((label, i) => (
+                <article className="admin-metric-card" key={label}>
+                  <span>{label}</span>
+                  <strong>
+                    <AnimatedPercent value={percents[i]} />
+                  </strong>
+                  {/* Jauge décorative : la valeur est déjà lue dans le pourcentage. */}
+                  <span className="admin-metric-bar" aria-hidden="true">
+                    <span style={{ width: `${percents[i] ?? 0}%` }} />
+                  </span>
+                  <small>
+                    {data?.available
+                      ? `${ratio(values[i])}${values[i].total ? "" : " · aucune cohorte éligible"}`
+                      : "Mesure non disponible"}
+                  </small>
+                </article>
               ))}
-            </select>
-          </label>
-        </div>
-        <div
-          className="admin-metric-grid"
-          style={indicatorColumns(values.length)}
-        >
-          {[
-            "Activation sous 7 jours",
-            "Animaux activement suivis",
-            "Rétention J30",
-            "Rétention M3",
-            "Rétention M6",
-          ].map((label, i) => (
-            <article className="admin-metric-card" key={label}>
-              <span>{label}</span>
-              <strong>
-                <AnimatedPercent value={percents[i]} />
-              </strong>
-              {/* Jauge décorative : la valeur est déjà lue dans le pourcentage. */}
-              <span className="admin-metric-bar" aria-hidden="true">
-                <span style={{ width: `${percents[i] ?? 0}%` }} />
-              </span>
-              <small>
-                {data?.available
-                  ? `${ratio(values[i])}${values[i].total ? "" : " · aucune cohorte éligible"}`
-                  : "Mesure non disponible"}
-              </small>
-            </article>
-          ))}
-        </div>
-        <AdminDisclosure
-          className="admin-definitions"
-          label="Comprendre les indicateurs et les périodes"
-        >
-          <ul>
-            <li>
-              Activation : au moins un animal avec profil complété et rappel
-              créé dans les 7 jours suivant l’inscription. Seuls les foyers
-              inscrits depuis au moins 7 jours entrent dans le dénominateur.
-            </li>
-            <li>
-              Animal activement suivi : rappel programmé et interaction avec son
-              dossier dans les 30 derniers jours.
-            </li>
-            <li>
-              Rétention : interaction pendant J30–J59, J90–J119 (M3) ou
-              J180–J209 (M6). La fenêtre entière doit être terminée.
-            </li>
-            <li>
-              Chaque ratio indique le numérateur et le dénominateur. « — »
-              indique une absence de mesure ou de cohorte éligible, pas un taux
-              nul.
-            </li>
-          </ul>
-        </AdminDisclosure>
+            </div>
+            <AdminDisclosure
+              className="admin-definitions"
+              label="Comprendre les indicateurs et les périodes"
+            >
+              <ul>
+                <li>
+                  Activation : au moins un animal avec profil complété et rappel
+                  créé dans les 7 jours suivant l’inscription. Seuls les foyers
+                  inscrits depuis au moins 7 jours entrent dans le dénominateur.
+                </li>
+                <li>
+                  Animal activement suivi : rappel programmé et interaction avec
+                  son dossier dans les 30 derniers jours.
+                </li>
+                <li>
+                  Rétention : interaction pendant J30–J59, J90–J119 (M3) ou
+                  J180–J209 (M6). La fenêtre entière doit être terminée.
+                </li>
+                <li>
+                  Chaque ratio indique le numérateur et le dénominateur. « — »
+                  indique une absence de mesure ou de cohorte éligible, pas un
+                  taux nul.
+                </li>
+              </ul>
+            </AdminDisclosure>
+          </>
+        )}
         <h3>Par mois d’inscription</h3>
-        <div
-          className="admin-table-panel admin-table-scroll"
-          role="region"
-          aria-label="Cohortes par mois"
-          tabIndex={0}
-        >
-          <table>
-            <thead>
-              <tr>
-                {["Cohorte", "Foyers", "Activation J7", "J30", "M3", "M6"].map(
-                  (t) => (
+        {data && !updating && !result?.error && !data.cohorts.length ? (
+          <EmptyState kind="data" />
+        ) : (
+          <div
+            className="admin-table-panel admin-table-scroll"
+            role="region"
+            aria-label="Cohortes par mois"
+            tabIndex={0}
+          >
+            <table>
+              <thead>
+                <tr>
+                  {[
+                    "Cohorte",
+                    "Foyers",
+                    "Activation J7",
+                    "J30",
+                    "M3",
+                    "M6",
+                  ].map((t) => (
                     <th
                       scope="col"
                       key={t}
@@ -204,38 +225,34 @@ export default function AdminAnalytics() {
                         t
                       )}
                     </th>
-                  ),
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {data?.cohorts
-                .slice()
-                .sort((a, b) =>
-                  cohortSort === "asc"
-                    ? a.month.localeCompare(b.month)
-                    : b.month.localeCompare(a.month),
-                )
-                ?.map((c) => (
-                  <tr key={c.month}>
-                    <th scope="row">{c.month}</th>
-                    <td>{c.households}</td>
-                    <td>{ratio(c.activation)}</td>
-                    {c.retention.map((r, i) => (
-                      <td key={i}>{ratio(r)}</td>
-                    ))}
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-          {data && !data.cohorts.length && (
-            <p className="admin-empty">
-              {data.available
-                ? "Aucune cohorte pour ces filtres."
-                : "Aucune cohorte mesurée pour le moment."}
-            </p>
-          )}
-        </div>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {data?.cohorts
+                  .slice()
+                  .sort((a, b) =>
+                    cohortSort === "asc"
+                      ? a.month.localeCompare(b.month)
+                      : b.month.localeCompare(a.month),
+                  )
+                  ?.map((c) => (
+                    <tr key={c.month}>
+                      <th scope="row">{c.month}</th>
+                      <td>{c.households}</td>
+                      <td>{ratio(c.activation)}</td>
+                      {c.retention.map((r, i) => (
+                        <td key={i}>{ratio(r)}</td>
+                      ))}
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+            {data && !updating && !result?.error && !data.cohorts.length && (
+              <EmptyState kind="data" className="admin-empty" />
+            )}
+          </div>
+        )}
       </section>
     </div>
   );

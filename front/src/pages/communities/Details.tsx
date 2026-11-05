@@ -1,3 +1,4 @@
+import EmptyState from "../../shared/ui/EmptyState.tsx";
 import { api } from "../../shared/services/api.ts";
 import Icon from "../../shared/ui/Icon.tsx";
 import { BackLink, Empty, IconButton, PersonLink } from "./Common.tsx";
@@ -18,7 +19,7 @@ export function CommunityDetail({
     return (
       <>
         <BackLink tab="communautes" />
-        <Empty title="Communauté introuvable">
+        <Empty kind={null} title="Communauté introuvable">
           Cette communauté a été supprimée.
         </Empty>
       </>
@@ -129,7 +130,7 @@ export function CommunityDetail({
               thread={data.threads.find((t) => t.id === group.thread)}
             />
           ) : (
-            <Empty title="Faites connaissance">
+            <Empty kind={null} title="Faites connaissance">
               Rejoignez la communauté pour lire et participer à la discussion.
             </Empty>
           )}
@@ -148,7 +149,7 @@ export function CommunityDetail({
               </a>
             ))
           ) : (
-            <p>Aucun rendez-vous pour le moment.</p>
+            <EmptyState kind="events" compact />
           )}
           {joined && (
             <button
@@ -177,7 +178,7 @@ export function EventDetail({ ctx, id }: { ctx: SocialContext; id: string }) {
     return (
       <>
         <BackLink tab="evenements" />
-        <Empty title="Événement introuvable">
+        <Empty kind={null} title="Événement introuvable">
           Revenez à la liste des événements.
         </Empty>
       </>
@@ -301,7 +302,7 @@ export function EventDetail({ ctx, id }: { ctx: SocialContext; id: string }) {
             thread={data.threads.find((t) => t.id === event.thread)}
           />
         ) : (
-          <Empty title="Retrouvez les participants">
+          <Empty kind={null} title="Retrouvez les participants">
             Inscrivez-vous pour accéder à la discussion de l’événement.
           </Empty>
         )}

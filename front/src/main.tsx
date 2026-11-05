@@ -19,6 +19,7 @@ import "./css/ai-import.css";
 import "./css/admin.css";
 import "./css/buttons.css";
 import App from "./App.tsx";
+import { startWideZoom } from "./shared/wideZoom.ts";
 
 // Un rafraîchissement rouvre la page tout en haut au lieu de reprendre l’ancienne position.
 // Les discussions (messagerie, communautés, événements) se placent elles-mêmes sur leurs messages.
@@ -58,6 +59,9 @@ document.addEventListener(
   },
   true,
 );
+
+// Écrans plus larges que 1440 px : mise en page de 1440 px agrandie (voir wideZoom.ts).
+startWideZoom();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

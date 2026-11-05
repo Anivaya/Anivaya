@@ -10,6 +10,7 @@ import Icon from "../../shared/ui/Icon.tsx";
 import PageHeading from "../../shared/layout/PageHeading.tsx";
 import { matches } from "../../shared/utils/format.ts";
 import { Empty } from "./Common.tsx";
+import EmptyState from "../../shared/ui/EmptyState.tsx";
 import { CommunityDetail, EventDetail } from "./Details.tsx";
 import SocialDialogView from "./Dialogs.tsx";
 import Messaging from "./Messaging.tsx";
@@ -241,6 +242,27 @@ function SocialList({
         : Date.parse(a.date) - Date.parse(b.date),
     );
   const list = tab === "communautes" ? communities : events;
+  if (
+    !(
+      tab === "communautes"
+        ? data.communities
+        : tab === "evenements"
+          ? data.events
+          : data.threads
+    ).length &&
+    !id
+  )
+    return (
+      <EmptyState
+        kind={
+          tab === "communautes"
+            ? "communities"
+            : tab === "evenements"
+              ? "events"
+              : "conversations"
+        }
+      />
+    );
   return (
     <>
       <div className="social-toolbar">
@@ -328,8 +350,23 @@ function SocialList({
                   .map((e) => <EventCard key={e.id} ctx={ctx} event={e} />)}
           </div>
           {!list.length && (
-            <Empty title="Aucun résultat">
-              Essayez une autre recherche ou créez votre première rencontre.
+            <Empty
+              kind={tab === "communautes" ? "communities" : "events"}
+              title={
+                search
+                  ? "Aucun résultat"
+                  : tab === "communautes"
+                    ? "Aucune communauté à afficher"
+                    : "Aucun événement à afficher"
+              }
+            >
+              {search
+                ? "Essayez un autre nom ou une autre ville."
+                : tab === "communautes"
+                  ? "Explorez les communautés ou créez la vôtre."
+                  : filter === "mine"
+                    ? "Rejoignez un événement ou proposez une rencontre."
+                    : "Changez de filtre ou proposez une rencontre entre compagnons."}
             </Empty>
           )}
           {list.length > limit && (

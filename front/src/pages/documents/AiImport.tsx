@@ -375,7 +375,6 @@ export default function AiImport({
     <Modal busy={false} onClose={askClose} header={false} className="ai-import">
       <div className="ai-heading">
         <div>
-          <p className="ai-eyebrow">IMPORT ASSISTÉ PAR IA</p>
           <h2 id="action-title" tabIndex={-1}>
             {TITLES[step]}
           </h2>

@@ -1,3 +1,4 @@
+import EmptyState from "../../shared/ui/EmptyState.tsx";
 import { useEffect, useState } from "react";
 import type { AdminRecord } from "../../../../shared/admin.ts";
 import { adminApi } from "../../shared/services/admin.ts";
@@ -51,9 +52,11 @@ export default function SupportPanel({
         Retrouvez les réponses de l’équipe et les décisions concernant vos
         signalements.
       </p>
-      <button className="button" onClick={() => setOpen(true)}>
-        Demander un nouvel examen
-      </button>
+      {!!items?.length && (
+        <button className="button" onClick={() => setOpen(true)}>
+          Demander un nouvel examen
+        </button>
+      )}
       <p role="status">{notice}</p>
       {error ? (
         <div role="alert">
@@ -90,7 +93,11 @@ export default function SupportPanel({
             </article>
           ))}
           {!items.length && (
-            <p>Aucune demande enregistrée pour votre compte.</p>
+            <EmptyState
+              kind="conversations"
+              title="Aucune demande en cours"
+              description="Vos échanges avec l’équipe Anivaya apparaîtront ici."
+            />
           )}
         </div>
       )}

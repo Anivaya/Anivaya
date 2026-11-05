@@ -1,3 +1,4 @@
+import EmptyState from "../../shared/ui/EmptyState.tsx";
 import type { Document, DialogProps } from "../../shared/types.ts";
 import { errorMessage } from "../../shared/types.ts";
 import SubmissionForm, {
@@ -48,18 +49,13 @@ export function DocumentDetails({
           </a>
         </>
       ) : (
-        <div className="empty">
-          <p>
-            Il s’agit d’un document d’exemple : aucun fichier réel n’est
-            associé.
-          </p>
-          <button
-            className="button outline"
-            onClick={() => onOpenDialog("edit-document", item)}
-          >
-            Associer un fichier
-          </button>
-        </div>
+        <EmptyState
+          kind="documents"
+          className="empty"
+          compact
+          title="Aucun fichier joint"
+          description="Ce document ne contient pas encore de fichier à prévisualiser."
+        />
       )}
       <div className="dialog-actions">
         <button

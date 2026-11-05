@@ -1,3 +1,4 @@
+import EmptyState from "../../shared/ui/EmptyState.tsx";
 import { useEffect, useRef, useState } from "react";
 import type { Notification, PageProps } from "../../shared/types.ts";
 import { errorMessage } from "../../shared/types.ts";
@@ -74,69 +75,77 @@ export default function NotificationsPage({ data, actions }: PageProps) {
           <h1>Vos notifications</h1>
           <p>Les nouvelles de vos compagnons, au même endroit.</p>
         </div>
-        <a className="button outline" href="#profil/notifications">
-          Mes préférences
-        </a>
+        {data.notifications.length > 0 && (
+          <a className="button outline" href="#profil/notifications">
+            Mes préférences
+          </a>
+        )}
       </div>
-      <div className="notification-toolbar">
-        <div
-          className="notification-tabs"
-          role="group"
-          aria-label="Afficher les notifications"
-          ref={filters}
-        >
-          <button
-            type="button"
-            aria-pressed={!unreadOnly}
-            onClick={() => setUnreadOnly(false)}
+      {data.notifications.length > 0 && (
+        <div className="notification-toolbar">
+          <div
+            className="notification-tabs"
+            role="group"
+            aria-label="Afficher les notifications"
+            ref={filters}
           >
-            Toutes
-          </button>
-          <button
-            type="button"
-            aria-pressed={unreadOnly}
-            onClick={() => setUnreadOnly(true)}
-          >
-            Non lues {unread}
-          </button>
+            <button
+              type="button"
+              aria-pressed={!unreadOnly}
+              onClick={() => setUnreadOnly(false)}
+            >
+              Toutes
+            </button>
+            <button
+              type="button"
+              aria-pressed={unreadOnly}
+              onClick={() => setUnreadOnly(true)}
+            >
+              Non lues {unread}
+            </button>
+          </div>
+          <div className="notification-category">
+            <label htmlFor="category-filter">Catégorie</label>
+            <select
+              id="category-filter"
+              value={category}
+              onChange={(e) => setCategory(e.target.value as Category | "all")}
+            >
+              <option value="all">Toutes les catégories</option>
+              {(Object.keys(categories) as Category[]).map((key) => (
+                <option key={key} value={key}>
+                  {categories[key][0]}
+                </option>
+              ))}
+            </select>
+          </div>
+          {visible.length > 0 && (
+            <button
+              className="button outline"
+              type="button"
+              disabled={!unread}
+              onClick={() =>
+                update(
+                  api.readAllNotifications(),
+                  "Toutes vos notifications sont marquées comme lues.",
+                )
+              }
+            >
+              Tout marquer comme lu
+            </button>
+          )}
         </div>
-        <div className="notification-category">
-          <label htmlFor="category-filter">Catégorie</label>
-          <select
-            id="category-filter"
-            value={category}
-            onChange={(e) => setCategory(e.target.value as Category | "all")}
-          >
-            <option value="all">Toutes les catégories</option>
-            {(Object.keys(categories) as Category[]).map((key) => (
-              <option key={key} value={key}>
-                {categories[key][0]}
-              </option>
-            ))}
-          </select>
-        </div>
-        <button
-          className="button outline"
-          type="button"
-          disabled={!unread}
-          onClick={() =>
-            update(
-              api.readAllNotifications(),
-              "Toutes vos notifications sont marquées comme lues.",
-            )
-          }
-        >
-          Tout marquer comme lu
-        </button>
-      </div>
+      )}
       {error && (
         <p className="profile-feedback error" role="alert">
           {error}
         </p>
       )}
-      <p className="muted" aria-live="polite">
-        {visible.length} notification{visible.length > 1 ? "s" : ""}
-      </p>
+      {visible.length > 0 && (
+        <p className="muted" aria-live="polite">
+          {visible.length} notification{visible.length > 1 ? "s" : ""}
+        </p>
+      )}
       {visible.length ? (
         <div className="notification-list">
           {visible.map((n) => (
@@ -177,20 +186,13 @@ export default function NotificationsPage({ data, actions }: PageProps) {
           ))}
         </div>
       ) : (
-        <div className="empty-notifications">
-          <h2>Vous êtes à jour.</h2>
-          <p>Aucune notification ne correspond à ce filtre.</p>
-          <button
-            className="button outline"
-            type="button"
-            onClick={() => {
-              setUnreadOnly(false);
-              setCategory("all");
-            }}
-          >
-            Voir toutes les notifications
-          </button>
-        </div>
+        <EmptyState
+          kind="reminders"
+          className="empty-notifications"
+          title="Vous êtes à jour"
+          description="Les nouvelles de vos compagnons apparaîtront ici."
+          filtered={data.notifications.length > 0}
+        />
       )}
     </div>
   );

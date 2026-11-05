@@ -26,6 +26,7 @@ import { directoryRepository } from "./directory.ts";
 import { profileRepository } from "./profile.ts";
 import type { Household } from "./admin-analytics.ts";
 import { sampleOrigin, seedSamples } from "./admin-samples.ts";
+import { emptyStateMode } from "../database/empty-state.ts";
 import { appUrl, sendMail } from "./mail.ts";
 
 interface Row {
@@ -111,7 +112,7 @@ const ACCOUNT_ACTIONS = [
 const INVITATION_DAYS = 14;
 
 /** Service central : aucune décision d'autorisation ne dépend du rôle envoyé par React. */
-export function adminService(db: Database, auth: Authentication) {
+export function adminService(db: Database, auth: Authentication, empty = emptyStateMode()) {
   function role(account: Account): AdminRole {
     const member = db
       .prepare(
@@ -281,7 +282,7 @@ export function adminService(db: Database, auth: Authentication) {
   }
   let seeded = false;
   function seed() {
-    if (seeded) return;
+    if (seeded || empty) return;
     transaction(db, () => {
       if (
         !db.prepare("SELECT key FROM admin_metadata WHERE key='seed-v1'").get()

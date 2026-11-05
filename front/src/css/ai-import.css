@@ -23,7 +23,7 @@
 
 dialog.ai-import {
   width: min(1040px, calc(100% - 28px));
-  max-height: 90dvh;
+  max-height: calc(90dvh / var(--zoom, 1));
   border-radius: 18px;
 }
 .ai-import svg {

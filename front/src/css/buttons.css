@@ -1261,3 +1261,172 @@ select:not([multiple], [size]) {
 .directory-page .pro-card .pro-top > :is(.profession-icon, .icon-button) {
   flex-shrink: 0;
 }
+
+/* En-tête des fenêtres : plus de sur-titre « Mon espace Anivaya », la croix reste à droite. */
+.dialog-top.dialog-top {
+  justify-content: flex-end;
+}
+
+/*
+ * Fenêtres dont le titre suit l’en-tête (fiche de rappel…) : la croix de fermeture se place à
+ * droite du titre, sur sa ligne, au lieu d’une ligne vide au-dessus.
+ */
+.dialog-top.dialog-top:has(+ .dialog-title) {
+  float: right;
+  margin: 0 0 8px 16px;
+}
+.dialog-top:has(+ .dialog-title) + .dialog-title {
+  margin-top: 0;
+  min-height: 36px;
+}
+.dialog-top:has(+ .dialog-title) ~ :not(.dialog-title) {
+  clear: both;
+}
+
+/* Barre latérale : le lien de la page ouverte passe en gras, texte et icône (trait plus épais). */
+.side-nav a[aria-current="page"] {
+  font-weight: 800;
+}
+.side-nav a[aria-current="page"] svg {
+  stroke-width: 2.6;
+}
+.side-nav a svg {
+  transition: stroke-width 0.15s ease;
+}
+
+/*
+ * Accueil, premier écran (au-delà de 1024 px) : le titre et son texte sont centrés
+ * verticalement à côté de la photo. À 1024 px et moins, la mise en page d’origine reste.
+ */
+@media (min-width: 1025px) {
+  .home-page .home-screen .hero > .hero-copy {
+    align-self: center;
+  }
+}
+
+/*
+ * Accueil, premier écran au-delà de 1024 px : même marge en haut et en bas, pour que le titre,
+ * son texte et la photo soient centrés verticalement dans l’écran.
+ */
+@media (min-width: 1025px) {
+  .home-page .home-screen .hero.hero {
+    padding-block: 24px;
+  }
+}
+
+/*
+ * Accueil à 1024 px et moins : positions et tailles d’origine (signature du bloc « confiance »
+ * et étapes de vie sur mobile, avec leur filet).
+ */
+@media (max-width: 1024px) {
+  .public-site .trust-copy .trust-signature {
+    border-left: 3px solid var(--gold);
+    padding: 2px 0 2px 20px;
+  }
+}
+@media (max-width: 750px) {
+  .public-site .life-stages-list li {
+    padding: 0 0 28px 25px;
+    border-left: 2px solid #f1dca7;
+  }
+}
+
+/*
+ * « Comment ça marche », tablette : le trait qui relie les trois étapes, comme sur PC.
+ * Trois colonnes (751 à 1023 px) : trait horizontal entre les numéros, recalé sur l’écart de
+ * 20 px. Étapes empilées et centrées (621 à 750 px) : court trait vertical entre une étape et le numéro suivant (sans traverser le texte).
+ */
+@media (min-width: 751px) and (max-width: 1023px) {
+  .home-page .steps::before {
+    display: block;
+    left: calc((100% - 2 * 20px) / 6);
+    right: calc((100% - 2 * 20px) / 6);
+  }
+}
+@media (min-width: 621px) and (max-width: 750px) {
+  .home-page .steps li {
+    position: relative;
+  }
+  .home-page .steps li:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    left: calc(50% - 1px);
+    top: calc(100% + 4px);
+    height: 19px;
+    width: 2px;
+    background: #ffffff45;
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 0.9s ease 0.15s;
+  }
+  .home-page .steps.steps-revealed li::after {
+    transform: scaleY(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-page .steps li::after {
+    transition: none;
+  }
+}
+
+/* Vos demandes : le texte d’introduction est centré entre le titre et le bouton (même espace). */
+.profile-page .profile-panel.support-panel > h2 {
+  margin-bottom: 15px;
+}
+.profile-page .profile-panel.support-panel > h2 + p {
+  margin: 0 auto 15px;
+}
+
+/*
+ * Pagination, « Par page » : le libellé et la liste sont centrés sur la même ligne, et le nombre
+ * choisi est centré verticalement dans la liste.
+ */
+.admin-pagination label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.admin-pagination select.admin-pagination-select,
+.admin-pagination select {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+/*
+ * Barre latérale, bloc profil : plus compact (marge au-dessus, bouton et avatar réduits) pour
+ * laisser la place aux liens ; il garde 22 px d’espace avec le bas de l’écran.
+ */
+.sidebar > .side-bottom.side-bottom {
+  padding-top: 6px;
+}
+/* Fond du bouton (survol) resserré autour de l’avatar et du nom. */
+.sidebar > .side-bottom .account-trigger {
+  gap: 9px;
+  padding: 7px 9px;
+}
+.sidebar > .side-bottom .profile-avatar {
+  width: 34px;
+  height: 34px;
+  flex-basis: 34px;
+}
+/* Barre latérale sur PC : 16 px entre le profil et le bas de l’écran. */
+@media (min-width: 1025px) {
+  .workspace .sidebar.sidebar {
+    padding-bottom: 16px;
+  }
+}
+
+/*
+ * Liens de la barre latérale : l’espace particulier reprend exactement ceux de l’admin
+ * (écart fixe de 3 px, liens de 42 px de haut au minimum, mêmes marges intérieures).
+ */
+.side-nav.side-nav {
+  gap: 3px;
+}
+.workspace:not(.admin-workspace) .side-nav a {
+  min-height: 42px;
+  padding: 11px 12px;
+  gap: 11px;
+}

@@ -3,6 +3,7 @@ import { DatabaseSync } from "node:sqlite";
 import { mkdirSync, readFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { emptyStateMode } from "./empty-state.ts";
 
 const migrations = [
   "002_animal_records.sql",
@@ -43,7 +44,8 @@ export function transaction<T>(
   }
 }
 
-export function openDatabase(path = databasePath(), demo = true): Database {
+export function openDatabase(path = databasePath(), demo = true, empty = emptyStateMode()): Database {
+  if (emptyStateMode(empty)) demo = false;
   if (path !== ":memory:") mkdirSync(dirname(path), { recursive: true });
   const database = new DatabaseSync(path);
   const applyOnce = (name: string, file: string) => {
@@ -55,6 +57,8 @@ export function openDatabase(path = databasePath(), demo = true): Database {
       return;
     transaction(database, () => {
       database.exec(sql(file));
+      if (empty && name === "005_notifications.sql")
+        database.prepare("DELETE FROM notifications WHERE id='bienvenue'").run();
       database.prepare("INSERT INTO schema_migrations VALUES (?)").run(name);
     });
   };
@@ -75,7 +79,7 @@ export function openDatabase(path = databasePath(), demo = true): Database {
     );
     for (const migration of migrations)
       applyOnce(migration, `./migrations/${migration}`);
-    database.exec(sql("./seeds/professionals.sql"));
+    if (!empty) database.exec(sql("./seeds/professionals.sql"));
     if (demo) {
       applyOnce("directory_demo_bookings", "./seeds/bookings.sql");
       applyOnce("demo_notifications", "./seeds/notifications.sql");

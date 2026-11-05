@@ -50,7 +50,6 @@ export default function Modal({
     >
       {header && (
         <div className="dialog-top">
-          <span>MON ESPACE ANIVAYA</span>
           <button
             type="button"
             className="close"

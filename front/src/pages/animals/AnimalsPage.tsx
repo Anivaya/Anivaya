@@ -1,3 +1,4 @@
+import EmptyState from "../../shared/ui/EmptyState.tsx";
 import type { Animal, PageProps } from "../../shared/types.ts";
 import AnimalRecordPage from "./AnimalRecordPage.tsx";
 import PageHeading from "../../shared/layout/PageHeading.tsx";
@@ -32,6 +33,7 @@ export default function AnimalsPage({
     <>
       <PageHeading
         title="Mes animaux"
+        hasContent={data.animals.length > 0}
         description="Un carnet pour chacun de vos compagnons."
         actionLabel="Ajouter un animal"
         onAction={() => actions.add("animal")}
@@ -56,7 +58,6 @@ export function AnimalsSection({
   animals,
   overview,
   onOpen,
-  onAdd,
 }: {
   animals: Animal[];
   overview?: boolean;
@@ -68,14 +69,19 @@ export function AnimalsSection({
   const perView = overview ? (mobile ? 1 : OVERVIEW_SIZE) : 1;
   const scrollable = animals.length > (overview ? perView : PAGE_SIZE);
   return (
-    <section aria-labelledby="animals-title">
+    <section
+      className={!animals.length ? "panel animals-empty-panel" : undefined}
+      aria-labelledby="animals-title"
+    >
       {/* Sur la page Mes animaux, le titre de la page suffit : celui-ci reste pour les lecteurs d’écran. */}
       {overview ? (
         <div className="section-head">
           <h2 id="animals-title">Mes animaux</h2>
-          <a className="subtle" href="#animaux">
-            Voir mes animaux →
-          </a>
+          {animals.length > 0 && (
+            <a className="subtle" href="#animaux">
+              Voir mes animaux →
+            </a>
+          )}
         </div>
       ) : (
         <h2 id="animals-title" className="sr-only">
@@ -83,12 +89,7 @@ export function AnimalsSection({
         </h2>
       )}
       {!animals.length ? (
-        <div className="empty">
-          <p>Votre foyer n’a pas encore d’animal.</p>
-          <button className="button" onClick={onAdd}>
-            Ajouter un animal
-          </button>
-        </div>
+        <EmptyState kind="animals" compact={overview} />
       ) : scrollable ? (
         <AnimalCarousel
           animals={animals}

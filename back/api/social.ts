@@ -12,6 +12,7 @@ import type {
 } from "../../shared/social.ts";
 import { communityTopics, reportReasons } from "../../shared/social.ts";
 import { transaction } from "../database/connection.ts";
+import { emptyStateMode } from "../database/empty-state.ts";
 import { ApiError, text, upload, isBase64 } from "./validation.ts";
 
 /** Notification déposée dans l’espace d’un compte (messages, demandes d’amis). */
@@ -82,7 +83,7 @@ interface MessageRow {
  * Communautés, événements et messagerie, partagés entre tous les comptes.
  * Les règles reprennent la maquette : accès aux discussions, blocages, propriétaires.
  */
-export function socialService(db: Database, hooks: Hooks) {
+export function socialService(db: Database, hooks: Hooks, empty = emptyStateMode()) {
   db.exec(schema);
   // Photo d’une discussion (groupe, communauté, événement), ajoutée après la première version.
   const threadColumns = db
@@ -93,7 +94,7 @@ export function socialService(db: Database, hooks: Hooks) {
     db.exec(
       "ALTER TABLE social_threads ADD COLUMN photo BLOB; ALTER TABLE social_threads ADD COLUMN photo_type TEXT; ALTER TABLE social_threads ADD COLUMN photo_at TEXT;",
     );
-  if (!db.prepare("SELECT key FROM social_meta WHERE key='seeded'").get())
+  if (!empty && !db.prepare("SELECT key FROM social_meta WHERE key='seeded'").get())
     transaction(db, () => {
       seed();
       db.prepare("INSERT INTO social_meta VALUES ('seeded','1')").run();

@@ -1,3 +1,4 @@
+import EmptyState from "../../shared/ui/EmptyState.tsx";
 import { useState } from "react";
 import type {
   AdminIndicator,
@@ -6,7 +7,12 @@ import type {
 } from "../../../../shared/admin.ts";
 import Icon from "../../shared/ui/Icon.tsx";
 import AdminPreview from "./AdminPreview.tsx";
-import { adminLink, indicatorColumns, statusTone } from "./config.ts";
+import {
+  adminEmptyStates,
+  adminLink,
+  indicatorColumns,
+  statusTone,
+} from "./config.ts";
 
 export default function AdminDashboard({
   overview,
@@ -38,6 +44,17 @@ export default function AdminDashboard({
   }));
   const pending = overview.pending.filter((group) => group.total > 0);
   function card(item: AdminIndicator) {
+    if (!item.count)
+      return (
+        <section className="admin-stat admin-stat-empty" key={item.id}>
+          <h2>{item.label}</h2>
+          <EmptyState
+            {...adminEmptyStates[item.resource]}
+            description=""
+            size="metric"
+          />
+        </section>
+      );
     return (
       <button
         className="admin-stat"
@@ -63,17 +80,32 @@ export default function AdminDashboard({
         <section className="admin-panel">
           <h2>État des comptes et de l’annuaire</h2>
           <div className="admin-state-metrics">
-            {state.map((item) => (
-              <button
-                key={item.id}
-                className="admin-metric-line"
-                aria-haspopup="dialog"
-                onClick={() => setPreview(item)}
-              >
-                <span>{item.label}</span>
-                <strong>{item.count}</strong>
-              </button>
-            ))}
+            {state.map((item) =>
+              item.count ? (
+                <button
+                  key={item.id}
+                  className="admin-metric-line"
+                  aria-haspopup="dialog"
+                  onClick={() => setPreview(item)}
+                >
+                  <span>{item.label}</span>
+                  <strong>{item.count}</strong>
+                </button>
+              ) : (
+                <section
+                  className="admin-metric-line admin-metric-line-empty"
+                  key={item.id}
+                >
+                  <span>{item.label}</span>
+                  <EmptyState
+                    kind="data"
+                    title="Aucune donnée"
+                    description=""
+                    size="inline"
+                  />
+                </section>
+              ),
+            )}
           </div>
           <p>
             Ces nombres décrivent les statuts des comptes, pas leur activité
@@ -99,17 +131,32 @@ export default function AdminDashboard({
         <section className="admin-panel">
           <h2>Suivi complémentaire</h2>
           <div className="admin-state-metrics">
-            {indicators.map((item) => (
-              <button
-                key={item.id}
-                className="admin-metric-line"
-                aria-haspopup="dialog"
-                onClick={() => setPreview(item)}
-              >
-                <span>{item.label}</span>
-                <strong>{item.count}</strong>
-              </button>
-            ))}
+            {indicators.map((item) =>
+              item.count ? (
+                <button
+                  key={item.id}
+                  className="admin-metric-line"
+                  aria-haspopup="dialog"
+                  onClick={() => setPreview(item)}
+                >
+                  <span>{item.label}</span>
+                  <strong>{item.count}</strong>
+                </button>
+              ) : (
+                <section
+                  className="admin-metric-line admin-metric-line-empty"
+                  key={item.id}
+                >
+                  <span>{item.label}</span>
+                  <EmptyState
+                    kind="actions"
+                    title="Aucune action en attente"
+                    description=""
+                    size="inline"
+                  />
+                </section>
+              ),
+            )}
           </div>
         </section>
       )}
@@ -170,11 +217,17 @@ export default function AdminDashboard({
                 {!pending.some(
                   (g) => (g.resource === "reports") === reports,
                 ) && (
-                  <p className="admin-empty">
-                    {reports
-                      ? "Aucun signalement à traiter."
-                      : "Toutes les demandes sont traitées."}
-                  </p>
+                  <EmptyState
+                    kind="actions"
+                    className="admin-empty"
+                    compact
+                    title={
+                      reports
+                        ? "Aucun signalement à traiter"
+                        : "Aucune demande en attente"
+                    }
+                    description="Les nouveaux dossiers apparaîtront ici."
+                  />
                 )}
               </div>
             </section>
@@ -185,9 +238,12 @@ export default function AdminDashboard({
         <section className="admin-panel">
           <div className="admin-section-title">
             <h2>Dernières actions</h2>
-            {overview.role === "Administrateur" && (
-              <a href="#admin/historique?from=dashboard">Voir l’historique →</a>
-            )}
+            {overview.role === "Administrateur" &&
+              overview.recent.length > 0 && (
+                <a href="#admin/historique?from=dashboard">
+                  Voir l’historique →
+                </a>
+              )}
           </div>
           <div className="admin-timeline">
             {overview.recent.map((row) => (
@@ -205,7 +261,13 @@ export default function AdminDashboard({
               </article>
             ))}
             {!overview.recent.length && (
-              <p>Aucune action récente à afficher pour votre rôle.</p>
+              <EmptyState
+                kind="actions"
+                className="admin-empty"
+                compact
+                title="Aucune action récente"
+                description="L’activité de votre équipe apparaîtra ici."
+              />
             )}
           </div>
         </section>

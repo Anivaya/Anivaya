@@ -1,3 +1,4 @@
+import EmptyState from "../../shared/ui/EmptyState.tsx";
 import type { ReactNode } from "react";
 import Icon from "../../shared/ui/Icon.tsx";
 import type { SocialContext, SocialDialog, SocialTab } from "./social.ts";
@@ -34,18 +35,21 @@ export function PersonLink({
 
 export function Empty({
   title,
+  kind = "conversations",
   children,
 }: {
   title: string;
+  kind?: import("../../shared/ui/EmptyIllustration.tsx").EmptyKind | null;
   children: ReactNode;
 }) {
-  return (
-    <div className="social-empty">
-      <Icon name="chat" />
-      <h3>{title}</h3>
-      <p>{children}</p>
-    </div>
-  );
+  if (!kind)
+    return (
+      <div className="social-empty">
+        <h3>{title}</h3>
+        <p>{children}</p>
+      </div>
+    );
+  return <EmptyState kind={kind} title={title} description={children} />;
 }
 
 export function BackLink({

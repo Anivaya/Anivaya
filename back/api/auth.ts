@@ -24,9 +24,9 @@ import { mfaService } from "./mfa.ts";
 import type { SocialNotice } from "./social.ts";
 import { ApiError, text, emailAddress } from "./validation.ts";
 import { appUrl, excludeFromMail, sendMail } from "./mail.ts";
+import { emptyStateMode } from "../database/empty-state.ts";
 
 const scrypt = promisify(derive);
-const SESSION_COOKIE = "anivaya_session";
 /** Durée de validité d’un lien de réinitialisation du mot de passe. */
 const RESET_MS = 60 * 60 * 1000;
 const digest = (value: string) =>
@@ -48,14 +48,16 @@ export const demoAccounts = [
   { id: "demo-3", name: "test3", email: "test3@gmail.com" },
   { id: "demo-admin", name: "admin", email: "admin@anivaya.fr" },
 ] as const;
+export const emptyAccounts = [
+  { id: "empty-test", name: "Test vide", email: "test.vide@anivaya.test" },
+  { id: "empty-admin", name: "Admin vide", email: "admin.vide@anivaya.test" },
+] as const;
 /** Le compte de démonstration qui ouvre l’administration. */
 const DEMO_ADMIN = { id: "demo-admin", role: "Administrateur" } as const;
 export const demoCredentials = {
   email: demoAccounts[0].email,
   password: DEMO_PASSWORD,
 };
-const isDemo = (account: Pick<Account, "id">) =>
-  demoAccounts.some((demo) => demo.id === account.id);
 const defaultNotifications = {
   reminders: true,
   reservations: true,
@@ -75,13 +77,24 @@ function passwordValue(value: unknown) {
   return value;
 }
 /** Comptes, sessions et liens publics ; chaque compte a sa propre base. */
-export function authentication(db: Database, directory?: string) {
+export function authentication(
+  db: Database,
+  directory?: string,
+  empty = emptyStateMode(),
+  cookieName?: string,
+) {
+  emptyStateMode(empty);
+  const initialAccounts = empty ? emptyAccounts : demoAccounts;
+  const adminAccount = empty ? "empty-admin" : DEMO_ADMIN.id;
+  const SESSION_COOKIE = cookieName || (empty ? "anivaya_empty_session" : "anivaya_session");
+  const isDemo = (account: Pick<Account, "id">) =>
+    initialAccounts.some((demo) => demo.id === account.id);
   db.exec(`CREATE TABLE IF NOT EXISTS accounts(id TEXT PRIMARY KEY,email TEXT NOT NULL UNIQUE,password TEXT NOT NULL,workspace TEXT NOT NULL UNIQUE);
  CREATE TABLE IF NOT EXISTS sessions(token TEXT PRIMARY KEY,account TEXT NOT NULL REFERENCES accounts(id),expires INTEGER NOT NULL);
  CREATE TABLE IF NOT EXISTS public_sheets(token TEXT PRIMARY KEY,account TEXT NOT NULL REFERENCES accounts(id),animal TEXT NOT NULL,UNIQUE(account,animal));
  CREATE TABLE IF NOT EXISTS password_resets(token TEXT PRIMARY KEY,account TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,expires INTEGER NOT NULL);`);
   // Les adresses des comptes de démonstration ne nous appartiennent pas : aucun e-mail.
-  excludeFromMail(demoAccounts.map((demo) => demo.email));
+  excludeFromMail(initialAccounts.map((demo) => demo.email));
   // Équipe, suspensions, dossiers d’administration et MFA : après la table des comptes.
   db.exec(centralMigration("008_admin.sql"));
   db.exec(centralMigration("009_admin_extensions.sql"));
@@ -144,7 +157,7 @@ export function authentication(db: Database, directory?: string) {
   function workspace(account: Account) {
     let own = connections.get(account.id);
     if (!own) {
-      own = openDatabase(workspacePath(account.workspace), isDemo(account));
+      own = openDatabase(workspacePath(account.workspace), isDemo(account), empty);
       connections.set(account.id, own);
     }
     return own;
@@ -158,7 +171,7 @@ export function authentication(db: Database, directory?: string) {
   }
   /** Crée l’espace d’exemple d’un compte de démonstration avec son identité. */
   function prepareDemoWorkspace(account: Account) {
-    const demo = demoAccounts.find((d) => d.id === account.id)!;
+    const demo = initialAccounts.find((d) => d.id === account.id)!;
     const profile = profileRepository(workspace(account));
     profile.save({
       // Le premier compte garde le foyer d’exemple (Camille Martin).
@@ -189,7 +202,7 @@ export function authentication(db: Database, directory?: string) {
     );
   }
   const ready = (async () => {
-    for (const demo of demoAccounts) {
+    for (const demo of initialAccounts) {
       const existing = db
         .prepare("SELECT * FROM accounts WHERE id=? OR email=?")
         .get<Account>(demo.id, demo.email);
@@ -214,10 +227,10 @@ export function authentication(db: Database, directory?: string) {
         new Date().toISOString(),
       );
     }
-    if (db.prepare("SELECT id FROM accounts WHERE id=?").get(DEMO_ADMIN.id))
+    if (db.prepare("SELECT id FROM accounts WHERE id=?").get(adminAccount))
       db.prepare(
         "INSERT OR IGNORE INTO admin_members(account,role) VALUES (?,?)",
-      ).run(DEMO_ADMIN.id, DEMO_ADMIN.role);
+      ).run(adminAccount, DEMO_ADMIN.role);
   })();
   function token(req: IncomingMessage) {
     return (
@@ -401,7 +414,7 @@ export function authentication(db: Database, directory?: string) {
       // Le temps de réponse ne révèle pas si l’adresse existe.
       const stored =
         account ||
-        db.prepare("SELECT * FROM accounts WHERE id='demo'").get<Account>()!;
+        db.prepare("SELECT * FROM accounts WHERE id=?").get<Account>(initialAccounts[0].id)!;
       if (!(await verifyPassword(stored, password)) || !account) {
         failed(email, account);
         throw new ApiError(401, "Adresse e-mail ou mot de passe incorrect.");

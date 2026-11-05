@@ -13,8 +13,11 @@ Références : maquettes locales confirmées par l’utilisateur, `back/docs/API
 | Scrollbar       | css/global.css ; exception sidebar dans admin.css | Demande utilisateur du 30 octobre, DESIGN.md | Barre du sidebar admin masquée, défilement conservé | Vue ordinateur et mobile                  |
 | Toast           | Message local role=status, erreur role=alert      | Parcours existants                           | Succès après mutation, erreur persistante           | Vérification navigateur                   |
 | CRUD            | shared/services/admin.ts, back/api/admin.ts       | back/docs/API.md                             | Retour à la liste, filtres conservés                | back/tests/admin.test.ts                  |
+| Empty state     | shared/ui/EmptyState.tsx et EmptyIllustration.tsx | Demande utilisateur du 5 novembre, DESIGN.md | Bloc standard, compact, résultat filtré vide | Vérification navigateur, listes vides et remplies |
 
 ## Parcours
+
+- États vides (demande du 5 novembre) : après réception des données, remplacer le contenu absent par l’illustration accompagnée d’un titre et d’une courte explication visibles et accessibles. Masquer les actions du contenu, les compteurs de résultats, la sélection groupée, les en-têtes de tableau et la pagination lorsqu’il n’y a aucune ligne. Conserver les titres et la navigation. Les filtres sont absents si la collection est vide ; ils restent utilisables lorsqu’ils masquent des données existantes, afin de pouvoir revenir aux résultats. Les boutons de création des zones vides sont également masqués, conformément à la demande. Les données et leurs contrôles réapparaissent dès qu’elles sont présentes. Une erreur de chargement ou un accès indisponible conserve son propre message et ses actions de reprise.
 
 - Création/modification : formulaire → requête unique pendant l’enregistrement → confirmation → même liste et mêmes filtres. Une erreur conserve la saisie.
 - Consulter un dossier métier ne le modifie pas. Ouvrir une notification depuis la cloche la marque comme lue pour ce membre. Une action de décision, de rôle, de suspension, de publication ou de révocation est confirmée par le formulaire qui nomme la cible et exige un motif.

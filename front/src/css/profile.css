@@ -175,7 +175,7 @@
 }
 .profile-page dialog {
   width: min(720px, calc(100% - 30px));
-  max-height: calc(100dvh - 40px);
+  max-height: calc(calc(100dvh / var(--zoom, 1)) - 40px);
   padding: 27px;
   border: 1px solid var(--border);
   border-radius: 15px;
@@ -256,7 +256,7 @@
   }
   .profile-page dialog {
     padding: 20px;
-    max-height: calc(100dvh - 24px);
+    max-height: calc(calc(100dvh / var(--zoom, 1)) - 24px);
   }
   .profile-page .dialog-actions .button {
     flex: 1;

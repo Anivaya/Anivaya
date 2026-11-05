@@ -1,3 +1,4 @@
+import EmptyState from "../../shared/ui/EmptyState.tsx";
 import { useState } from "react";
 import type {
   Actions,
@@ -59,6 +60,15 @@ export default function ReceivedShares({
       matches(`${s.title} ${s.animalName} ${s.sender} ${s.email}`, search),
   );
   const open = shares.find((s) => s.id === openId);
+  if (!shares.length)
+    return (
+      <EmptyState
+        kind="documents"
+        className="sharing-panel"
+        title="Aucun partage reçu"
+        description="Les invitations d’autres propriétaires apparaîtront ici."
+      />
+    );
   return (
     <section className="sharing-panel">
       <div className="sharing-heading">
@@ -135,25 +145,7 @@ export default function ReceivedShares({
         </article>
       ))}
       {!visible.length && (
-        <div className="share-empty">
-          <h3>Aucun partage pour le moment</h3>
-          <p>
-            {shares.length
-              ? "Aucun résultat ne correspond à votre recherche."
-              : "Les invitations d’autres propriétaires apparaîtront ici."}
-          </p>
-          {shares.length > 0 && (
-            <button
-              className="button outline"
-              onClick={() => {
-                setSearch("");
-                setState("");
-              }}
-            >
-              Réinitialiser les filtres
-            </button>
-          )}
-        </div>
+        <EmptyState kind="documents" className="share-empty" filtered />
       )}
       {open && (
         <ReceivedDetail

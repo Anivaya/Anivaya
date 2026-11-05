@@ -1,3 +1,5 @@
+import EmptyState from "../../shared/ui/EmptyState.tsx";
+import type { EmptyKind } from "../../shared/ui/EmptyIllustration.tsx";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import type {
@@ -87,15 +89,16 @@ export default function AnimalRecordPage({
     const selected = limit ? list.slice(0, limit) : list;
     if (!selected.length)
       return (
-        <p className="empty">
-          Aucun{" "}
-          {kind === "event"
-            ? "événement"
-            : kind === "reminder"
-              ? "rappel"
-              : "document"}{" "}
-          pour le moment.
-        </p>
+        <EmptyState
+          kind={
+            kind === "document"
+              ? "documents"
+              : kind === "reminder"
+                ? "reminders"
+                : "events"
+          }
+          compact
+        />
       );
     return selected.map((item) => (
       <div className={`row ${item.done ? "done" : ""}`} key={item.id}>
@@ -190,14 +193,19 @@ export default function AnimalRecordPage({
       </div>
     ));
   }
-  function panel(title: string, content: ReactNode, cta: ReactNode) {
+  function panel(
+    title: string,
+    content: ReactNode,
+    cta: ReactNode,
+    empty?: EmptyKind,
+  ) {
     return (
       <section className="panel">
         <div className="panel-head">
           <h2>{title}</h2>
-          {cta}
+          {!empty && cta}
         </div>
-        {content}
+        {empty ? <EmptyState kind={empty} compact /> : content}
       </section>
     );
   }
@@ -332,6 +340,7 @@ export default function AnimalRecordPage({
                   <a className="text-button" href={link("suivi")}>
                     Tout voir
                   </a>,
+                  !events.length ? "events" : undefined,
                 )}
                 {panel(
                   "Personnes de confiance",
@@ -344,6 +353,7 @@ export default function AnimalRecordPage({
                   <a className="text-button" href={link("confiance")}>
                     Gérer les contacts
                   </a>,
+                  !people.length ? "people" : undefined,
                 )}
               </div>
               <div className="stack">
@@ -353,6 +363,7 @@ export default function AnimalRecordPage({
                   <a className="text-button" href={link("rappels")}>
                     Tout voir
                   </a>,
+                  !reminders.length ? "reminders" : undefined,
                 )}
                 {sheet ? (
                   <section className="panel emergency-inline">
@@ -449,13 +460,7 @@ export default function AnimalRecordPage({
                 ) : (
                   <section className="panel emergency-teaser">
                     <h2>Fiche d’urgence et QR</h2>
-                    <p>
-                      Choisissez les informations utiles à montrer à une
-                      personne qui retrouve votre animal.
-                    </p>
-                    <a className="button" href={link("urgence")}>
-                      Préparer sa fiche
-                    </a>
+                    <EmptyState kind="documents" compact />
                   </section>
                 )}
               </div>
@@ -486,6 +491,7 @@ export default function AnimalRecordPage({
                 {rows("event", events)}
               </>,
               addButton("event", "Ajouter un événement"),
+              !events.length ? "events" : undefined,
             )}
           {active === "documents" &&
             panel(
@@ -512,6 +518,7 @@ export default function AnimalRecordPage({
                   Ajouter un document
                 </button>
               </div>,
+              !documents.length ? "documents" : undefined,
             )}
           {active === "rappels" &&
             panel(
@@ -524,6 +531,7 @@ export default function AnimalRecordPage({
                 {rows("reminder", reminders)}
               </>,
               addButton("reminder", "Ajouter un rappel"),
+              !reminders.length ? "reminders" : undefined,
             )}
           {active === "habitudes" &&
             panel(
@@ -542,6 +550,16 @@ export default function AnimalRecordPage({
               >
                 Modifier les habitudes
               </button>,
+              ![
+                pet.food,
+                pet.routine,
+                pet.behavior,
+                pet.medical,
+                pet.contact,
+                pet.vet,
+              ].some(Boolean)
+                ? "data"
+                : undefined,
             )}
           {active === "confiance" &&
             panel(
@@ -579,6 +597,7 @@ export default function AnimalRecordPage({
                   Ajouter une personne
                 </button>
               </div>,
+              !people.length ? "people" : undefined,
             )}
         </>
       )}

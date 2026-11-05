@@ -2,7 +2,8 @@ import { createServer } from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Database, Input } from "../database/types.ts";
 import type { Account, Authentication } from "./auth.ts";
-import { authentication } from "./auth.ts";
+import { authentication, emptyAccounts } from "./auth.ts";
+import { emptyStateMode } from "../database/empty-state.ts";
 import { adminService } from "./admin.ts";
 import type { AdminService } from "./admin.ts";
 import { analytics } from "./admin-analytics.ts";
@@ -746,27 +747,45 @@ export function createApi(
     userDatabaseDirectory?: string;
     /** Envoi horaire des rappels arrivés à échéance (serveur réel, pas les tests). */
     reminders?: boolean;
+    /** Base isolée des comptes vides, accessible par la connexion habituelle. */
+    emptyDatabase?: Database;
+    emptyUserDatabaseDirectory?: string;
   } = {},
 ) {
-  const auth =
-    options.authentication === false
+  function services(database: Database, directory?: string, empty = emptyStateMode()) {
+    const auth = options.authentication === false
       ? null
-      : authentication(db, options.userDatabaseDirectory);
-  const social =
-    auth &&
-    socialService(db, {
+      : authentication(
+          database, directory, empty,
+          options.emptyDatabase ? "anivaya_session" : undefined,
+        );
+    const social = auth && socialService(database, {
       notify: auth.notify,
       markRead: auth.markNotificationRead,
-    });
-  const admin = auth && adminService(db, auth);
-  const access = auth && sharedAccess(db, auth);
-  if (auth && admin) {
-    auth.hooks.security = admin.securityEvent;
-    auth.hooks.login = admin.acceptInvitation;
+    }, empty);
+    const admin = auth && adminService(database, auth, empty);
+    const access = auth && sharedAccess(database, auth);
+    if (auth && admin) {
+      auth.hooks.security = admin.securityEvent;
+      auth.hooks.login = admin.acceptInvitation;
+    }
+    const stopReminders = auth && options.reminders ? startReminderMail(auth) : undefined;
+    return {
+      db: database, auth, social, admin, access,
+      close() {
+        stopReminders?.();
+        auth?.close();
+      },
+    };
   }
+  const normal = services(db, options.userDatabaseDirectory);
+  const empty = options.emptyDatabase
+    ? services(options.emptyDatabase, options.emptyUserDatabaseDirectory, true)
+    : null;
 
   /** Données de l’espace : la base vient de la session, jamais du client. */
-  function workspace(request: IncomingMessage, account: Account | null) {
+  function workspace(request: IncomingMessage, account: Account | null, selected: typeof normal) {
+    const { auth, db, social, access } = selected;
     const own = auth && account ? auth.workspace(account) : db;
     const publicURL =
       auth && account
@@ -792,15 +811,27 @@ export function createApi(
     response.setHeader("X-Content-Type-Options", "nosniff");
     try {
       checkOrigin(request);
-      await auth?.ready;
+      await Promise.all([normal.auth?.ready, empty?.auth?.ready]);
       const url = new URL(request.url || "/", "http://localhost");
+      let parsedBody: Promise<Input> | undefined;
+      const body = () => parsedBody ??= readJson(request);
+      let selected = empty?.auth?.current(request) ? empty : normal;
+      if (empty && request.method === "POST" && url.pathname === "/api/auth/login") {
+        const data = await body();
+        const email = typeof data.email === "string" ? data.email.trim().toLowerCase() : "";
+        selected = emptyAccounts.some((account) => account.email === email) ? empty : normal;
+      }
+      // Les liens publics restent accessibles même après déconnexion.
+      const publicToken = url.pathname.match(/^\/api\/public\/emergency\/([a-f0-9]{48})(?:\/|$)/)?.[1];
+      if (publicToken) selected = empty?.auth?.publicOwner(publicToken) ? empty : normal;
+      const { auth, admin } = selected;
       const context = {
         request,
         response,
         auth,
         admin,
         query: url.searchParams,
-        body: () => readJson(request),
+        body,
       };
       const publicRoute = open.match(request.method, url.pathname);
       if (publicRoute)
@@ -823,7 +854,7 @@ export function createApi(
         privateRoute.route.status,
         await privateRoute.route.handle({
           ...context,
-          ...workspace(request, account),
+          ...workspace(request, account, selected),
           params: privateRoute.params,
         }),
       );
@@ -839,11 +870,9 @@ export function createApi(
       });
     }
   });
-  const stopReminders =
-    auth && options.reminders ? startReminderMail(auth) : undefined;
   server.on("close", () => {
-    stopReminders?.();
-    auth?.close();
+    normal.close();
+    empty?.close();
   });
   return server;
 }

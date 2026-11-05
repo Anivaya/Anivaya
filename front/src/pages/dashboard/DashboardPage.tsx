@@ -10,6 +10,7 @@ export default function DashboardPage({ data, actions, pending }: PageProps) {
     <>
       <PageHeading
         title={`Bonjour ${data.household.firstName},`}
+        hasContent={data.animals.length > 0}
         description="Tout pour prendre soin de vos compagnons."
         actionLabel="Ajouter un animal"
         onAction={() => actions.add("animal")}

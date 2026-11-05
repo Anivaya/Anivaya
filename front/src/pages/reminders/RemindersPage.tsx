@@ -1,3 +1,4 @@
+import EmptyState from "../../shared/ui/EmptyState.tsx";
 import type {
   PageProps,
   Animal,
@@ -25,6 +26,7 @@ export default function RemindersPage({ data, actions, pending }: PageProps) {
     <>
       <PageHeading
         title="Mes rappels"
+        hasContent={data.reminders.length > 0}
         description="Retrouvez les échéances que vous avez choisies."
         actionLabel="Ajouter un rappel"
         onAction={() => actions.add("reminder")}
@@ -80,13 +82,13 @@ export function RemindersSection({
         <h2 id="reminders-title">
           {overview ? "Prochains rappels" : "Vos rappels"}
         </h2>
-        {overview && (
+        {overview && reminders.length > 0 && (
           <a className="subtle" href="#rappels">
             Voir tous →
           </a>
         )}
       </div>
-      {!overview && (
+      {!overview && reminders.length > 0 && (
         <CollectionFilters
           search={search}
           onSearch={setSearch}
@@ -162,11 +164,12 @@ export function RemindersSection({
           );
         })}
         {!filtered.length && (
-          <p className="empty">
-            {reminders.length
-              ? "Aucun rappel pour ces filtres."
-              : "Aucun rappel. Ajoutez une échéance pour votre animal."}
-          </p>
+          <EmptyState
+            kind="reminders"
+            className="empty"
+            compact={overview}
+            filtered={reminders.length > 0}
+          />
         )}
       </div>
     </section>

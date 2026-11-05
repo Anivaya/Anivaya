@@ -393,8 +393,7 @@
   font-size: 20px;
   line-height: 1.5;
   color: var(--navy);
-  border-left: 3px solid var(--gold);
-  padding: 2px 0 2px 20px;
+  padding: 2px 0;
   margin-top: 30px;
 }
 .public-site .trust-row {
@@ -1300,9 +1299,8 @@
     gap: 0;
   }
   .public-site .life-stages-list li {
-    padding: 0 0 28px 25px;
+    padding: 0 0 28px;
     border-top: 0;
-    border-left: 2px solid #f1dca7;
   }
   .public-site .life-stages-list li:last-child {
     padding-bottom: 0;
@@ -1548,7 +1546,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  min-height: calc(100dvh - var(--home-header-height));
+  min-height: calc(calc(100dvh / var(--zoom, 1)) - var(--home-header-height));
   scroll-snap-align: start;
   scroll-snap-stop: always;
   position: relative;
@@ -1800,7 +1798,7 @@
   }
   .home-page .home-screen .hero {
     gap: 5vw;
-    padding-block: 24px 4vh;
+    padding-block: 24px calc(4vh / var(--zoom, 1));
     align-items: start;
   }
   .home-page .home-screen .hero h1 {
@@ -1813,7 +1811,10 @@
   }
 
   .home-page .home-screen .hero-media img {
-    height: calc(100svh - var(--home-header-height) - 10vh);
+    height: calc(
+      calc(100svh / var(--zoom, 1)) - var(--home-header-height) -
+        calc(10vh / var(--zoom, 1))
+    );
     min-height: 360px;
   }
   .home-page .home-screen h2 {
@@ -1828,16 +1829,17 @@
     line-height: 1.7;
   }
   .home-page .home-screen .ribbon {
-    padding-top: clamp(28px, 5vh, 60px);
-    padding-bottom: 3vh;
+    padding-top: clamp(28px, calc(5vh / var(--zoom, 1)), 60px);
+    padding-bottom: calc(3vh / var(--zoom, 1));
     font-size: clamp(25px, 2vw, 36px);
   }
   .home-page .home-screen .essentials {
-    padding-block: clamp(32px, 6vh, 70px) 5vh;
+    padding-block: clamp(32px, calc(6vh / var(--zoom, 1)), 70px)
+      calc(5vh / var(--zoom, 1));
   }
   .home-page .home-screen .essentials > h2 {
     max-width: none;
-    margin-bottom: 5vh;
+    margin-bottom: calc(5vh / var(--zoom, 1));
   }
   .home-page .home-screen .feature-grid {
     gap: 5vw;
@@ -1848,13 +1850,16 @@
     margin-bottom: 20px;
   }
   .home-page .home-screen .moments {
-    padding-block: 4vh;
+    padding-block: calc(4vh / var(--zoom, 1));
   }
   .home-page .home-screen .moments-grid {
     gap: 5vw;
   }
   .home-page .home-screen .moments .life-photo img {
-    height: calc(100svh - var(--home-header-height) - 15vh);
+    height: calc(
+      calc(100svh / var(--zoom, 1)) - var(--home-header-height) -
+        calc(15vh / var(--zoom, 1))
+    );
     min-height: 350px;
   }
   .home-page .home-screen .moments-intro {
@@ -1862,7 +1867,7 @@
   }
   .home-page .home-screen .how,
   .home-page .home-screen .outside {
-    padding-block: 3vh;
+    padding-block: calc(3vh / var(--zoom, 1));
   }
   .home-page .home-screen .how-grid {
     grid-template-columns: 1fr 2fr;
@@ -1882,7 +1887,7 @@
     gap: 6vw;
   }
   .home-page .home-screen .outside img {
-    height: clamp(240px, 43svh, 550px);
+    height: clamp(240px, calc(43svh / var(--zoom, 1)), 550px);
   }
   .home-page .home-screen .outside h2 {
     font-size: clamp(28px, 2.5vw, 36px);
@@ -1893,51 +1898,51 @@
   }
   .home-page .home-screen .trust {
     gap: 7vw;
-    padding-block: 5vh;
+    padding-block: calc(5vh / var(--zoom, 1));
     border-top: 0;
   }
   .home-page .home-screen .trust-copy > p {
     max-width: none;
   }
   .home-page .home-screen .trust-row {
-    padding-block: 3vh;
+    padding-block: calc(3vh / var(--zoom, 1));
   }
   .home-page .home-screen .trust-copy .trust-signature {
     font-size: clamp(20px, 1.6vw, 30px);
-    margin-top: 5vh;
+    margin-top: calc(5vh / var(--zoom, 1));
   }
   .home-page .home-screen .future,
   .home-page .home-screen .faq {
-    padding-block: 5vh;
+    padding-block: calc(5vh / var(--zoom, 1));
   }
   .home-page .home-screen .future-grid {
     gap: 5vw;
-    margin-top: 6vh;
+    margin-top: calc(6vh / var(--zoom, 1));
   }
   .home-page .home-screen .future-item {
-    padding-top: 4vh;
+    padding-top: calc(4vh / var(--zoom, 1));
   }
 
   .home-page .home-screen .faq-heading {
-    margin-bottom: 5vh;
+    margin-bottom: calc(5vh / var(--zoom, 1));
   }
   .home-page .home-screen .faq-grid {
     gap: 0 6vw;
   }
   .home-page .home-screen .faq summary {
     font-size: clamp(17px, 1.4vw, 25px);
-    padding-block: 3vh;
+    padding-block: calc(3vh / var(--zoom, 1));
   }
   .home-page .home-screen .invitation {
-    padding-block: 5vh;
+    padding-block: calc(5vh / var(--zoom, 1));
   }
   .home-page .home-screen .invitation h2 {
     max-width: none;
     font-size: clamp(36px, 3.3vw, 64px);
   }
   .home-page .home-screen .footer {
-    padding-block: 3vh;
-    gap: 3vh;
+    padding-block: calc(3vh / var(--zoom, 1));
+    gap: calc(3vh / var(--zoom, 1));
   }
   .home-page .home-screen .footer p,
   .home-page .home-screen .footer nav {
@@ -1961,13 +1966,13 @@
     padding-block: 24px;
   }
   .home-page .home-screen .hero-media img {
-    height: clamp(240px, 38svh, 390px);
+    height: clamp(240px, calc(38svh / var(--zoom, 1)), 390px);
   }
   .home-page .home-screen .moments {
     padding-block: 28px;
   }
   .home-page .home-screen .moments .life-photo img {
-    height: clamp(240px, 40svh, 390px);
+    height: clamp(240px, calc(40svh / var(--zoom, 1)), 390px);
   }
   .home-page .home-screen .moments-grid {
     gap: 24px;
@@ -1977,7 +1982,7 @@
     padding-block: 28px;
   }
   .home-page .home-screen .outside img {
-    height: clamp(210px, 35svh, 330px);
+    height: clamp(210px, calc(35svh / var(--zoom, 1)), 330px);
   }
   .home-page .home-screen .future,
   .home-page .home-screen .faq,

@@ -146,7 +146,7 @@ dialog {
   border-radius: 22px;
   padding: 28px;
   width: min(520px, calc(100% - 32px));
-  max-height: calc(100dvh - 32px);
+  max-height: calc(calc(100dvh / var(--zoom, 1)) - 32px);
   overflow-y: auto;
   color: var(--navy);
   box-shadow: 0 24px 90px #132e5c35;
@@ -612,4 +612,86 @@ input[type="checkbox"].bool-off + .switch-track {
   border-color: #a52b38 !important;
   background: #fdecee !important;
   box-shadow: none;
+}
+
+/* Un seul bloc centré pour les listes et panneaux sans contenu. */
+.empty-state.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  grid-column: 1 / -1;
+  width: 100%;
+  min-width: 0;
+  min-height: 260px;
+  margin: 0;
+  padding: 24px;
+  gap: 12px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.empty-state > img.empty-illustration {
+  display: block;
+  width: min(148px, 100%);
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  margin: 0;
+  flex-shrink: 0;
+}
+.empty-state .empty-state-copy {
+  width: 100%;
+  max-width: 360px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.empty-state .empty-state-title {
+  margin: 0;
+  color: var(--navy);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+.empty-state .empty-state-description {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+.empty-state.empty-state-compact {
+  min-height: 190px;
+  padding: 16px;
+  gap: 8px;
+}
+.empty-state-compact > img.empty-illustration { width: min(104px, 100%); }
+.empty-state.empty-state-metric {
+  min-height: 0;
+  padding: 0;
+  gap: 6px;
+}
+.empty-state-metric > img.empty-illustration { width: min(72px, 100%); }
+.empty-state.empty-state-inline {
+  flex-direction: row;
+  justify-content: flex-start;
+  width: auto;
+  min-height: 0;
+  padding: 0;
+  gap: 8px;
+  text-align: left;
+}
+.empty-state-inline > img.empty-illustration { width: 32px; }
+.empty-state-metric .empty-state-title,
+.empty-state-inline .empty-state-title {
+  font-size: 13px;
+}
+.conversation-detail:has(> .empty-state) { display: flex; flex-direction: column; }
+.conversation-detail > .empty-state { flex: 1; }
+@media (max-width: 620px) {
+  .empty-state.empty-state-standard { min-height: 230px; padding: 20px 16px; }
+  .empty-state-standard > img.empty-illustration { width: min(128px, 100%); }
+  .empty-state.empty-state-compact { min-height: 175px; padding: 12px; }
+  .empty-state-compact > img.empty-illustration { width: min(88px, 100%); }
 }

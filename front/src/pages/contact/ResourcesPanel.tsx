@@ -1,3 +1,4 @@
+import EmptyState from "../../shared/ui/EmptyState.tsx";
 import { useEffect, useState } from "react";
 import { adminApi } from "../../shared/services/admin.ts";
 import type { PublicResources } from "../../shared/services/admin.ts";
@@ -34,29 +35,31 @@ export default function ResourcesPanel() {
       <p>
         Les guides publiés après relecture vétérinaire par l’équipe Anivaya.
       </p>
-      <div className="admin-search">
-        <label htmlFor="resource-search">Rechercher un guide</label>
-        <div>
-          <input
-            id="resource-search"
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Un rendez-vous, un relais…"
-          />
-          {query && (
-            <button
-              aria-label="Effacer la recherche de guides"
-              onClick={() => {
-                setQuery("");
-                document.getElementById("resource-search")?.focus();
-              }}
-            >
-              ×
-            </button>
-          )}
+      {!!data?.guides.length && (
+        <div className="admin-search">
+          <label htmlFor="resource-search">Rechercher un guide</label>
+          <div>
+            <input
+              id="resource-search"
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Un rendez-vous, un relais…"
+            />
+            {query && (
+              <button
+                aria-label="Effacer la recherche de guides"
+                onClick={() => {
+                  setQuery("");
+                  document.getElementById("resource-search")?.focus();
+                }}
+              >
+                ×
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
       {error ? (
         <div role="alert">
           <p>{error}</p>
@@ -86,11 +89,12 @@ export default function ResourcesPanel() {
             </article>
           ))}
           {!guides.length && (
-            <p role="status">
-              {query
-                ? "Aucun guide ne correspond à votre recherche."
-                : "Les premiers guides seront disponibles après leur validation et leur publication."}
-            </p>
+            <EmptyState
+              kind="documents"
+              title="Aucun guide pour le moment"
+              description="Les conseils validés pour vos compagnons apparaîtront ici."
+              filtered={!!query}
+            />
           )}
         </div>
       )}

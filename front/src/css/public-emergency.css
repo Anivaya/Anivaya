@@ -142,7 +142,7 @@
   border-radius: 18px;
   padding: 25px;
   color: var(--navy);
-  max-height: 90vh;
+  max-height: calc(90vh / var(--zoom, 1));
   overflow: auto;
 }
 .public-emergency dialog::backdrop {
@@ -449,7 +449,7 @@
 
 .public-emergency {
   display: flow-root;
-  min-height: 100vh;
+  min-height: calc(100vh / var(--zoom, 1));
 }
 .public-emergency .record-portrait.new {
   display: grid;

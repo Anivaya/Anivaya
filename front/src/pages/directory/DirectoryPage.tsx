@@ -1,3 +1,4 @@
+import EmptyState from "../../shared/ui/EmptyState.tsx";
 import { useEffect, useState } from "react";
 import type { Animal } from "../../../../shared/models.ts";
 import type {
@@ -182,70 +183,74 @@ export default function DirectoryPage({
       {!data && !error && <p role="status">Chargement des professionnels…</p>}
       {data && !reservations && (
         <>
-          <div className="filters">
-            <div className="field">
-              <label htmlFor="pro-search">Un nom, un service…</label>
-              <div className="search-box">
+          {data.professionals.length > 0 && (
+            <div className="filters">
+              <div className="field">
+                <label htmlFor="pro-search">Un nom, un service…</label>
+                <div className="search-box">
+                  <input
+                    id="pro-search"
+                    type="search"
+                    placeholder="Nom, spécialité…"
+                    value={filters.q}
+                    onChange={(e) =>
+                      setFilters({ ...filters, q: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+              {(["category", "city", "species"] as const).map((key, i) => (
+                <div className="field" key={key}>
+                  <label htmlFor={"filter-" + key}>
+                    {["Métier", "Ville", "Pour mon animal"][i]}
+                  </label>
+                  <select
+                    id={"filter-" + key}
+                    value={filters[key]}
+                    onChange={(e) =>
+                      setFilters({ ...filters, [key]: e.target.value })
+                    }
+                  >
+                    <option value="">
+                      {
+                        [
+                          "Tous les métiers",
+                          "Toutes les villes",
+                          "Chien ou chat",
+                        ][i]
+                      }
+                    </option>
+                    {[
+                      ...new Set(
+                        data.professionals.flatMap((p) =>
+                          key === "species" ? p.species : p[key],
+                        ),
+                      ),
+                    ].map((value) => (
+                      <option key={value}>{value}</option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+            </div>
+          )}
+          {data.professionals.length > 0 && (
+            <div className="results-head">
+              <p aria-live="polite">
+                {list.length} professionnel{list.length !== 1 ? "s" : ""}
+              </p>
+              <label className="favorite-filter">
                 <input
-                  id="pro-search"
-                  type="search"
-                  placeholder="Nom, spécialité…"
-                  value={filters.q}
+                  type="checkbox"
+                  checked={filters.favorite}
                   onChange={(e) =>
-                    setFilters({ ...filters, q: e.target.value })
+                    setFilters({ ...filters, favorite: e.target.checked })
                   }
                 />
-              </div>
+                Mes favoris
+              </label>
             </div>
-            {(["category", "city", "species"] as const).map((key, i) => (
-              <div className="field" key={key}>
-                <label htmlFor={"filter-" + key}>
-                  {["Métier", "Ville", "Pour mon animal"][i]}
-                </label>
-                <select
-                  id={"filter-" + key}
-                  value={filters[key]}
-                  onChange={(e) =>
-                    setFilters({ ...filters, [key]: e.target.value })
-                  }
-                >
-                  <option value="">
-                    {
-                      [
-                        "Tous les métiers",
-                        "Toutes les villes",
-                        "Chien ou chat",
-                      ][i]
-                    }
-                  </option>
-                  {[
-                    ...new Set(
-                      data.professionals.flatMap((p) =>
-                        key === "species" ? p.species : p[key],
-                      ),
-                    ),
-                  ].map((value) => (
-                    <option key={value}>{value}</option>
-                  ))}
-                </select>
-              </div>
-            ))}
-          </div>
-          <div className="results-head">
-            <p aria-live="polite">
-              {list.length} professionnel{list.length !== 1 ? "s" : ""}
-            </p>
-            <label className="favorite-filter">
-              <input
-                type="checkbox"
-                checked={filters.favorite}
-                onChange={(e) =>
-                  setFilters({ ...filters, favorite: e.target.checked })
-                }
-              />
-              Mes favoris
-            </label>
-          </div>
+          )}
           <div className="professional-grid">
             {list.map((p) => (
               <article className="pro-card" key={p.id}>
@@ -335,85 +340,84 @@ export default function DirectoryPage({
               </article>
             ))}
             {!list.length && (
-              <div className="empty">
-                <h2>Aucun professionnel trouvé</h2>
-                <p>Essayez une autre recherche ou élargissez vos filtres.</p>
-                <button
-                  className="button outline"
-                  onClick={() => setFilters(noFilters)}
-                >
-                  Réinitialiser les filtres
-                </button>
-              </div>
+              <EmptyState
+                kind="people"
+                className="empty"
+                title="Aucun professionnel à afficher"
+                description="Les professionnels disponibles apparaîtront ici."
+                filtered={data.professionals.length > 0}
+              />
             )}
           </div>
         </>
       )}
       {data && reservations && (
         <>
-          <div className="filters booking-filters">
-            <div className="field">
-              <label htmlFor="period">Période</label>
-              <select
-                id="period"
-                value={bookingFilters.period}
-                onChange={(e) =>
-                  setBookingFilters({
-                    ...bookingFilters,
-                    period: e.target.value,
-                  })
-                }
-              >
-                <option value="upcoming">À venir</option>
-                <option value="past">Passées</option>
-                <option value="all">Toutes les réservations</option>
-              </select>
+          {data.bookings.length > 0 && (
+            <div className="filters booking-filters">
+              <div className="field">
+                <label htmlFor="period">Période</label>
+                <select
+                  id="period"
+                  value={bookingFilters.period}
+                  onChange={(e) =>
+                    setBookingFilters({
+                      ...bookingFilters,
+                      period: e.target.value,
+                    })
+                  }
+                >
+                  <option value="upcoming">À venir</option>
+                  <option value="past">Passées</option>
+                  <option value="all">Toutes les réservations</option>
+                </select>
+              </div>
+              <div className="field">
+                <label htmlFor="booking-animal">Animal</label>
+                <select
+                  id="booking-animal"
+                  value={bookingFilters.animal}
+                  onChange={(e) =>
+                    setBookingFilters({
+                      ...bookingFilters,
+                      animal: e.target.value,
+                    })
+                  }
+                >
+                  <option value="">Tous les animaux</option>
+                  {[
+                    ...new Map([
+                      ...animals.map((a) => [a.id, a.name] as const),
+                      ...data.bookings.map(
+                        (b) => [b.animal, b.animalName] as const,
+                      ),
+                    ]).entries(),
+                  ].map(([id, name]) => (
+                    <option key={id} value={id}>
+                      {name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="field">
+                <label htmlFor="status">Statut</label>
+                <select
+                  id="status"
+                  value={bookingFilters.status}
+                  onChange={(e) =>
+                    setBookingFilters({
+                      ...bookingFilters,
+                      status: e.target.value,
+                    })
+                  }
+                >
+                  <option value="">Tous les statuts</option>
+                  <option value="confirmed">Confirmées</option>
+                  <option value="cancelled">Annulées</option>
+                </select>
+              </div>
             </div>
-            <div className="field">
-              <label htmlFor="booking-animal">Animal</label>
-              <select
-                id="booking-animal"
-                value={bookingFilters.animal}
-                onChange={(e) =>
-                  setBookingFilters({
-                    ...bookingFilters,
-                    animal: e.target.value,
-                  })
-                }
-              >
-                <option value="">Tous les animaux</option>
-                {[
-                  ...new Map([
-                    ...animals.map((a) => [a.id, a.name] as const),
-                    ...data.bookings.map(
-                      (b) => [b.animal, b.animalName] as const,
-                    ),
-                  ]).entries(),
-                ].map(([id, name]) => (
-                  <option key={id} value={id}>
-                    {name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="field">
-              <label htmlFor="status">Statut</label>
-              <select
-                id="status"
-                value={bookingFilters.status}
-                onChange={(e) =>
-                  setBookingFilters({
-                    ...bookingFilters,
-                    status: e.target.value,
-                  })
-                }
-              >
-                <option value="">Tous les statuts</option>
-                <option value="confirmed">Confirmées</option>
-                <option value="cancelled">Annulées</option>
-              </select>
-            </div>
-          </div>
+          )}
           <div className="booking-list">
             {bookings.map((b) => {
               const p = professional(b.professional)!;
@@ -462,14 +466,13 @@ export default function DirectoryPage({
               );
             })}
             {!bookings.length && (
-              <div className="empty">
-                <Icon name="calendar" />
-                <h2>Aucune réservation à afficher</h2>
-                <p>Vos rendez-vous apparaîtront ici après confirmation.</p>
-                <a href="#annuaire" className="button">
-                  Trouver un professionnel
-                </a>
-              </div>
+              <EmptyState
+                kind="events"
+                className="empty"
+                title="Aucune réservation à afficher"
+                description="Vos rendez-vous apparaîtront ici après confirmation."
+                filtered={data.bookings.length > 0}
+              />
             )}
           </div>
         </>

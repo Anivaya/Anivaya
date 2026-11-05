@@ -240,8 +240,7 @@ a.admin-stat:hover {
   color: var(--blue);
 }
 .admin-timeline article {
-  border-left: 2px solid var(--border);
-  padding: 8px 0 8px 18px;
+  padding: 8px 0;
   margin: 10px 0;
   font-size: 14px;
   overflow-wrap: anywhere;
@@ -494,7 +493,7 @@ a.admin-stat:hover {
 }
 .admin-dialog {
   width: min(740px, calc(100vw - 32px));
-  max-height: calc(100dvh - 40px);
+  max-height: calc(calc(100dvh / var(--zoom, 1)) - 40px);
   padding: 28px;
 }
 .admin-dialog-heading {
@@ -1485,8 +1484,27 @@ button.admin-stat:active {
   --accent-ink: white;
 }
 /* Survol : bordure de la couleur de l’indicateur (or pour les indicateurs or). */
-.admin-stats > .admin-stat:hover {
+.admin-stats > button.admin-stat:hover {
   border-color: var(--accent);
+}
+.admin-stat-empty > .empty-state {
+  flex: 1;
+}
+.admin-metric-line.admin-metric-line-empty {
+  cursor: default;
+}
+.admin-metric-line.admin-metric-line-empty:hover {
+  border-color: var(--border);
+  background: #f8fafd;
+}
+.admin-metric-line-empty > span {
+  min-width: 0;
+}
+@media (max-width: 620px) {
+  .admin-metric-line-empty {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 }
 .admin-stats .admin-stat-icon {
   background: var(--accent);
@@ -1517,7 +1535,7 @@ button.admin-stat:active {
 }
 .admin-metric-line {
   background: white;
-  border-left: 4px solid var(--gold);
+  border: 1px solid var(--border);
 }
 .admin-metric-line strong {
   color: var(--blue);

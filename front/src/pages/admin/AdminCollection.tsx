@@ -1,3 +1,4 @@
+import EmptyState from "../../shared/ui/EmptyState.tsx";
 import { useEffect, useRef, useState } from "react";
 import type {
   AdminList,
@@ -11,6 +12,7 @@ import AdminDialog from "./AdminDialog.tsx";
 import AdminIconButton from "./AdminIconButton.tsx";
 import {
   actionIcon,
+  adminEmptyStates,
   actionsFor,
   isDangerAction,
   statusTone,
@@ -180,6 +182,7 @@ export default function AdminCollection({
     params.get("category") ||
     params.get("scope"),
   );
+  const emptyContent = !loading && !error && data?.items.length === 0;
   const titleColumn =
     (
       {
@@ -256,146 +259,154 @@ export default function AdminCollection({
         </section>
       )}
       <section className="admin-panel admin-list-panel" aria-busy={loading}>
-        <div className="admin-toolbar">
-          <div className="admin-search">
-            <label className="sr-only" htmlFor="admin-search">
-              Rechercher
-            </label>
-            <div>
-              <input
-                ref={input}
-                id="admin-search"
-                type="search"
-                placeholder="Rechercher…"
-                value={search}
-                onCompositionStart={() => {
-                  setComposing(true);
-                }}
-                onCompositionEnd={(e) => {
-                  setComposing(false);
-                  setSearch(e.currentTarget.value);
-                }}
-                onChange={(e) => setSearch(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.nativeEvent.isComposing)
-                    change("q", search);
-                }}
-              />
-              {search && (
-                <button
-                  type="button"
-                  aria-label="Effacer la recherche"
-                  onClick={() => {
-                    setSearch("");
-                    change("q", "");
-                    input.current?.focus();
+        {(!emptyContent || hasFilters) && (
+          <div className="admin-toolbar">
+            <div className="admin-search">
+              <label className="sr-only" htmlFor="admin-search">
+                Rechercher
+              </label>
+              <div>
+                <input
+                  ref={input}
+                  id="admin-search"
+                  type="search"
+                  placeholder="Rechercher…"
+                  value={search}
+                  onCompositionStart={() => {
+                    setComposing(true);
                   }}
-                >
-                  ×
-                </button>
-              )}
+                  onCompositionEnd={(e) => {
+                    setComposing(false);
+                    setSearch(e.currentTarget.value);
+                  }}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.nativeEvent.isComposing)
+                      change("q", search);
+                  }}
+                />
+                {search && (
+                  <button
+                    type="button"
+                    aria-label="Effacer la recherche"
+                    onClick={() => {
+                      setSearch("");
+                      change("q", "");
+                      input.current?.focus();
+                    }}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-          <div className="field">
-            <label className="sr-only" htmlFor="admin-status">
-              État
-            </label>
-            <select
-              id="admin-status"
-              value={params.get("status") || ""}
-              onChange={(e) => change("status", e.target.value)}
-            >
-              <option value="">Tous les statuts</option>
-              {[
-                ...new Set([
-                  ...(data?.statuses || []),
-                  params.get("status") || "",
-                ]),
-              ]
-                .filter(Boolean)
-                .map((s) => (
-                  <option key={s}>{s}</option>
-                ))}
-            </select>
-          </div>
-          {resource === "alerts" && (
             <div className="field">
-              <label className="sr-only" htmlFor="admin-category">
-                Catégorie
+              <label className="sr-only" htmlFor="admin-status">
+                État
               </label>
               <select
-                id="admin-category"
-                value={params.get("category") || ""}
-                onChange={(e) => change("category", e.target.value)}
+                id="admin-status"
+                value={params.get("status") || ""}
+                onChange={(e) => change("status", e.target.value)}
               >
-                <option value="">Toutes les catégories</option>
+                <option value="">Tous les statuts</option>
                 {[
-                  ["pros", "Professionnels"],
-                  ["reports", "Signalements"],
-                  ["appeals", "Recours"],
-                  ["tickets", "Assistance"],
-                  ["feedback", "Retours"],
-                  ["imports", "Imports"],
-                  ["library", "Guides"],
-                  ["deletions", "Suppressions"],
-                ].map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
+                  ...new Set([
+                    ...(data?.statuses || []),
+                    params.get("status") || "",
+                  ]),
+                ]
+                  .filter(Boolean)
+                  .map((s) => (
+                    <option key={s}>{s}</option>
+                  ))}
               </select>
             </div>
-          )}
-          <div className="admin-toolbar-actions">
-            {canCreate && (
-              <AdminIconButton
-                icon="plus"
-                label={
-                  resource === "team"
-                    ? "Inviter un membre"
-                    : resource === "library"
-                      ? "Créer un guide"
-                      : resource === "tickets"
-                        ? "Créer une demande"
-                        : "Créer une annonce"
-                }
-                onClick={() => setDialog({ row: null })}
-              />
-            )}
-            {resource === "history" && (
-              <AdminIconButton
-                icon="download"
-                label={exporting ? "Export en cours…" : "Exporter le journal"}
-                disabled={exporting}
-                onClick={() => void download()}
-              />
-            )}
             {resource === "alerts" && (
-              <AdminIconButton
-                icon="check"
-                label="Tout marquer comme lu"
-                onClick={async () => {
-                  try {
-                    await adminApi.act("alerts", "all", { action: "read-all" });
-                    setNotice(
-                      "Toutes les notifications sont marquées comme lues.",
-                    );
-                    setRetry((n) => n + 1);
-                    onChanged();
-                  } catch (e) {
-                    setExportError(errorMessage(e));
-                  }
-                }}
-              />
+              <div className="field">
+                <label className="sr-only" htmlFor="admin-category">
+                  Catégorie
+                </label>
+                <select
+                  id="admin-category"
+                  value={params.get("category") || ""}
+                  onChange={(e) => change("category", e.target.value)}
+                >
+                  <option value="">Toutes les catégories</option>
+                  {[
+                    ["pros", "Professionnels"],
+                    ["reports", "Signalements"],
+                    ["appeals", "Recours"],
+                    ["tickets", "Assistance"],
+                    ["feedback", "Retours"],
+                    ["imports", "Imports"],
+                    ["library", "Guides"],
+                    ["deletions", "Suppressions"],
+                  ].map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             )}
-            <AdminIconButton
-              icon="refresh"
-              label="Actualiser"
-              disabled={loading}
-              onClick={() => setRetry((n) => n + 1)}
-            />
+            {!emptyContent && (
+              <div className="admin-toolbar-actions">
+                {canCreate && (
+                  <AdminIconButton
+                    icon="plus"
+                    label={
+                      resource === "team"
+                        ? "Inviter un membre"
+                        : resource === "library"
+                          ? "Créer un guide"
+                          : resource === "tickets"
+                            ? "Créer une demande"
+                            : "Créer une annonce"
+                    }
+                    onClick={() => setDialog({ row: null })}
+                  />
+                )}
+                {resource === "history" && (
+                  <AdminIconButton
+                    icon="download"
+                    label={
+                      exporting ? "Export en cours…" : "Exporter le journal"
+                    }
+                    disabled={exporting}
+                    onClick={() => void download()}
+                  />
+                )}
+                {resource === "alerts" && (
+                  <AdminIconButton
+                    icon="check"
+                    label="Tout marquer comme lu"
+                    onClick={async () => {
+                      try {
+                        await adminApi.act("alerts", "all", {
+                          action: "read-all",
+                        });
+                        setNotice(
+                          "Toutes les notifications sont marquées comme lues.",
+                        );
+                        setRetry((n) => n + 1);
+                        onChanged();
+                      } catch (e) {
+                        setExportError(errorMessage(e));
+                      }
+                    }}
+                  />
+                )}
+                <AdminIconButton
+                  icon="refresh"
+                  label="Actualiser"
+                  disabled={loading}
+                  onClick={() => setRetry((n) => n + 1)}
+                />
+              </div>
+            )}
           </div>
-        </div>
+        )}
         <div
           role="status"
           className="admin-feedback"
@@ -418,254 +429,237 @@ export default function AdminCollection({
             </button>
           </div>
         )}
-        <div className="admin-table-panel">
-          <header className="admin-table-heading">
-            <strong>
-              {loading
-                ? "Chargement…"
-                : `${data?.total ?? 0} résultat${data?.total === 1 ? "" : "s"}`}
-            </strong>
-          </header>
-          <div
-            className="admin-table-scroll"
-            tabIndex={0}
-            role="region"
-            aria-label="Liste des dossiers"
-          >
-            <table className={`admin-table-${resource}`}>
-              <thead>
-                <tr>
-                  {sortHeading(titleColumn, "name")}
-                  <th scope="col">{detailLabel}</th>
-                  {resource === "reports" && (
-                    <>
-                      <th scope="col">Auteur</th>
-                      <th scope="col">Délai</th>
-                    </>
-                  )}
-                  <th scope="col">État</th>
-                  {resource === "library" ? (
-                    <th scope="col">Publication</th>
-                  ) : (
-                    sortHeading("Dernière activité", "date")
-                  )}
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {!loading &&
-                  data?.items.map((row) => (
-                    <tr key={row.id}>
-                      <td>
-                        <button
-                          className="admin-record-link"
-                          title={row.name}
-                          onClick={() => void openRecord(row)}
-                        >
-                          {row.name}
-                        </button>
-                        {row.email &&
-                          resource !== "reports" &&
-                          resource !== "history" &&
-                          resource !== "deletions" && (
-                            <small title={row.email}>{row.email}</small>
-                          )}
-                        {resource === "library" && (
-                          <small>{row.versions?.at(-1)?.summary}</small>
-                        )}
-                      </td>
-                      <td data-label={detailLabel}>
-                        <span className="admin-cell-text">
-                          {resource === "history"
-                            ? row.email
-                            : resource === "tickets"
-                              ? row.assignee
-                              : resource === "reports"
-                                ? row.targetType === "pros"
-                                  ? "Fiche professionnelle"
-                                  : "Profil public"
-                                : resource === "library"
-                                  ? `Version ${row.versions?.at(-1)?.number || 1}`
-                                  : resource === "deletions" ||
-                                      resource === "imports"
-                                    ? row.email || "Compte supprimé"
-                                    : resource === "security"
-                                      ? row.kind
-                                      : resource === "users"
-                                        ? row.accountType
-                                        : row.role ||
-                                          row.category ||
-                                          row.audience ||
-                                          row.reference ||
-                                          row.priority ||
-                                          "—"}
-                        </span>
-                        {row.city && <small>{row.city}</small>}
-                        {resource === "tickets" && (
-                          <small>{row.category}</small>
-                        )}
-                        {resource === "imports" && <small>{row.kind}</small>}
-                        {resource === "users" &&
-                          row.role &&
-                          row.role !== "Particulier" && (
-                            <small>Équipe : {row.role}</small>
-                          )}
-                        {resource === "alerts" && row.issue && (
-                          <small>État du dossier : {row.issue}</small>
-                        )}
-                        {resource === "pros" && row.level && (
-                          <small>{row.level}</small>
-                        )}
-                        {resource === "team" && row.invitation && (
-                          <small>
-                            Jusqu’au{" "}
-                            {new Date(row.expiresAt!).toLocaleDateString(
-                              "fr-FR",
-                            )}
-                          </small>
-                        )}
-                      </td>
-                      {resource === "reports" && (
-                        <>
-                          <td data-label="Auteur">{row.email || "—"}</td>
-                          <td data-label="Délai">
-                            <span
-                              className={`admin-badge ${row.priority === "Risque grave" ? "danger" : ""}`}
-                            >
-                              {row.priority}
-                            </span>
-                            <small>
-                              {row.firstResponseAt
-                                ? "Première réponse enregistrée"
-                                : row.responseLate
-                                  ? "Délai de 24 h dépassé"
-                                  : "Réponse attendue sous 24 h"}
-                            </small>
-                          </td>
-                        </>
-                      )}
-                      <td data-label="État">
-                        <span
-                          className={`admin-badge ${statusTone(row.status)}`}
-                        >
-                          {row.status}
-                        </span>
-                      </td>
-                      <td
-                        data-label={
-                          resource === "library"
-                            ? "Publication"
-                            : "Dernière activité"
-                        }
-                      >
-                        {resource === "library"
-                          ? row.versions?.some((v) => v.status === "Publié")
-                            ? `v${row.versions.find((v) => v.status === "Publié")!.number} en ligne`
-                            : "Non publié"
-                          : row.updatedAt
-                            ? new Date(row.updatedAt).toLocaleDateString(
-                                "fr-FR",
-                              )
-                            : "—"}
-                      </td>
-                      <td>
-                        <div className="admin-row-actions">
-                          <AdminIconButton
-                            icon="eye"
-                            label={`Consulter ${row.name}`}
+        {emptyContent ? (
+          <EmptyState {...adminEmptyStates[resource]} filtered={hasFilters} />
+        ) : (
+          <div className="admin-table-panel">
+            <header className="admin-table-heading">
+              <strong>
+                {loading
+                  ? "Chargement…"
+                  : `${data?.total ?? 0} résultat${data?.total === 1 ? "" : "s"}`}
+              </strong>
+            </header>
+            <div
+              className="admin-table-scroll"
+              tabIndex={0}
+              role="region"
+              aria-label="Liste des dossiers"
+            >
+              <table className={`admin-table-${resource}`}>
+                <thead>
+                  <tr>
+                    {sortHeading(titleColumn, "name")}
+                    <th scope="col">{detailLabel}</th>
+                    {resource === "reports" && (
+                      <>
+                        <th scope="col">Auteur</th>
+                        <th scope="col">Délai</th>
+                      </>
+                    )}
+                    <th scope="col">État</th>
+                    {resource === "library" ? (
+                      <th scope="col">Publication</th>
+                    ) : (
+                      sortHeading("Dernière activité", "date")
+                    )}
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {!loading &&
+                    data?.items.map((row) => (
+                      <tr key={row.id}>
+                        <td>
+                          <button
+                            className="admin-record-link"
+                            title={row.name}
                             onClick={() => void openRecord(row)}
-                          />
-                          {actionsFor(resource, row, role)
-                            .filter((a) => !a.id.startsWith("proof:"))
-                            .map((action) => (
-                              <AdminIconButton
-                                key={action.id}
-                                icon={actionIcon(
-                                  action.id,
-                                  resource,
-                                  action.label,
-                                )}
-                                label={`${action.label} — ${row.name}`}
-                                danger={isDangerAction(action.id)}
-                                onClick={() => void openRecord(row, action.id)}
-                              />
-                            ))}
-                        </div>
-                      </td>
-                    </tr>
+                          >
+                            {row.name}
+                          </button>
+                          {row.email &&
+                            resource !== "reports" &&
+                            resource !== "history" &&
+                            resource !== "deletions" && (
+                              <small title={row.email}>{row.email}</small>
+                            )}
+                          {resource === "library" && (
+                            <small>{row.versions?.at(-1)?.summary}</small>
+                          )}
+                        </td>
+                        <td data-label={detailLabel}>
+                          <span className="admin-cell-text">
+                            {resource === "history"
+                              ? row.email
+                              : resource === "tickets"
+                                ? row.assignee
+                                : resource === "reports"
+                                  ? row.targetType === "pros"
+                                    ? "Fiche professionnelle"
+                                    : "Profil public"
+                                  : resource === "library"
+                                    ? `Version ${row.versions?.at(-1)?.number || 1}`
+                                    : resource === "deletions" ||
+                                        resource === "imports"
+                                      ? row.email || "Compte supprimé"
+                                      : resource === "security"
+                                        ? row.kind
+                                        : resource === "users"
+                                          ? row.accountType
+                                          : row.role ||
+                                            row.category ||
+                                            row.audience ||
+                                            row.reference ||
+                                            row.priority ||
+                                            "—"}
+                          </span>
+                          {row.city && <small>{row.city}</small>}
+                          {resource === "tickets" && (
+                            <small>{row.category}</small>
+                          )}
+                          {resource === "imports" && <small>{row.kind}</small>}
+                          {resource === "users" &&
+                            row.role &&
+                            row.role !== "Particulier" && (
+                              <small>Équipe : {row.role}</small>
+                            )}
+                          {resource === "alerts" && row.issue && (
+                            <small>État du dossier : {row.issue}</small>
+                          )}
+                          {resource === "pros" && row.level && (
+                            <small>{row.level}</small>
+                          )}
+                          {resource === "team" && row.invitation && (
+                            <small>
+                              Jusqu’au{" "}
+                              {new Date(row.expiresAt!).toLocaleDateString(
+                                "fr-FR",
+                              )}
+                            </small>
+                          )}
+                        </td>
+                        {resource === "reports" && (
+                          <>
+                            <td data-label="Auteur">{row.email || "—"}</td>
+                            <td data-label="Délai">
+                              <span
+                                className={`admin-badge ${row.priority === "Risque grave" ? "danger" : ""}`}
+                              >
+                                {row.priority}
+                              </span>
+                              <small>
+                                {row.firstResponseAt
+                                  ? "Première réponse enregistrée"
+                                  : row.responseLate
+                                    ? "Délai de 24 h dépassé"
+                                    : "Réponse attendue sous 24 h"}
+                              </small>
+                            </td>
+                          </>
+                        )}
+                        <td data-label="État">
+                          <span
+                            className={`admin-badge ${statusTone(row.status)}`}
+                          >
+                            {row.status}
+                          </span>
+                        </td>
+                        <td
+                          data-label={
+                            resource === "library"
+                              ? "Publication"
+                              : "Dernière activité"
+                          }
+                        >
+                          {resource === "library"
+                            ? row.versions?.some((v) => v.status === "Publié")
+                              ? `v${row.versions.find((v) => v.status === "Publié")!.number} en ligne`
+                              : "Non publié"
+                            : row.updatedAt
+                              ? new Date(row.updatedAt).toLocaleDateString(
+                                  "fr-FR",
+                                )
+                              : "—"}
+                        </td>
+                        <td>
+                          <div className="admin-row-actions">
+                            <AdminIconButton
+                              icon="eye"
+                              label={`Consulter ${row.name}`}
+                              onClick={() => void openRecord(row)}
+                            />
+                            {actionsFor(resource, row, role)
+                              .filter((a) => !a.id.startsWith("proof:"))
+                              .map((action) => (
+                                <AdminIconButton
+                                  key={action.id}
+                                  icon={actionIcon(
+                                    action.id,
+                                    resource,
+                                    action.label,
+                                  )}
+                                  label={`${action.label} — ${row.name}`}
+                                  danger={isDangerAction(action.id)}
+                                  onClick={() =>
+                                    void openRecord(row, action.id)
+                                  }
+                                />
+                              ))}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+              {loading ? (
+                <div className="admin-empty" role="status">
+                  Chargement des dossiers…
+                </div>
+              ) : !error && !data?.items.length ? (
+                <EmptyState
+                  {...adminEmptyStates[resource]}
+                  filtered={hasFilters}
+                  className="admin-empty"
+                />
+              ) : null}
+            </div>
+            <footer className="admin-pagination">
+              <label>
+                Par page{" "}
+                <select
+                  value={params.get("pageSize") || "10"}
+                  onChange={(e) => change("pageSize", e.target.value)}
+                >
+                  {[10, 20, 50].map((n) => (
+                    <option key={n}>{n}</option>
                   ))}
-              </tbody>
-            </table>
-            {loading ? (
-              <div className="admin-empty" role="status">
-                Chargement des dossiers…
-              </div>
-            ) : !error && !data?.items.length ? (
-              <div className="admin-empty">
-                <h3>
-                  {hasFilters
-                    ? "Aucun résultat"
-                    : "Aucun dossier pour le moment"}
-                </h3>
-                <p>
-                  {hasFilters
-                    ? "Essayez un autre terme ou retirez les filtres."
-                    : resource === "imports"
-                      ? "Les imports assistés par IA apparaîtront ici."
-                      : "Les nouvelles demandes apparaîtront ici."}
-                </p>
-                {hasFilters && (
-                  <button
-                    className="button outline"
-                    onClick={() => {
-                      const next = new URLSearchParams(query);
-                      ["q", "status", "category", "scope", "page"].forEach(
-                        (k) => next.delete(k),
-                      );
-                      onQuery(next.toString());
-                    }}
-                  >
-                    Effacer les filtres
-                  </button>
+                </select>
+              </label>
+              <AdminIconButton
+                icon="back"
+                label="Page précédente"
+                disabled={loading || !data || data.page <= 1}
+                onClick={() => change("page", String(data!.page - 1))}
+              />
+              <span className="admin-page-count">
+                Page {data?.page || 1} sur{" "}
+                {Math.max(
+                  1,
+                  Math.ceil((data?.total || 0) / (data?.pageSize || 10)),
                 )}
-              </div>
-            ) : null}
+              </span>
+              <AdminIconButton
+                icon="arrow"
+                label="Page suivante"
+                disabled={
+                  loading || !data || data.page * data.pageSize >= data.total
+                }
+                onClick={() => change("page", String(data!.page + 1))}
+              />
+            </footer>
           </div>
-          <footer className="admin-pagination">
-            <label>
-              Par page{" "}
-              <select
-                value={params.get("pageSize") || "10"}
-                onChange={(e) => change("pageSize", e.target.value)}
-              >
-                {[10, 20, 50].map((n) => (
-                  <option key={n}>{n}</option>
-                ))}
-              </select>
-            </label>
-            <AdminIconButton
-              icon="back"
-              label="Page précédente"
-              disabled={loading || !data || data.page <= 1}
-              onClick={() => change("page", String(data!.page - 1))}
-            />
-            <span className="admin-page-count">
-              Page {data?.page || 1} sur{" "}
-              {Math.max(
-                1,
-                Math.ceil((data?.total || 0) / (data?.pageSize || 10)),
-              )}
-            </span>
-            <AdminIconButton
-              icon="arrow"
-              label="Page suivante"
-              disabled={
-                loading || !data || data.page * data.pageSize >= data.total
-              }
-              onClick={() => change("page", String(data!.page + 1))}
-            />
-          </footer>
-        </div>
+        )}
       </section>
       {dialog && (
         <AdminDialog

@@ -90,7 +90,7 @@
   margin-right: auto;
 }
 dialog:has(.animal-add-fields) {
-  max-height: calc(100dvh - 40px);
+  max-height: calc(calc(100dvh / var(--zoom, 1)) - 40px);
 }
 /* Flèches de défilement : vue d’ensemble (2 fiches) et Mes animaux (6 par page). */
 .animal-carousel {

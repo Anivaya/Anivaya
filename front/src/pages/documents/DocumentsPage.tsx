@@ -1,3 +1,4 @@
+import EmptyState from "../../shared/ui/EmptyState.tsx";
 import type {
   PageProps,
   DialogKind,
@@ -28,6 +29,7 @@ export default function DocumentsPage({ data, actions }: PageProps) {
     <>
       <PageHeading
         title="Mes documents"
+        hasContent={data.documents.length > 0}
         description="Les documents de vos animaux, au même endroit."
         actionLabel="Ajouter un document"
         onAction={() => actions.add("document")}
@@ -87,13 +89,13 @@ export function DocumentsSection({
         <h2 id="documents-title">
           {overview ? "Documents récents" : "Vos documents"}
         </h2>
-        {overview && (
+        {overview && documents.length > 0 && (
           <a className="subtle" href="#documents">
             Voir tous →
           </a>
         )}
       </div>
-      {!overview && (
+      {!overview && documents.length > 0 && (
         <CollectionFilters
           search={search}
           onSearch={setSearch}
@@ -111,7 +113,7 @@ export function DocumentsSection({
           ]}
         />
       )}
-      {!overview && (
+      {!overview && filtered.length > 0 && (
         <BatchBar
           visible={filtered.map((d) => d.id)}
           selected={selected}
@@ -185,15 +187,17 @@ export function DocumentsSection({
         })}
       </div>
       {!filtered.length && (
-        <p className="empty">
-          {documents.length
-            ? "Aucun document pour ces filtres."
-            : "Aucun document. Ajoutez votre premier document."}
-        </p>
+        <EmptyState
+          kind="documents"
+          compact={overview}
+          filtered={documents.length > 0}
+        />
       )}
-      <button className="button outline" onClick={onAdd}>
-        + Ajouter un document
-      </button>
+      {filtered.length > 0 && (
+        <button className="button outline" onClick={onAdd}>
+          + Ajouter un document
+        </button>
+      )}
     </section>
   );
 }

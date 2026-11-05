@@ -623,7 +623,7 @@
 .directory-page dialog,
 .directory-dialog {
   width: min(720px, calc(100% - 30px));
-  max-height: calc(100dvh - 40px);
+  max-height: calc(calc(100dvh / var(--zoom, 1)) - 40px);
   padding: 27px;
   border: 1px solid var(--border);
   border-radius: 15px;
@@ -1112,7 +1112,7 @@
   .directory-page dialog,
   .directory-dialog {
     padding: 20px;
-    max-height: calc(100dvh - 24px);
+    max-height: calc(calc(100dvh / var(--zoom, 1)) - 24px);
   }
   .directory-page .dialog-actions .button,
   .directory-dialog .dialog-actions .button {

@@ -17,6 +17,17 @@ La commande démarre React sur http://127.0.0.1:5173 et l’API sur http://127.0
 
 ## Comptes
 
+Les comptes pour parcourir les **états vides** sont accessibles directement avec `npm run dev`, sur la même page de connexion http://127.0.0.1:5173 :
+
+| Identifiant | Mot de passe | Espace |
+|---|---|---|
+| test.vide@anivaya.test | Anivaya2026! | Particulier vide |
+| admin.vide@anivaya.test | Anivaya2026! | Administrateur sans dossiers d’exemple |
+
+L’API sélectionne automatiquement leur base séparée dans `back/database/data/empty-state/` à la connexion, puis à partir de la session. Il n’y a aucun animal, document, rappel, contact, partage, réservation, notification, professionnel, communauté, événement ou dossier administratif d’exemple. Les deux comptes, le rôle administrateur et les sessions restent visibles dans Utilisateurs, Équipe et Sécurité ; utiliser un filtre sans résultat pour l’état vide de ces listes. Les ajouts manuels persistent après redémarrage. Les comptes habituels conservent leurs données. Ces comptes vides sont réservés au développement local et ne sont pas activés en production.
+
+La commande facultative `npm run dev:empty` reste disponible pour ouvrir uniquement l’environnement vide sur le port 5174 (API 3002, cookie distinct).
+
 Comptes de démonstration (aucun n’est présélectionné sur la page de connexion) :
 
 | Identifiant | Mot de passe | Espace |

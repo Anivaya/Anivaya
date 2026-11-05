@@ -137,8 +137,16 @@ export default function Messaging({
             </a>
           ))}
           {!threads.length && (
-            <Empty title="Aucune discussion">
-              Commencez une conversation avec un membre.
+            <Empty
+              title={
+                data.threads.length
+                  ? "Aucune discussion trouvée"
+                  : "Aucune discussion pour le moment"
+              }
+            >
+              {data.threads.length
+                ? "Modifiez votre recherche ou vos filtres."
+                : "Commencez une conversation avec un membre."}
             </Empty>
           )}
           {threads.length > limit && (
@@ -152,7 +160,7 @@ export default function Messaging({
         {thread ? (
           <Conversation key={thread.id} ctx={ctx} thread={thread} />
         ) : id ? (
-          <Empty title="Discussion inaccessible">
+          <Empty kind={null} title="Discussion inaccessible">
             Vous avez quitté ce groupe ou un échange a été bloqué.
           </Empty>
         ) : (

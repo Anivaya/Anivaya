@@ -7,6 +7,7 @@ export default function PageHeading({
   onAction,
   showPlus = true,
   secondary,
+  hasContent = true,
 }: {
   title: string;
   description: string;
@@ -16,6 +17,8 @@ export default function PageHeading({
   showPlus?: boolean;
   /** Action placée avant le bouton principal. */
   secondary?: ReactNode;
+  /** Les actions du contenu disparaissent lorsque ce contenu est vide. */
+  hasContent?: boolean;
 }) {
   const action = actionLabel && (
     <button
@@ -32,14 +35,15 @@ export default function PageHeading({
         <h1>{title}</h1>
         <p>{description}</p>
       </div>
-      {secondary ? (
-        <div className="heading-actions">
-          {secondary}
-          {action}
-        </div>
-      ) : (
-        action
-      )}
+      {hasContent &&
+        (secondary ? (
+          <div className="heading-actions">
+            {secondary}
+            {action}
+          </div>
+        ) : (
+          action
+        ))}
     </div>
   );
 }

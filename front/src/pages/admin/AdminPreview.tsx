@@ -1,3 +1,4 @@
+import EmptyState from "../../shared/ui/EmptyState.tsx";
 import { useEffect, useState, useRef } from "react";
 import type {
   AdminIndicator,
@@ -11,6 +12,7 @@ import Modal from "../../shared/ui/Modal.tsx";
 import AdminDialog from "./AdminDialog.tsx";
 import {
   actionIcon,
+  adminEmptyStates,
   actionsFor,
   adminLink,
   isDangerAction,
@@ -98,11 +100,13 @@ export default function AdminPreview({
             <h2 id="preview-title" tabIndex={-1} autoFocus>
               {indicator.label}
             </h2>
-            <p className="muted">
-              {result.data
-                ? `${result.data.items.length} sur ${result.data.total} résultats`
-                : "Chargement de l’aperçu…"}
-            </p>
+            {(!result.data || result.data.total > 0) && (
+              <p className="muted">
+                {result.data
+                  ? `${result.data.items.length} sur ${result.data.total} résultats`
+                  : "Chargement de l’aperçu…"}
+              </p>
+            )}
           </div>
           <AdminIconButton
             icon="close"
@@ -173,10 +177,11 @@ export default function AdminPreview({
             </article>
           ))}
           {result.data && !result.data.total && (
-            <p className="admin-empty">
-              Aucun élément à afficher pour cet indicateur. Vous pouvez
-              consulter la page complète.
-            </p>
+            <EmptyState
+              {...adminEmptyStates[indicator.resource]}
+              compact
+              className="admin-empty"
+            />
           )}
           {!result.data && !result.error && (
             <p className="admin-empty" role="status">
@@ -184,14 +189,16 @@ export default function AdminPreview({
             </p>
           )}
         </div>
-        <footer className="admin-dialog-actions">
-          <a
-            className="button"
-            href={`${adminLink(indicator.resource)}?${indicator.query}${indicator.query ? "&" : ""}from=dashboard`}
-          >
-            Voir la page complète
-          </a>
-        </footer>
+        {!!result.data?.total && (
+          <footer className="admin-dialog-actions">
+            <a
+              className="button"
+              href={`${adminLink(indicator.resource)}?${indicator.query}${indicator.query ? "&" : ""}from=dashboard`}
+            >
+              Voir la page complète
+            </a>
+          </footer>
+        )}
       </Modal>
       {selection && (
         <AdminDialog

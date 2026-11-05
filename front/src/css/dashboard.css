@@ -2,7 +2,7 @@
 .workspace {
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr);
-  min-height: 100vh;
+  min-height: calc(100vh / var(--zoom, 1));
   background: #f4f7fc;
 }
 .sidebar {
@@ -10,7 +10,7 @@
   /* Au-dessus du contenu pour que le menu du compte, plus large que la barre, reste visible. */
   z-index: 40;
   top: 0;
-  height: 100vh;
+  height: calc(100vh / var(--zoom, 1));
   background: white;
   border-right: 1px solid var(--border);
   display: flex;
@@ -301,14 +301,12 @@
   flex-direction: column;
   gap: 10px;
 }
-/* Filet or à gauche ; un rappel fait repasse en neutre. */
 .reminder-row {
   display: flex;
   gap: 17px;
   align-items: center;
   background: white;
   border: 1px solid var(--border);
-  border-left: 4px solid var(--gold);
   border-radius: 10px;
   padding: 13px;
   min-width: 0;
@@ -366,9 +364,6 @@
   text-decoration: line-through;
   color: var(--muted);
 }
-.reminder-row.is-done {
-  border-left-color: var(--border);
-}
 .reminder-row.is-done .date-tile {
   background: var(--pale);
 }
@@ -379,8 +374,9 @@
   border-radius: 13px;
   padding: 22px;
 }
-/* Colonne de droite (Documents récents) : bordure haute bleue. */
-.app-right .panel {
+/* Documents récents et panneau Mes animaux vide : même bordure haute bleue. */
+.app-right .panel,
+.animals-empty-panel {
   border-top: 4px solid var(--blue);
 }
 .panel .section-head {
@@ -639,11 +635,6 @@
 .app-content:focus {
   outline: none;
 }
-@media (min-width: 1600px) {
-  .pet-picture {
-    height: 205px;
-  }
-}
 @media (max-width: 1100px) {
   .workspace {
     grid-template-columns: 190px minmax(0, 1fr);
@@ -709,7 +700,7 @@
     z-index: 60;
     inset: 0 auto 0 0;
     width: min(280px, 84vw);
-    height: 100dvh;
+    height: calc(100dvh / var(--zoom, 1));
     overflow-y: auto;
     box-shadow: 0 0 40px #132e5c30;
     transform: translateX(-105%);
@@ -962,6 +953,10 @@
 @media (min-width: 851px) {
   .workspace:not(.section-mode) .app-right {
     padding-top: 53px;
+  }
+  /* Avec le panneau vide, les deux titres sont déjà dans le même cadre. */
+  .workspace:not(.section-mode) .app-grid:has(.animals-empty-panel) > .app-right {
+    padding-top: 0;
   }
 }
 /* Garde l'icône et les actions à distance du bord du fond au survol. */
