@@ -489,7 +489,7 @@ a.admin-stat:hover {
   flex-shrink: 0;
   padding-top: 16px;
 }
-/* Tablette et mobile : le menu du compte suit directement la cloche. */
+/* Tablette et mobile : le menu du compte suit directement le bouton de navigation. */
 .admin-topbar .mobile-account {
   margin-left: 0;
 }

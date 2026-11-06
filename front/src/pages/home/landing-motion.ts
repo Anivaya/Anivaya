@@ -1,5 +1,8 @@
+import { getLanguage } from "../../shared/language.ts";
+import { homeText } from "../../shared/i18n/home-text.ts";
 /** Navigation et animations de la vitrine ; les formulaires sont gérés par React. */
 export function mountLanding(host: HTMLElement) {
+  const t = (text: string) => homeText(text, getLanguage());
   const events = new AbortController();
   const { signal } = events;
   const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -113,7 +116,7 @@ export function mountLanding(host: HTMLElement) {
     button.setAttribute("aria-expanded", String(open));
     button.setAttribute(
       "aria-label",
-      open ? "Fermer le menu" : "Ouvrir le menu",
+      t(open ? "Fermer le menu" : "Ouvrir le menu"),
     );
     menu.classList.toggle("is-open", open);
     menu.inert = !open && innerWidth <= 1100;
@@ -122,7 +125,7 @@ export function mountLanding(host: HTMLElement) {
   };
   const dots = document.createElement("nav");
   dots.className = "block-nav";
-  dots.setAttribute("aria-label", "Navigation entre les blocs");
+  dots.setAttribute("aria-label", t("Navigation entre les blocs"));
   host.append(dots);
   const sections = views.flatMap((v) => [
     ...v.querySelectorAll<HTMLElement>(":scope > section"),
@@ -163,7 +166,7 @@ export function mountLanding(host: HTMLElement) {
       .forEach((section) => {
         const a = document.createElement("a");
         a.href = "#accueil/" + section.id;
-        const label = titleFor(section).textContent?.trim() || "Accueil";
+        const label = titleFor(section).textContent?.trim() || t("Accueil");
         a.setAttribute("aria-label", label);
         const span = document.createElement("span");
         span.textContent = label;
@@ -174,6 +177,23 @@ export function mountLanding(host: HTMLElement) {
     updateDot();
   };
   const resize = new ResizeObserver(measure);
+  host.addEventListener(
+    "anivaya-home-language",
+    () => {
+      const view = views.find((view) => view.classList.contains("is-active"));
+      if (view) buildDots(view);
+      dots.setAttribute("aria-label", t("Navigation entre les blocs"));
+      button.setAttribute(
+        "aria-label",
+        t(
+          menu.classList.contains("is-open")
+            ? "Fermer le menu"
+            : "Ouvrir le menu",
+        ),
+      );
+    },
+    { signal },
+  );
   sections.forEach((s) => resize.observe(s));
   if (header) resize.observe(header);
   button.addEventListener(

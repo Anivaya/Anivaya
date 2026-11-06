@@ -21,6 +21,7 @@ import "./css/buttons.css";
 import "./pages/home/landing.css";
 import "./css/harmony.css";
 import "./css/footer.css";
+import "./css/language.css";
 import "./css/scrollbars.css";
 import App from "./App.tsx";
 import { startWideZoom } from "./shared/wideZoom.ts";

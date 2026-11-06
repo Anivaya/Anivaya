@@ -172,6 +172,13 @@ export default function AdminWorkspace({
           >
             <Icon name="menu" />
           </button>
+          <AccountMenu
+            profile={user.profile}
+            onLogout={onLogout}
+            profileHref="#admin/profil"
+            roleLabel={role || "Mon compte"}
+            mobile
+          />
           <nav aria-label="Fil d’Ariane">
             <a href="#admin/dashboard">Administration</a>
             <span> / {config?.title || "Page introuvable"}</span>
@@ -190,14 +197,6 @@ export default function AdminWorkspace({
                 )}
               </button>
             )}
-            {/* Tablette et mobile : menu du compte à droite de la cloche. */}
-            <AccountMenu
-              profile={user.profile}
-              onLogout={onLogout}
-              profileHref="#admin/profil"
-              roleLabel={role || "Mon compte"}
-              mobile
-            />
           </div>
         </header>
         <main id="admin-content" className="admin-content" tabIndex={-1}>

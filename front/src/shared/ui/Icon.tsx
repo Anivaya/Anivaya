@@ -1,5 +1,15 @@
 import type { ReactNode } from "react";
 const shapes: Record<string, { viewBox: string; body: ReactNode }> = {
+  globe: {
+    viewBox: "0 0 24 24",
+    body: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <ellipse cx="12" cy="12" rx="4" ry="9" />
+        <path d="M3 12h18" />
+      </>
+    ),
+  },
   medical: {
     viewBox: "0 0 24 24",
     body: (

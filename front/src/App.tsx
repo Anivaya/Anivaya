@@ -1,4 +1,5 @@
-import type { ComponentType } from "react";
+import type { ComponentType, Dispatch, SetStateAction } from "react";
+import { AdminViewContext } from "./shared/layout/AdminViewContext.ts";
 import PublicFooter from "./shared/layout/PublicFooter.tsx";
 import {
   lazy,
@@ -89,6 +90,7 @@ const secondaryPages = new Set(["notifications", "contact", "informations"]);
 const informationTabs = new Set(["ressources", "service", "donnees"]);
 
 export default function App() {
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [hash, setHash] = useState(location.hash);
   useEffect(() => {
     const update = () => setHash(location.hash);
@@ -96,7 +98,7 @@ export default function App() {
     return () => window.removeEventListener("hashchange", update);
   }, []);
   return (
-    <>
+    <AdminViewContext.Provider value={!!user?.adminRole}>
       <Suspense
         fallback={
           <div className="session-screen" role="status">
@@ -104,19 +106,24 @@ export default function App() {
           </div>
         }
       >
-        <AppContent />
+        <AppContent user={user} setUser={setUser} />
       </Suspense>
       {hash !== "" && !hash.startsWith("#accueil") && <PublicFooter />}
-    </>
+    </AdminViewContext.Provider>
   );
 }
-function AppContent() {
+function AppContent({
+  user,
+  setUser,
+}: {
+  user: AuthUser | null;
+  setUser: Dispatch<SetStateAction<AuthUser | null>>;
+}) {
   const sessionVersion = useRef(0);
   const [route, setRoute] = useState(
     () => window.location.hash.slice(1) || "accueil",
   );
-  const [user, setUser] = useState<AuthUser | null>(null),
-    [loading, setLoading] = useState(true),
+  const [loading, setLoading] = useState(true),
     [deletedNotice, setDeletedNotice] = useState(false),
     [error, setError] = useState("");
   useEffect(() => {
@@ -137,7 +144,7 @@ function AppContent() {
       window.removeEventListener("hashchange", navigate);
       window.removeEventListener("anivaya-session-expired", expired);
     };
-  }, []);
+  }, [setUser]);
   useEffect(() => {
     // Une connexion ou une déconnexion survenue entre-temps rend cette réponse obsolète.
     const controller = new AbortController();
@@ -156,7 +163,7 @@ function AppContent() {
         if (!controller.signal.aborted) setLoading(false);
       });
     return () => controller.abort();
-  }, []);
+  }, [setUser]);
   const [requestedPage, ...params] = route.split("/");
   const page =
     requestedPage === "contact" && informationTabs.has(params[0])

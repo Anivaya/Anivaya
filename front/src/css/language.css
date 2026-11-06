@@ -1,0 +1,215 @@
+/* Même contrôle partagé dans les menus et les préférences. */
+.language-menu {
+  position: relative;
+  min-width: 0;
+}
+.language-trigger,
+.language-options button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--navy);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+.language-menu svg {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 19px;
+}
+.language-trigger > svg:last-child,
+.language-options button > svg:last-child:not(:first-child) {
+  margin-left: auto;
+  width: 15px;
+  height: 15px;
+  flex-basis: 15px;
+}
+.language-menu .language-trigger:hover,
+.language-menu .language-trigger[aria-expanded="true"],
+.language-menu .language-options button:hover,
+.language-menu .language-options button[aria-checked="true"] {
+  background: var(--pale, #edf4fc);
+}
+.language-menu button:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+.language-flyout {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  padding-left: 6px;
+  z-index: 65;
+  width: 200px;
+  max-width: calc(100vw - 32px);
+}
+.language-options {
+  padding: 7px;
+  background: #fff;
+  border: 1px solid var(--border, #e1e7f0);
+  border-radius: 10px;
+  box-shadow: 0 10px 35px #132e5c25;
+}
+.language-menu--public .language-flyout,
+.language-menu--preferences .language-flyout {
+  top: 100%;
+  left: 0;
+  padding: 6px 0 0;
+}
+.site-header .account-menu .language-flyout,
+.app-top .language-flyout,
+.admin-topbar .language-flyout {
+  top: 100%;
+  left: auto;
+  right: 0;
+  padding: 6px 0 0;
+}
+.site-header .account-menu .language-trigger > svg:last-child,
+.app-top .account-menu .language-trigger > svg:last-child,
+.admin-topbar .account-menu .language-trigger > svg:last-child {
+  display: none;
+}
+.public-guest-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+.public-guest-actions .language-menu {
+  flex: 0 0 auto;
+}
+.landing-v2 .public-guest-actions .language-trigger {
+  font-size: 13px;
+  line-height: 1.5;
+}
+.landing-v2 .public-guest-actions .nav__cta {
+  margin: 0;
+}
+.profile-language {
+  padding-bottom: 24px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+.profile-language .language-menu {
+  width: 220px;
+  max-width: 100%;
+}
+.profile-language .language-trigger {
+  border: 1px solid var(--border);
+  min-height: 44px;
+}
+.landing-v2 .mobile-help-nav svg {
+  width: 19px;
+  height: 19px;
+  margin-right: 8px;
+}
+.app-top .mobile-account,
+.admin-topbar > .mobile-account {
+  margin-left: 0;
+}
+.admin-topbar > .mobile-account {
+  position: static;
+}
+.admin-topbar > .mobile-account .account-popup {
+  top: calc(100% + 1px);
+  bottom: auto;
+  right: 35px;
+  left: auto;
+}
+@media (min-width: 1101px) {
+  .landing-v2 .site-header__inner {
+    max-width: 1440px;
+    width: calc(100% - 32px);
+    gap: 16px;
+  }
+  .landing-v2 .site-header .nav {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+  .landing-v2 .nav > .account-menu {
+    width: 224px;
+  }
+  .landing-v2 .public-guest-actions .nav__cta {
+    width: 210px;
+  }
+  .landing-v2 .site-header > .site-header__inner > .mobile-account {
+    display: none;
+  }
+}
+@media (min-width: 1101px) and (max-width: 1250px) {
+  .landing-v2 .nav__links a {
+    padding-inline: 7px;
+  }
+  .landing-v2 .public-guest-actions .nav__cta {
+    width: 190px;
+  }
+}
+@media (max-width: 1100px) {
+  .landing-v2 .site-header__inner {
+    gap: 8px;
+  }
+  .landing-v2 .nav > .account-menu {
+    display: none;
+  }
+  .landing-v2 .site-header__inner > .mobile-account {
+    display: block;
+    margin-left: 0;
+    position: static;
+  }
+  .landing-v2 .site-header__inner > .mobile-account .profile-label {
+    display: none;
+  }
+  .landing-v2 .site-header__inner > .mobile-account .account-trigger {
+    padding: 0;
+    width: 38px;
+  }
+  .landing-v2 .site-header__inner > .mobile-account .account-popup {
+    top: 100%;
+    right: var(--gutter);
+  }
+  .landing-v2 .public-guest-actions {
+    justify-content: flex-start;
+    gap: 8px;
+  }
+  .landing-v2 .public-guest-actions .nav__cta {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
+}
+@media (max-width: 620px) {
+  .admin-topbar > .mobile-account .account-popup {
+    right: 5%;
+  }
+  .public-guest-actions .language-trigger {
+    gap: 6px;
+    padding-inline: 7px;
+  }
+}
+
+.landing-v2 .language-options button {
+  font-size: 13px;
+  line-height: 1.5;
+}
+@media (min-width: 1025px) {
+  .admin-topbar > .mobile-account {
+    display: none;
+  }
+}
+@media (min-width: 621px) {
+  .site-header .account-menu .language-flyout,
+  .app-top .language-flyout,
+  .admin-topbar .language-flyout {
+    top: 0;
+    right: 100%;
+    padding: 0 6px 0 0;
+  }
+}

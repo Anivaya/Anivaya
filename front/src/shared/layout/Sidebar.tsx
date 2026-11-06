@@ -2,6 +2,9 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import type { Profile } from "../../../../shared/account.ts";
 import Icon from "../ui/Icon.tsx";
+import LanguageMenu from "../ui/LanguageMenu.tsx";
+import { useHomeText } from "../i18n/HomeLocale.tsx";
+import { useAdminView } from "./AdminViewContext.ts";
 import { initials } from "../utils/format.ts";
 const navigation = [
   ["espace", "home", "Vue d’ensemble"],
@@ -161,7 +164,7 @@ function SidebarContent({
 
 /**
  * Menu du compte : dans la barre latérale et, sur tablette et mobile, dans l’en-tête
- * (`mobile`). L’administration l’affiche toujours dans l’en-tête.
+ * (`mobile`), y compris dans l’administration.
  */
 export function AccountMenu({
   profile,
@@ -181,6 +184,8 @@ export function AccountMenu({
   const [open, setOpen] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
+  const isAdmin = useAdminView();
+  const t = useHomeText();
   const ref = useRef<HTMLDivElement>(null),
     button = useRef<HTMLButtonElement>(null),
     id = useId();
@@ -223,7 +228,7 @@ export function AccountMenu({
         type="button"
         ref={button}
         className="profile-link account-trigger"
-        aria-label={"Ouvrir le menu du compte de " + profile.name}
+        aria-label={t("Ouvrir le menu du compte de ") + profile.name}
         aria-expanded={open}
         aria-controls={id}
         onClick={() => setOpen(!open)}
@@ -237,14 +242,14 @@ export function AccountMenu({
         </span>
         <span className="profile-label">
           <strong>{profile.name}</strong>
-          <small>{roleLabel}</small>
+          <small>{t(roleLabel)}</small>
         </span>
       </button>
       {open && (
         <section
           className="account-popup"
           id={id}
-          aria-label="Compte utilisateur"
+          aria-label={t("Compte utilisateur")}
         >
           <div className="account-identity">
             <strong>{profile.name}</strong>
@@ -262,34 +267,42 @@ export function AccountMenu({
               onClick={() => setOpen(false)}
             >
               <Icon name="home" />
-              {!location.hash || location.hash.startsWith("#accueil")
-                ? "Espace " +
-                  (roleLabel === "Mon compte" ? "Particulier" : roleLabel)
-                : "Accueil"}
+              {t(
+                !location.hash || location.hash.startsWith("#accueil")
+                  ? "Espace " +
+                      (roleLabel === "Mon compte" ? "Particulier" : roleLabel)
+                  : "Accueil",
+              )}
             </a>
+            <LanguageMenu />
             <a
               href={profileHref}
               aria-current={location.hash === profileHref ? "page" : undefined}
               onClick={() => setOpen(false)}
             >
               <Icon name="settings" />
-              Gestion de profil
+              {t("Gestion de profil")}
             </a>
-            <a
-              className="mobile-help-link"
-              href="#contact"
-              onClick={() => setOpen(false)}
-            >
-              <Icon name="headset" />
-              Nous contacter
-            </a>
-            <a
-              className="mobile-help-link"
-              href="#informations"
-              onClick={() => setOpen(false)}
-            >
-              Informations du service
-            </a>
+            {!isAdmin && (
+              <a
+                className="mobile-help-link"
+                href="#contact"
+                onClick={() => setOpen(false)}
+              >
+                <Icon name="headset" />
+                {t("Nous contacter")}
+              </a>
+            )}
+            {!isAdmin && (
+              <a
+                className="mobile-help-link"
+                href="#informations"
+                onClick={() => setOpen(false)}
+              >
+                <Icon name="info" />
+                {t("Informations du service")}
+              </a>
+            )}
             <button
               className="account-signout"
               disabled={busy}
@@ -308,9 +321,9 @@ export function AccountMenu({
               }}
             >
               <Icon name="logout" />
-              {busy ? "Déconnexion…" : "Se déconnecter"}
+              {t(busy ? "Déconnexion…" : "Se déconnecter")}
             </button>
-            {error && <p role="alert">{error}</p>}
+            {error && <p role="alert">{t(error)}</p>}
           </div>
         </section>
       )}

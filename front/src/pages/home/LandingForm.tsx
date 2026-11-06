@@ -1,3 +1,4 @@
+import { useHomeText } from "../../shared/i18n/HomeLocale.tsx";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import type { LeadInput, LeadKind } from "../../../../shared/public.ts";
@@ -45,6 +46,7 @@ const consentLabels = {
 
 /** Variante vitrine : mêmes erreurs API que SubmissionForm, avec confirmation dans la page. */
 export default function LandingForm({ kind }: { kind: LeadKind }) {
+  const t = useHomeText();
   const form = useRef<HTMLFormElement>(null);
   const success = useRef<HTMLDivElement>(null);
   const pending = useRef<AbortController | null>(null);
@@ -147,7 +149,7 @@ export default function LandingForm({ kind }: { kind: LeadKind }) {
   const fieldMessage = (name: string) =>
     fields[name] ? (
       <p className="field__error" id={`${kind}-${name}-error`}>
-        {fields[name]}
+        {t(fields[name])}
       </p>
     ) : null;
   function field(
@@ -164,9 +166,9 @@ export default function LandingForm({ kind }: { kind: LeadKind }) {
     return (
       <div className={"field" + (fields[name] ? " has-error" : "")}>
         <label htmlFor={`${kind}-${name}`}>
-          {label}
+          {t(label)}
           {options.optional && (
-            <span className="field__opt"> (facultatif)</span>
+            <span className="field__opt">{t(" (facultatif)")}</span>
           )}
         </label>
         {options.choices ? (
@@ -177,10 +179,10 @@ export default function LandingForm({ kind }: { kind: LeadKind }) {
             {...invalid(name)}
             defaultValue=""
           >
-            <option value="">Choisir</option>
+            <option value="">{t("Choisir")}</option>
             {options.choices.map(([value, text]) => (
               <option key={value} value={value}>
-                {text}
+                {t(text)}
               </option>
             ))}
           </select>
@@ -219,11 +221,11 @@ export default function LandingForm({ kind }: { kind: LeadKind }) {
       { type: "email", autocomplete: "email" },
     );
   const postal = () =>
-    field(
-      "postalCode",
-      kind === "pro" ? "Code postal de votre zone" : "Code postal",
-      { optional: true, max: 5, autocomplete: "postal-code" },
-    );
+    field("postalCode", "Code postal", {
+      optional: true,
+      max: 5,
+      autocomplete: "postal-code",
+    });
   return (
     <>
       <form
@@ -243,7 +245,7 @@ export default function LandingForm({ kind }: { kind: LeadKind }) {
       >
         <input type="hidden" name="offre_visee" defaultValue="" />
         <fieldset className="landing-fields" disabled={busy}>
-          <legend className="visually-hidden">{labels[kind]}</legend>
+          <legend className="visually-hidden">{t(labels[kind])}</legend>
           {kind === "liste-attente" && (
             <>
               <div className="form__row">
@@ -254,7 +256,7 @@ export default function LandingForm({ kind }: { kind: LeadKind }) {
               <fieldset
                 className={"field" + (fields.profile ? " has-error" : "")}
               >
-                <legend className="field__legend">Vous êtes</legend>
+                <legend className="field__legend">{t("Vous êtes")}</legend>
                 <div className="chips">
                   {profiles.map(([value, label]) => (
                     <label className="chip" key={value}>
@@ -266,7 +268,7 @@ export default function LandingForm({ kind }: { kind: LeadKind }) {
                         onChange={() => setProfile(value)}
                         {...invalid("profile")}
                       />
-                      <span>{label}</span>
+                      <span>{t(label)}</span>
                     </label>
                   ))}
                 </div>
@@ -277,7 +279,8 @@ export default function LandingForm({ kind }: { kind: LeadKind }) {
                   className={"field" + (fields.animals ? " has-error" : "")}
                 >
                   <legend className="field__legend">
-                    Vos animaux <span className="field__opt">(facultatif)</span>
+                    {t("Vos animaux ")}
+                    <span className="field__opt">{t("(facultatif)")}</span>
                   </legend>
                   <div className="chips">
                     {[
@@ -295,7 +298,7 @@ export default function LandingForm({ kind }: { kind: LeadKind }) {
                           <svg className="ic" aria-hidden="true">
                             <use href={`#i-${icon}`} />
                           </svg>
-                          {label}
+                          {t(label)}
                         </span>
                       </label>
                     ))}
@@ -351,7 +354,8 @@ export default function LandingForm({ kind }: { kind: LeadKind }) {
               </div>
               <div className={"field" + (fields.message ? " has-error" : "")}>
                 <label htmlFor={`${kind}-message`}>
-                  Votre projet <span className="field__opt">(facultatif)</span>
+                  {t("Votre projet ")}
+                  <span className="field__opt">{t("(facultatif)")}</span>
                 </label>
                 <textarea
                   id={`${kind}-message`}
@@ -375,20 +379,24 @@ export default function LandingForm({ kind }: { kind: LeadKind }) {
                 {...invalid("consent")}
               />
               <span>
-                {consentLabels[kind]}{" "}
+                {t(consentLabels[kind])}{" "}
                 {kind === "liste-attente" ? (
                   <>
-                    Je peux me désinscrire en un clic depuis mon lien personnel.{" "}
-                    <a href="#desinscription">Gérer mon inscription</a>.
+                    {t(
+                      "Je peux me désinscrire en un clic depuis mon lien personnel.",
+                    )}{" "}
+                    <a href="#desinscription">{t("Gérer mon inscription")}</a>
+                    {t(".")}
                   </>
                 ) : (
                   <>
-                    Je peux retirer mon consentement en{" "}
-                    <a href="#contact">contactant l’équipe</a>.
+                    {t("Je peux retirer mon consentement en")}{" "}
+                    <a href="#contact">{t("contactant l’équipe")}</a>
+                    {t(".")}
                   </>
                 )}{" "}
                 <a href="#accueil/confidentialite">
-                  Politique de confidentialité
+                  {t("Politique de confidentialité")}
                 </a>
               </span>
             </label>
@@ -398,7 +406,7 @@ export default function LandingForm({ kind }: { kind: LeadKind }) {
         <div className="landing-form-feedback" aria-live="polite">
           {Object.keys(fields).length > 0 && (
             <p role="alert" tabIndex={-1} className="form-error">
-              Vérifiez les champs indiqués avant d’envoyer le formulaire.
+              {t("Vérifiez les champs indiqués avant d’envoyer le formulaire.")}
             </p>
           )}
           {error && (
@@ -408,7 +416,7 @@ export default function LandingForm({ kind }: { kind: LeadKind }) {
               id={`${kind}-error`}
               tabIndex={-1}
             >
-              {error.message}
+              {t(error.message)}
             </p>
           )}
         </div>
@@ -417,7 +425,7 @@ export default function LandingForm({ kind }: { kind: LeadKind }) {
           type="submit"
           disabled={busy}
         >
-          {busy ? "Enregistrement…" : labels[kind]}
+          {t(busy ? "Enregistrement…" : labels[kind])}
         </button>
       </form>
       {saved && (
@@ -433,19 +441,25 @@ export default function LandingForm({ kind }: { kind: LeadKind }) {
             </svg>
           </span>
           <h3>
-            {kind === "liste-attente"
-              ? "Merci pour votre inscription"
-              : "Merci pour votre intérêt"}
+            {t(
+              kind === "liste-attente"
+                ? "Merci pour votre inscription"
+                : "Merci pour votre intérêt",
+            )}
           </h3>
           <p>
-            {kind === "liste-attente"
-              ? "Votre inscription à la liste d’attente a bien été enregistrée."
-              : "Votre demande a bien été enregistrée et transmise à l’équipe Anivaya."}
+            {t(
+              kind === "liste-attente"
+                ? "Votre inscription à la liste d’attente a bien été enregistrée."
+                : "Votre demande a bien été enregistrée et transmise à l’équipe Anivaya.",
+            )}
           </p>
           {kind === "liste-attente" && (
             <p>
-              Vous pouvez gérer votre inscription depuis votre lien personnel de
-              désinscription. <a href="#desinscription">Recevoir un lien</a>
+              {t(
+                "Vous pouvez gérer votre inscription depuis votre lien personnel de désinscription. ",
+              )}
+              <a href="#desinscription">{t("Recevoir un lien")}</a>
             </p>
           )}
         </div>

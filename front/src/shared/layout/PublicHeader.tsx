@@ -1,3 +1,6 @@
+import LanguageMenu from "../ui/LanguageMenu.tsx";
+import Icon from "../ui/Icon.tsx";
+import { useAdminView } from "./AdminViewContext.ts";
 import { useEffect, useRef, useState } from "react";
 import { wordmark } from "./brand.ts";
 const links = [
@@ -12,6 +15,7 @@ export default function PublicHeader(_props: {
   account?: boolean;
   menuLogin?: boolean;
 }) {
+  const isAdmin = useAdminView();
   const [open, setOpen] = useState(false);
   const toggle = useRef<HTMLButtonElement>(null);
   const nav = useRef<HTMLElement>(null);
@@ -108,24 +112,32 @@ export default function PublicHeader(_props: {
                   </a>
                 </li>
               ))}
-              <li className="mobile-help-nav">
-                <a href="#contact" onClick={() => setOpen(false)}>
-                  Nous contacter
-                </a>
-              </li>
-              <li className="mobile-help-nav">
-                <a href="#informations" onClick={() => setOpen(false)}>
-                  Informations du service
-                </a>
-              </li>
+              {!isAdmin && (
+                <li className="mobile-help-nav">
+                  <a href="#contact" onClick={() => setOpen(false)}>
+                    Nous contacter
+                  </a>
+                </li>
+              )}
+              {!isAdmin && (
+                <li className="mobile-help-nav">
+                  <a href="#informations" onClick={() => setOpen(false)}>
+                    <Icon name="info" />
+                    Informations du service
+                  </a>
+                </li>
+              )}
             </ul>
-            <a
-              className="btn btn--primary btn--sm nav__cta"
-              href="#connexion"
-              onClick={() => setOpen(false)}
-            >
-              Se connecter / S’inscrire
-            </a>
+            <div className="public-guest-actions">
+              <LanguageMenu variant="public" />
+              <a
+                className="btn btn--primary btn--sm nav__cta"
+                href="#connexion"
+                onClick={() => setOpen(false)}
+              >
+                Se connecter / S’inscrire
+              </a>
+            </div>
           </nav>
         </div>
       </header>

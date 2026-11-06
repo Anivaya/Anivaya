@@ -1,3 +1,4 @@
+import LanguageMenu from "../../shared/ui/LanguageMenu.tsx";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import type { Profile, ProfileInput } from "../../../../shared/account.ts";
@@ -26,7 +27,7 @@ const notices = {
 };
 const profileTabs = [
   ["profile", "Profil"],
-  ["notifications", "Notifications"],
+  ["notifications", "Préférences"],
   ["securite", "Sécurité"],
   ["exportation", "Exportation"],
   ["suppression", "Suppression du compte"],
@@ -364,6 +365,10 @@ export default function ProfilePage({
             hidden={tab !== "notifications"}
           >
             <div className="profile-panel">
+              <div className="profile-language">
+                <h2>Langue</h2>
+                <LanguageMenu variant="preferences" />
+              </div>
               <h2>Vos notifications</h2>
               <p className="muted">
                 Choisissez les informations que vous souhaitez retrouver dans

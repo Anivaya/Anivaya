@@ -51,7 +51,17 @@ const adminTitles: Record<string, string> = {
   contenus: "Publications",
   reservations: "Professionnels",
 };
-export function pageTitle(hash: string, homeView?: string) {
+const englishPublicTitles: Record<string, string> = {
+  Accueil: "Home",
+  Professionnels: "Professionals",
+  Cliniques: "Clinics",
+  Entreprises: "Businesses",
+  "Informations légales": "Legal information",
+  "Mentions légales": "Legal notice",
+  Confidentialité: "Privacy",
+  Cookies: "Cookies",
+};
+export function pageTitle(hash: string, homeView?: string, language = "fr") {
   const [page = "accueil", section = ""] = (
     hash.replace(/^#/, "").split("?")[0] || "accueil"
   ).split("/");
@@ -64,5 +74,5 @@ export function pageTitle(hash: string, homeView?: string) {
             ["ressources", "service", "donnees"].includes(section)
           ? titles.informations
           : titles[page] || "Mon espace";
-  return `Anivaya · ${label}`;
+  return `Anivaya · ${page === "accueil" && language === "en" ? englishPublicTitles[label] || label : label}`;
 }

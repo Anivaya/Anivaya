@@ -1,6 +1,10 @@
+import { useHomeText } from "../i18n/HomeLocale.tsx";
+import { useAdminView } from "./AdminViewContext.ts";
 /** Pied commun issu de la nouvelle maquette. */
 const year = new Date().getFullYear();
 export default function PublicFooter() {
+  const t = useHomeText();
+  const isAdmin = useAdminView();
   return (
     <div className="landing-v2 shared-footer">
       <footer className="site-footer on-dark">
@@ -19,69 +23,81 @@ export default function PublicFooter() {
                 <img
                   className="footer__word"
                   src="/images/home/cec3fbfb49bc119f.webp"
-                  alt="Anivaya"
+                  alt={t("Anivaya")}
                   width="520"
                   height="85"
                 />
               </div>
-              <p className="footer__slogan">Toute leur vie, à vos côtés.</p>
+              <p className="footer__slogan">
+                {t("Toute leur vie, à vos côtés.")}
+              </p>
             </div>
             <div className="footer__col">
-              <h2>Particuliers</h2>
+              <h2>{t("Particuliers")}</h2>
               <ul>
                 <li>
-                  <a href="#accueil/fonctionnalites">Fonctionnalités</a>
+                  <a href="#accueil/fonctionnalites">{t("Fonctionnalités")}</a>
                 </li>
                 <li>
-                  <a href="#accueil/tarifs">Tarifs</a>
+                  <a href="#accueil/tarifs">{t("Tarifs")}</a>
                 </li>
                 <li>
-                  <a href="#accueil/faq">Questions fréquentes</a>
+                  <a href="#accueil/faq">{t("Questions fréquentes")}</a>
                 </li>
                 <li>
-                  <a href="#accueil/inscription">Liste d'attente</a>
+                  <a href="#accueil/inscription">{t("Liste d'attente")}</a>
                 </li>
               </ul>
             </div>
             <div className="footer__col">
-              <h2>Professionnels</h2>
+              <h2>{t("Professionnels")}</h2>
               <ul>
                 <li>
-                  <a href="#accueil/professionnels">Prestataires</a>
+                  <a href="#accueil/professionnels">{t("Prestataires")}</a>
                 </li>
                 <li>
-                  <a href="#accueil/cliniques">Cliniques vétérinaires</a>
+                  <a href="#accueil/cliniques">{t("Cliniques vétérinaires")}</a>
                 </li>
                 <li>
-                  <a href="#accueil/entreprises">Entreprises et partenaires</a>
+                  <a href="#accueil/entreprises">
+                    {t("Entreprises et partenaires")}
+                  </a>
                 </li>
               </ul>
             </div>
             <div className="footer__col">
-              <h2>Informations</h2>
+              <h2>{t("Informations")}</h2>
               <ul>
+                {!isAdmin && (
+                  <li>
+                    <a href="#informations">{t("Informations du service")}</a>
+                  </li>
+                )}
                 <li>
-                  <a href="#informations">Informations du service</a>
+                  <a href="#accueil/mentions-legales">
+                    {t("Mentions légales")}
+                  </a>
                 </li>
                 <li>
-                  <a href="#accueil/mentions-legales">Mentions légales</a>
+                  <a href="#accueil/confidentialite">{t("Confidentialité")}</a>
                 </li>
                 <li>
-                  <a href="#accueil/confidentialite">Confidentialité</a>
-                </li>
-                <li>
-                  <a href="#accueil/cookies">Cookies</a>
+                  <a href="#accueil/cookies">{t("Cookies")}</a>
                 </li>
               </ul>
             </div>
-            <nav aria-label="Contact">
-              <h2>Contact</h2>
+            <nav aria-label={t("Contact")}>
+              <h2>{t("Contact")}</h2>
               <ul>
+                {!isAdmin && (
+                  <li>
+                    <a href="#contact">{t("Nous contacter")}</a>
+                  </li>
+                )}
                 <li>
-                  <a href="#contact">Nous contacter</a>
-                </li>
-                <li>
-                  <a href="mailto:contact@anivaya.fr">contact@anivaya.fr</a>
+                  <a href="mailto:contact@anivaya.fr">
+                    {t("contact@anivaya.fr")}
+                  </a>
                 </li>
               </ul>
             </nav>
@@ -90,7 +106,11 @@ export default function PublicFooter() {
             <p>
               © <span>{year}</span> Anivaya
             </p>
-            <p>Anivaya ne fournit ni diagnostic ni prescription vétérinaire.</p>
+            <p>
+              {t(
+                "Anivaya ne fournit ni diagnostic ni prescription vétérinaire.",
+              )}
+            </p>
           </div>
         </div>
       </footer>
