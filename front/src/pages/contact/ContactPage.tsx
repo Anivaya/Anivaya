@@ -294,6 +294,7 @@ export default function ContactPage({
                     <div className="field">
                       <label htmlFor="contact-message">Votre message</label>
                       <textarea
+                        data-resize-none
                         id="contact-message"
                         rows={6}
                         maxLength={2000}

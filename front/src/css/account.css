@@ -15,7 +15,8 @@
   color: var(--navy);
   cursor: pointer;
 }
-.account-trigger:hover {
+.account-trigger:hover,
+.account-trigger[aria-expanded="true"] {
   background: var(--pale);
 }
 .profile-avatar {
@@ -79,8 +80,8 @@
   gap: 4px;
   padding-top: 9px;
 }
-.account-actions a,
-.account-actions button {
+.account-menu .account-actions a,
+.account-menu .account-actions button {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -90,6 +91,9 @@
   background: transparent;
   font: inherit;
   font-size: 13px;
+  font-weight: 400;
+  line-height: 1.5;
+  text-decoration: none;
   text-align: left;
   color: var(--navy);
   cursor: pointer;
@@ -97,12 +101,14 @@
 .account-actions svg {
   width: 19px;
   height: 19px;
+  flex: 0 0 19px;
 }
 .account-actions a:hover,
+.account-actions a[aria-current="page"],
 .account-actions button:hover {
   background: var(--pale);
 }
-.account-actions .account-signout {
+.account-menu .account-actions .account-signout {
   color: #a52b38;
 }
 .account-actions .account-signout svg {
@@ -119,6 +125,13 @@
   right: 0;
   bottom: auto;
   top: calc(100% + 8px);
+}
+.app-top .mobile-account {
+  position: static;
+}
+.app-top .mobile-account .account-popup {
+  top: calc(100% + 1px);
+  right: 35px;
 }
 .session-screen {
   min-height: calc(100vh / var(--zoom, 1));
@@ -196,6 +209,9 @@
   }
 }
 @media (max-width: 620px) {
+  .app-top .mobile-account .account-popup {
+    right: 5%;
+  }
   .directory-page .booking-filters {
     grid-template-columns: 1fr;
   }

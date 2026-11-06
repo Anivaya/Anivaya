@@ -306,6 +306,7 @@ function CommunityEditor({
         error={form.errors.description}
       >
         <textarea
+          data-resize-none
           {...form.input("description", { rows: 4, maxLength: 1500 })}
         />
       </Field>
@@ -411,6 +412,7 @@ function EventEditor({
         error={form.errors.description}
       >
         <textarea
+          data-resize-none
           {...form.input("description", { rows: 4, maxLength: 1500 })}
         />
       </Field>

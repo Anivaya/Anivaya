@@ -268,21 +268,24 @@ export default function ProfilePage({
                 Votre nom est affiché à côté de votre photo dans le menu.
               </p>
               <div className="profile-fields">
-                {(["name", "email", "phone", "city"] as const).map((key) => (
-                  <div className="field" key={key}>
+                {(
+                  ["name", "email", "phone", "postalCode", "city"] as const
+                ).map((key) => (
+                  <div className={"field profile-field-" + key} key={key}>
                     <label htmlFor={"profile-" + key}>
                       {
                         {
                           name: "Nom affiché",
                           email: "Adresse e-mail",
                           phone: "Téléphone (facultatif)",
+                          postalCode: "Code postal (facultatif)",
                           city: "Ville (facultatif)",
                         }[key]
                       }
                     </label>
                     <input
                       id={"profile-" + key}
-                      value={form[key]}
+                      value={form[key] ?? ""}
                       onChange={(e) => {
                         setForm({ ...form, [key]: e.target.value });
                         setMessage("");
@@ -299,10 +302,14 @@ export default function ProfilePage({
                           name: "name",
                           email: "email",
                           phone: "tel",
+                          postalCode: "postal-code",
                           city: "address-level2",
                         }[key]
                       }
-                      maxLength={key === "phone" ? 25 : 120}
+                      inputMode={key === "postalCode" ? "numeric" : undefined}
+                      maxLength={
+                        key === "postalCode" ? 5 : key === "phone" ? 25 : 120
+                      }
                       required={key === "name" || key === "email"}
                       aria-invalid={error?.field === key || undefined}
                       aria-describedby={

@@ -356,6 +356,7 @@ export function RecordAction({ kind, item, ...props }: DialogProps) {
           {textFields.map(([name, label]) => (
             <Field key={name} name={name} label={label} error={error}>
               <textarea
+                data-resize-none
                 id={name}
                 name={name}
                 maxLength={["contact", "vet"].includes(name) ? 120 : 500}

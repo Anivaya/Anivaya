@@ -1,97 +1,134 @@
-import { useEffect, useRef } from "react";
-
-const homeLinks = [
+import { useEffect, useRef, useState } from "react";
+import { wordmark } from "./brand.ts";
+const links = [
   ["accueil", "Accueil"],
-  ["accueil/quotidien", "Le quotidien"],
-  ["accueil/fonctionnement", "Comment ça marche"],
-  ["accueil/engagement", "Notre engagement"],
-  ["accueil/prochainement", "Autour de vous"],
-  ["accueil/questions", "Questions"],
-  ["contact", "Nous contacter"],
-  ["informations", "Informations du service"],
+  ["accueil/professionnels", "Professionnels"],
+  ["accueil/cliniques", "Cliniques"],
+  ["accueil/entreprises", "Entreprises"],
+  ["accueil/faq", "FAQ"],
 ];
-/** Pages de connexion et de mot de passe : accueil, contact et informations du service. */
-const accountLinks = [
-  ["accueil", "Accueil"],
-  ["contact", "Nous contacter"],
-  ["informations", "Informations du service"],
-];
-
-export default function PublicHeader({
-  activeSection,
-  account = false,
-  menuLogin = false,
-}: {
+export default function PublicHeader(_props: {
   activeSection?: string;
-  /** En-tête des pages de compte : navigation réduite, sans bouton de connexion sur mobile. */
   account?: boolean;
-  /** Ajoute « Se connecter » au menu mobile, juste sous « Accueil » (le bouton y est masqué). */
   menuLogin?: boolean;
 }) {
-  const links = account ? accountLinks : homeLinks;
-  const menuLinks = menuLogin
-    ? [links[0], ["connexion", "Se connecter"], ...links.slice(1)]
-    : links;
-  const menu = useRef<HTMLDetailsElement>(null);
-  // Le menu ouvert se ferme d’un clic ailleurs ou avec Échap.
+  const [open, setOpen] = useState(false);
+  const toggle = useRef<HTMLButtonElement>(null);
+  const nav = useRef<HTMLElement>(null);
   useEffect(() => {
-    const outside = (event: PointerEvent) => {
-      if (menu.current?.open && !menu.current.contains(event.target as Node))
-        menu.current.open = false;
+    const overflow = document.body.style.overflow;
+    if (open) document.body.style.overflow = "hidden";
+    const resize = () => {
+      if (innerWidth > 1100) setOpen(false);
+      if (nav.current) nav.current.inert = !open && innerWidth <= 1100;
     };
-    const escape = (event: KeyboardEvent) => {
-      if (event.key !== "Escape" || !menu.current?.open) return;
-      menu.current.open = false;
-      menu.current.querySelector("summary")?.focus();
+    resize();
+    const key = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && open) {
+        setOpen(false);
+        toggle.current?.focus();
+      }
+      if (e.key === "Tab" && open) {
+        const last = nav.current?.querySelector<HTMLAnchorElement>(".nav__cta");
+        if (e.shiftKey && document.activeElement === toggle.current) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          toggle.current?.focus();
+        }
+      }
     };
-    document.addEventListener("pointerdown", outside);
-    document.addEventListener("keydown", escape);
+    const close = () => setOpen(false);
+    window.addEventListener("resize", resize);
+    window.addEventListener("hashchange", close);
+    document.addEventListener("keydown", key);
     return () => {
-      document.removeEventListener("pointerdown", outside);
-      document.removeEventListener("keydown", escape);
+      document.body.style.overflow = overflow;
+      window.removeEventListener("resize", resize);
+      window.removeEventListener("hashchange", close);
+      document.removeEventListener("keydown", key);
     };
-  }, []);
+  }, [open]);
   return (
-    <header className="header wrap" id="haut">
-      <a className="brand" href="#accueil" aria-label="Anivaya, accueil">
-        <img src="/images/logo.png" alt="Anivaya" width="88" height="77" />
-      </a>
-      <nav aria-label="Navigation principale">
-        {links.map(([href, label]) => (
+    <div className="landing-v2 js public-header-shell">
+      <header className="site-header" id="haut">
+        <div className="wrap site-header__inner">
           <a
-            key={href}
-            href={"#" + href}
-            aria-current={
-              !account &&
-              href.startsWith("accueil") &&
-              activeSection === (href.split("/")[1] || "accueil")
-                ? "location"
-                : undefined
-            }
+            className="brand"
+            href="#accueil"
+            aria-label="Anivaya, retour à l'accueil"
           >
-            {label}
+            <img
+              className="brand__picto"
+              src="/images/logo.png"
+              alt=""
+              width="48"
+              height="48"
+            />
+            <img
+              className="brand__word"
+              src={wordmark}
+              alt="Anivaya"
+              width="520"
+              height="85"
+            />
           </a>
-        ))}
-      </nav>
-      <a className="button auth-entry" href="#connexion">
-        Se connecter / S’inscrire
-      </a>
-      <details className="mobile-menu" ref={menu}>
-        <summary>Menu</summary>
-        <nav aria-label="Navigation mobile">
-          {menuLinks.map(([href, label]) => (
-            <a
-              key={href}
-              href={"#" + href}
-              onClick={(e) =>
-                e.currentTarget.closest("details")?.removeAttribute("open")
-              }
+          <button
+            className="menu-btn"
+            ref={toggle}
+            type="button"
+            aria-expanded={open}
+            aria-controls="public-menu"
+            aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
+            onClick={() => setOpen(!open)}
+          >
+            <svg className="ic ic--open" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            <svg
+              className="ic ic--close"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
             >
-              {label}
+              <path d="m6 6 12 12M18 6 6 18" />
+            </svg>
+          </button>
+          <nav
+            ref={nav}
+            className={"nav" + (open ? " is-open" : "")}
+            id="public-menu"
+            aria-label="Navigation principale"
+          >
+            <ul className="nav__links">
+              {links.map(([href, label]) => (
+                <li key={href}>
+                  <a href={"#" + href} onClick={() => setOpen(false)}>
+                    {label}
+                  </a>
+                </li>
+              ))}
+              <li className="mobile-help-nav">
+                <a href="#contact" onClick={() => setOpen(false)}>
+                  Nous contacter
+                </a>
+              </li>
+              <li className="mobile-help-nav">
+                <a href="#informations" onClick={() => setOpen(false)}>
+                  Informations du service
+                </a>
+              </li>
+            </ul>
+            <a
+              className="btn btn--primary btn--sm nav__cta"
+              href="#connexion"
+              onClick={() => setOpen(false)}
+            >
+              Se connecter / S’inscrire
             </a>
-          ))}
-        </nav>
-      </details>
-    </header>
+          </nav>
+        </div>
+      </header>
+    </div>
   );
 }

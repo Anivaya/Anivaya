@@ -37,8 +37,10 @@ import type {
   ReportInput,
   ThreadUpdate,
 } from "../../../../shared/social.ts";
+import type { LeadInput, LeadReceipt } from "../../../../shared/public.ts";
 class RequestError extends Error {
   field?: string;
+  fields?: Record<string, string>;
 }
 /** Erreur rattachée à un champ, comme celles renvoyées par l’API : le formulaire y place le focus. */
 export function fieldError(field: string, message: string) {
@@ -70,13 +72,22 @@ export async function request<T>(
     throw new Error("Le serveur ne répond pas correctement. Réessayez.");
   }
   if (!response.ok) {
-    if (response.status === 401 && !path.startsWith("/auth/"))
+    if (
+      response.status === 401 &&
+      !path.startsWith("/auth/") &&
+      !path.startsWith("/public/")
+    )
       window.dispatchEvent(new Event("anivaya-session-expired"));
-    const body = data as { error?: string; field?: string };
+    const body = data as {
+      error?: string;
+      field?: string;
+      fields?: Record<string, string>;
+    };
     const error = new RequestError(
       body?.error || "La demande a échoué. Réessayez.",
     );
     error.field = body?.field;
+    error.fields = body?.fields;
     throw error;
   }
   // L’API valide les données entrantes ; T décrit le contrat JSON de chaque route.
@@ -94,6 +105,12 @@ const save = <T>(path: string, id: string | undefined, body: unknown) =>
   send<T>(id ? `${path}/${id}` : path, id ? "PATCH" : "POST", body);
 
 export const api = {
+  submitLead: (body: LeadInput, signal?: AbortSignal) =>
+    send<LeadReceipt>("/public/leads", "POST", body, signal),
+  unsubscribe: (token: string) =>
+    send<LeadReceipt>("/public/unsubscribe", "POST", { token }),
+  requestUnsubscribe: (email: string) =>
+    send<LeadReceipt>("/public/unsubscribe-link", "POST", { email }),
   // Compte et session
   session: (signal?: AbortSignal) =>
     request<AuthUser | null>("/auth/session", { signal }),
@@ -120,6 +137,7 @@ export const api = {
     send<void>("/account/password-reset", "POST", {}),
   register: (body: {
     name: string;
+    postalCode?: string;
     email: string;
     password: string;
     confirmPassword: string;

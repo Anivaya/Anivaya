@@ -3,6 +3,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Database, Input } from "../database/types.ts";
 import type { Account, Authentication } from "./auth.ts";
 import { authentication, emptyAccounts } from "./auth.ts";
+import { publicService } from "./public.ts";
 import { emptyStateMode } from "../database/empty-state.ts";
 import { adminService } from "./admin.ts";
 import type { AdminService } from "./admin.ts";
@@ -29,6 +30,7 @@ const LOCAL_ORIGINS = [
 
 /** Contexte commun à toutes les routes. */
 interface RequestContext {
+  publicSite: ReturnType<typeof publicService>;
   request: IncomingMessage;
   response: ServerResponse;
   auth: Authentication | null;
@@ -112,6 +114,20 @@ function requireAdmin(admin: AdminService | null) {
 // Routes accessibles sans session.
 const open = router<RequestContext>();
 open.get("/api/health", () => ({ status: "ok" }));
+open.post(
+  "/api/public/leads",
+  async ({ publicSite, request, body }) =>
+    publicSite.submit(await body(), request),
+  201,
+);
+open.post("/api/public/unsubscribe", async ({ publicSite, request, body }) =>
+  publicSite.unsubscribe(await body(), request),
+);
+open.post(
+  "/api/public/unsubscribe-link",
+  async ({ publicSite, request, body }) =>
+    publicSite.requestUnsubscribe(await body(), request),
+);
 open.post("/api/auth/login", async ({ auth, request, response, body }) =>
   requireAuth(auth).login(request, response, await body()),
 );
@@ -752,26 +768,44 @@ export function createApi(
     emptyUserDatabaseDirectory?: string;
   } = {},
 ) {
-  function services(database: Database, directory?: string, empty = emptyStateMode()) {
-    const auth = options.authentication === false
-      ? null
-      : authentication(
-          database, directory, empty,
-          options.emptyDatabase ? "anivaya_session" : undefined,
-        );
-    const social = auth && socialService(database, {
-      notify: auth.notify,
-      markRead: auth.markNotificationRead,
-    }, empty);
+  function services(
+    database: Database,
+    directory?: string,
+    empty = emptyStateMode(),
+  ) {
+    const auth =
+      options.authentication === false
+        ? null
+        : authentication(
+            database,
+            directory,
+            empty,
+            options.emptyDatabase ? "anivaya_session" : undefined,
+          );
+    const social =
+      auth &&
+      socialService(
+        database,
+        {
+          notify: auth.notify,
+          markRead: auth.markNotificationRead,
+        },
+        empty,
+      );
     const admin = auth && adminService(database, auth, empty);
     const access = auth && sharedAccess(database, auth);
     if (auth && admin) {
       auth.hooks.security = admin.securityEvent;
       auth.hooks.login = admin.acceptInvitation;
     }
-    const stopReminders = auth && options.reminders ? startReminderMail(auth) : undefined;
+    const stopReminders =
+      auth && options.reminders ? startReminderMail(auth) : undefined;
     return {
-      db: database, auth, social, admin, access,
+      db: database,
+      auth,
+      social,
+      admin,
+      access,
       close() {
         stopReminders?.();
         auth?.close();
@@ -779,12 +813,17 @@ export function createApi(
     };
   }
   const normal = services(db, options.userDatabaseDirectory);
+  const publicSite = publicService(db);
   const empty = options.emptyDatabase
     ? services(options.emptyDatabase, options.emptyUserDatabaseDirectory, true)
     : null;
 
   /** Données de l’espace : la base vient de la session, jamais du client. */
-  function workspace(request: IncomingMessage, account: Account | null, selected: typeof normal) {
+  function workspace(
+    request: IncomingMessage,
+    account: Account | null,
+    selected: typeof normal,
+  ) {
     const { auth, db, social, access } = selected;
     const own = auth && account ? auth.workspace(account) : db;
     const publicURL =
@@ -814,18 +853,29 @@ export function createApi(
       await Promise.all([normal.auth?.ready, empty?.auth?.ready]);
       const url = new URL(request.url || "/", "http://localhost");
       let parsedBody: Promise<Input> | undefined;
-      const body = () => parsedBody ??= readJson(request);
+      const body = () => (parsedBody ??= readJson(request));
       let selected = empty?.auth?.current(request) ? empty : normal;
-      if (empty && request.method === "POST" && url.pathname === "/api/auth/login") {
+      if (
+        empty &&
+        request.method === "POST" &&
+        url.pathname === "/api/auth/login"
+      ) {
         const data = await body();
-        const email = typeof data.email === "string" ? data.email.trim().toLowerCase() : "";
-        selected = emptyAccounts.some((account) => account.email === email) ? empty : normal;
+        const email =
+          typeof data.email === "string" ? data.email.trim().toLowerCase() : "";
+        selected = emptyAccounts.some((account) => account.email === email)
+          ? empty
+          : normal;
       }
       // Les liens publics restent accessibles même après déconnexion.
-      const publicToken = url.pathname.match(/^\/api\/public\/emergency\/([a-f0-9]{48})(?:\/|$)/)?.[1];
-      if (publicToken) selected = empty?.auth?.publicOwner(publicToken) ? empty : normal;
+      const publicToken = url.pathname.match(
+        /^\/api\/public\/emergency\/([a-f0-9]{48})(?:\/|$)/,
+      )?.[1];
+      if (publicToken)
+        selected = empty?.auth?.publicOwner(publicToken) ? empty : normal;
       const { auth, admin } = selected;
       const context = {
+        publicSite,
         request,
         response,
         auth,
@@ -867,6 +917,7 @@ export function createApi(
           ? error.message
           : "Le serveur ne peut pas traiter cette demande.",
         field: known ? error.field : undefined,
+        fields: known ? error.fields : undefined,
       });
     }
   });

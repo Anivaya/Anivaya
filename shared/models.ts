@@ -95,7 +95,12 @@ export interface EmergencySheet {
   updatedAt?: string;
 }
 export type NotificationCategory =
-  "reminders" | "reservations" | "shares" | "documents" | "account" | "social";
+  | "reminders"
+  | "reservations"
+  | "shares"
+  | "documents"
+  | "account"
+  | "social";
 export interface Notification {
   id: string;
   category: NotificationCategory;
@@ -108,7 +113,11 @@ export interface Notification {
   read: boolean;
 }
 export type ReceivedShareState =
-  "pending" | "accepted" | "expired" | "revoked" | "declined";
+  | "pending"
+  | "accepted"
+  | "expired"
+  | "revoked"
+  | "declined";
 /** Informations confiées par un autre propriétaire, visibles une fois l’invitation acceptée. */
 export interface ReceivedAnimal {
   name: string;
@@ -219,4 +228,18 @@ export function errorField(error: unknown): string | undefined {
     typeof error.field === "string"
     ? error.field
     : undefined;
+}
+export function errorFields(error: unknown): Record<string, string> {
+  if (
+    !(error instanceof Error) ||
+    !("fields" in error) ||
+    !error.fields ||
+    typeof error.fields !== "object"
+  )
+    return {};
+  return Object.fromEntries(
+    Object.entries(error.fields).filter(
+      (entry): entry is [string, string] => typeof entry[1] === "string",
+    ),
+  );
 }

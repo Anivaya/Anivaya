@@ -162,6 +162,7 @@ export function ReminderForm({
           </div>
           <Field name="note" label="Note (facultatif)" error={error}>
             <textarea
+              data-resize-none
               id="note"
               name="note"
               maxLength={1000}

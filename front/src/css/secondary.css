@@ -206,7 +206,7 @@
   color: var(--navy);
 }
 .profile-page .contact-grid textarea {
-  resize: vertical;
+  resize: none;
   min-height: 140px;
 }
 .profile-page .contact-grid [aria-invalid="true"] {

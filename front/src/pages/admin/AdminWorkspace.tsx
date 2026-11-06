@@ -78,13 +78,6 @@ export default function AdminWorkspace({
       });
     return () => controller.abort();
   }, [retry]);
-  useEffect(() => {
-    document.title = `${config?.title || "Page introuvable"} · Administration Anivaya`;
-    // Le titre de l’application revient en quittant l’administration.
-    return () => {
-      document.title = "Anivaya";
-    };
-  }, [config]);
   const role = overview?.role || user.adminRole;
   const allowed = role ? roleResources[role] : [];
   const tabs = config?.tabs.filter(([r]) => allowed.includes(r)) || [];

@@ -74,6 +74,7 @@ export function ExportPanel() {
     selected.length > 0 && selected.length < exportCategories.length;
   return (
     <form
+      noValidate
       onSubmit={(event: FormEvent) => {
         event.preventDefault();
         void submit(selected);
@@ -216,7 +217,7 @@ export function DeletionPanel({
         </button>
         <p className="field-help security-note">
           {demo
-            ? "Compte de démonstration : son espace d’exemple sera recréé et ses identifiants resteront utilisables."
+            ? "Cet espace sera recréé avec ses données initiales et ses identifiants resteront utilisables."
             : "La suppression est définitive : votre compte et votre espace ne pourront pas être récupérés."}
         </p>
       </section>
@@ -309,6 +310,7 @@ function DeletionRequestPanel() {
           jusqu’à sa décision.
         </p>
         <form
+          noValidate
           className="deletion-request"
           onSubmit={async (event: FormEvent) => {
             event.preventDefault();
@@ -331,6 +333,7 @@ function DeletionRequestPanel() {
           <div className="field">
             <label htmlFor="deletion-message">Précisions (facultatif)</label>
             <textarea
+              data-resize-none
               id="deletion-message"
               maxLength={1000}
               value={message}

@@ -11,7 +11,6 @@ const navigation = [
   ["documents", "file", "Documents"],
   ["partage", "share", "Partage"],
   ["communautes", "people", "Communautés"],
-  ["contact", "headset", "Nous contacter"],
 ];
 export const SIDEBAR_ID = "main-sidebar";
 
@@ -252,9 +251,44 @@ export function AccountMenu({
             <span>{profile.email}</span>
           </div>
           <div className="account-actions">
-            <a href={profileHref} onClick={() => setOpen(false)}>
+            <a
+              href={
+                !location.hash || location.hash.startsWith("#accueil")
+                  ? profileHref.startsWith("#admin")
+                    ? "#admin/dashboard"
+                    : "#espace"
+                  : "#accueil"
+              }
+              onClick={() => setOpen(false)}
+            >
+              <Icon name="home" />
+              {!location.hash || location.hash.startsWith("#accueil")
+                ? "Espace " +
+                  (roleLabel === "Mon compte" ? "Particulier" : roleLabel)
+                : "Accueil"}
+            </a>
+            <a
+              href={profileHref}
+              aria-current={location.hash === profileHref ? "page" : undefined}
+              onClick={() => setOpen(false)}
+            >
               <Icon name="settings" />
               Gestion de profil
+            </a>
+            <a
+              className="mobile-help-link"
+              href="#contact"
+              onClick={() => setOpen(false)}
+            >
+              <Icon name="headset" />
+              Nous contacter
+            </a>
+            <a
+              className="mobile-help-link"
+              href="#informations"
+              onClick={() => setOpen(false)}
+            >
+              Informations du service
             </a>
             <button
               className="account-signout"

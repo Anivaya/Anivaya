@@ -566,6 +566,7 @@ export default function AiImport({
                 <div className="field">
                   <label htmlFor="ai-note">Informations à conserver *</label>
                   <textarea
+                    data-resize-none
                     id="ai-note"
                     maxLength={1000}
                     value={values.note}

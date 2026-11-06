@@ -106,6 +106,7 @@ export default function AuthPage({
   }, [register, requestedRegister, switching]);
   const [form, setForm] = useState({
       name: "",
+      postalCode: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -140,10 +141,11 @@ export default function AuthPage({
     }
   }
   const names = register
-    ? (["name", "email", "password", "confirmPassword"] as const)
+    ? (["name", "postalCode", "email", "password", "confirmPassword"] as const)
     : (["email", "password"] as const);
   const labels = {
     name: "Nom affiché",
+    postalCode: "Code postal (facultatif)",
     email: "Adresse e-mail",
     password: "Mot de passe",
     confirmPassword: "Confirmer le mot de passe",
@@ -174,16 +176,22 @@ export default function AuthPage({
           ? "Un espace pour vous et vos compagnons."
           : "Connectez-vous pour retrouver vos compagnons et leur quotidien."}
       </p>
-      <form noValidate onSubmit={submit} aria-busy={busy}>
+      <form
+        className={register ? "registration-fields" : undefined}
+        noValidate
+        onSubmit={submit}
+        aria-busy={busy}
+      >
         {names.map((name) => {
           const password = name === "password" || name === "confirmPassword";
           return (
-            <div className="field" key={name}>
+            <div className={"field auth-field-" + name} key={name}>
               <label htmlFor={"auth-" + name}>{labels[name]}</label>
               <div className={password ? "password-field" : undefined}>
                 <input
                   id={"auth-" + name}
                   name={name}
+                  inputMode={name === "postalCode" ? "numeric" : undefined}
                   type={
                     password
                       ? visible
@@ -195,21 +203,23 @@ export default function AuthPage({
                   }
                   value={form[name]}
                   onChange={(e) => setForm({ ...form, [name]: e.target.value })}
-                  maxLength={password ? 256 : 120}
+                  maxLength={name === "postalCode" ? 5 : password ? 256 : 120}
                   autoComplete={
                     password
                       ? register
                         ? "new-password"
                         : "current-password"
-                      : name === "name"
-                        ? "name"
-                        : "email"
+                      : name === "postalCode"
+                        ? "postal-code"
+                        : name === "name"
+                          ? "name"
+                          : "email"
                   }
                   aria-invalid={error?.field === name || undefined}
                   aria-describedby={
                     error?.field === name ? "auth-error" : undefined
                   }
-                  required
+                  required={name !== "postalCode"}
                 />
                 {password && (
                   <button
@@ -344,11 +354,6 @@ export function AuthLayout({
             {children}
           </section>
         </main>
-        <footer className="auth-footer">
-          <a href="#accueil">Retour à l’accueil</a>
-          <a href="#contact">Contact</a>
-          <a href="#informations">Informations du service</a>
-        </footer>
       </div>
     </div>
   );

@@ -122,6 +122,18 @@ Côté API, chaque route est une ligne de `back/api/app.ts`, par exemple `api.pa
 
 ## Fonctionnalités
 
+### Synchronisation des maquettes du 6 novembre 2026
+
+Le nouvel accueil remplace l’ancienne page : présentation, choix Nala/Milo, fonctionnalités, offres, FAQ, liste d’attente et parcours professionnels, cliniques et entreprises. Le contenu est rendu en JSX dans `LandingContent.tsx`, avec des images locales séparées. Les anciennes ancres de l’accueil restent reconnues. La navigation publique, le pied de page, le menu du compte, les formulaires et les contrôles communs reprennent les nouvelles maquettes ; les barres de défilement personnalisées sont conservées.
+
+Les quatre formulaires utilisent `POST /api/public/leads`. La validation, le consentement, la limitation des envois et la détection des doublons sont gérés par l’API. Les demandes sont enregistrées dans `public_leads` dans la base centrale et dans **Administration → Assistance → Demandes**, avec les autorisations existantes. Aucun compte, abonnement ou paiement n’est créé par ces formulaires ; les tarifs restent une présentation des offres envisagées. Aucune campagne de lancement n’est envoyée automatiquement. La liste d’attente envoie un e-mail de confirmation avec un lien personnel : un clic sur « Me désinscrire » retire le consentement en base. Sans SMTP, l’e-mail reste dans la boîte locale. Les autres demandes conservent le retrait via Contact.
+
+Le code postal facultatif est validé à l’inscription et dans le profil, conservé dans la base privée et inclus dans l’export du profil. La migration `014_profile_postal_code.sql` conserve les données existantes ; `015_public_leads.sql` initialise les demandes de la vitrine dans la base centrale uniquement.
+
+La connexion se fait par saisie des identifiants, sans sélection de compte de maquette. Les services simulés des maquettes, la MFA fictive et les décisions administratives simulées ne sont pas repris : les parcours existants continuent d’utiliser l’API réelle.
+
+Les informations légales de la maquette restent un **gabarit à compléter** avant publication. Les prix et le calendrier conservent leur mention indicative.
+
 - Accueil responsive, sections interactives et FAQ ; connexion, inscription et déconnexion réelles.
 - Profil : photo JPG/PNG/WebP jusqu’à 5 Mo, coordonnées, préférences de notification, accès au changement de mot de passe, confirmation avant de perdre les modifications.
 - Exportation de ses données en JSON, par catégorie (sans fichiers d’origine, mot de passe ni contenu d’autres propriétaires) ; suppression du compte confirmée par une case et la saisie de SUPPRIMER.

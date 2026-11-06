@@ -50,6 +50,7 @@ export default function ReportDialog({
           {({ error, invalid }) => (
             <Field name="message" label="Motif du signalement" error={error}>
               <textarea
+                data-resize-none
                 style={{ resize: "none" }}
                 id="message"
                 name="message"

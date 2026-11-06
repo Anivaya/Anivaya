@@ -19,6 +19,7 @@
 }
 /* Espace particulier : quand la barre défile (menu mobile), sa barre de défilement reste cachée. */
 .workspace .sidebar {
+  scrollbar-color: inherit;
   scrollbar-width: none;
 }
 .workspace .sidebar::-webkit-scrollbar {
@@ -86,6 +87,7 @@
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
+    scrollbar-color: inherit;
     scrollbar-width: none;
   }
   .workspace .sidebar > .side-nav::-webkit-scrollbar {
@@ -531,7 +533,7 @@
   font-weight: 600;
   margin-bottom: 7px;
 }
-.field input,
+.field input:not([type="checkbox"], [type="radio"]),
 .field select {
   display: block;
   width: 100%;
@@ -955,7 +957,9 @@
     padding-top: 53px;
   }
   /* Avec le panneau vide, les deux titres sont déjà dans le même cadre. */
-  .workspace:not(.section-mode) .app-grid:has(.animals-empty-panel) > .app-right {
+  .workspace:not(.section-mode)
+    .app-grid:has(.animals-empty-panel)
+    > .app-right {
     padding-top: 0;
   }
 }

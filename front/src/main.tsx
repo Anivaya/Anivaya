@@ -18,8 +18,14 @@ import "./css/communities.css";
 import "./css/ai-import.css";
 import "./css/admin.css";
 import "./css/buttons.css";
+import "./pages/home/landing.css";
+import "./css/harmony.css";
+import "./css/footer.css";
+import "./css/scrollbars.css";
 import App from "./App.tsx";
 import { startWideZoom } from "./shared/wideZoom.ts";
+import { startResponsiveScrollbars } from "./shared/scrollbars.ts";
+import { startPageTitles } from "./shared/layout/startPageTitles.ts";
 
 // Un rafraîchissement rouvre la page tout en haut au lieu de reprendre l’ancienne position.
 // Les discussions (messagerie, communautés, événements) se placent elles-mêmes sur leurs messages.
@@ -62,6 +68,10 @@ document.addEventListener(
 
 // Écrans plus larges que 1440 px : mise en page de 1440 px agrandie (voir wideZoom.ts).
 startWideZoom();
+const stopResponsiveScrollbars = startResponsiveScrollbars();
+const stopPageTitles = startPageTitles();
+if (import.meta.hot) import.meta.hot.dispose(stopPageTitles);
+if (import.meta.hot) import.meta.hot.dispose(stopResponsiveScrollbars);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

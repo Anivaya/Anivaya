@@ -123,6 +123,7 @@ export default function BookingDialog({
       </ol>
       {step === 1 && (
         <form
+          noValidate
           onSubmit={(e) => {
             e.preventDefault();
             if (
@@ -252,6 +253,7 @@ export default function BookingDialog({
                     Un mot pour le professionnel (facultatif)
                   </label>
                   <textarea
+                    data-resize-none
                     id="note"
                     maxLength={500}
                     value={form.note}

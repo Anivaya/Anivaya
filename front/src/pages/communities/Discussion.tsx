@@ -344,6 +344,7 @@ function ThreadView({
             Votre message
           </label>
           <textarea
+            data-resize-none
             id="message-text"
             rows={2}
             maxLength={3000}

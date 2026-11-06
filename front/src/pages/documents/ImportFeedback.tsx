@@ -50,6 +50,7 @@ export default function ImportFeedback({
             </Field>
             <Field name="message" label="Votre retour" error={error}>
               <textarea
+                data-resize-none
                 style={{ resize: "none" }}
                 id="message"
                 name="message"

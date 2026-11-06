@@ -160,3 +160,16 @@ SQLite : `back/database/data/anivaya.sqlite`, exclue de Git. Les migrations sont
 `DATABASE_PATH` choisit une autre base ; `PORT` change le port API (adapter également le proxy Vite). Node >= 22.18 est requis. Installer les dépendances avec `npm --prefix back install`.
 
 Cette version dispose de comptes réels isolés ; les notifications, les paiements et les invitations de partage restent simulés. Les deux documents initiaux sont des exemples sans fichier.
+
+## Nouvel accueil — novembre 2026
+
+- `POST /api/public/leads` (sans session, 201) : `kind` (`liste-attente`, `pro`, `clinique`, `entreprise`), `name`, `email`, `consent: true`, `requestId` UUID. Champs conditionnels : `profile`, `animals` (`chien`, `chat`), `plan` (`gratuit`, `plus`, `famille`), `activity`, `organization`, `organizationType`, `phone`, `message`. `postalCode` facultatif : cinq chiffres, avec conservation du zéro initial. Réponse `{ "accepted": true }`, y compris après répétition identique. La réponse reste uniforme pour ne pas révéler une inscription antérieure ; aucun jeton ni résultat d’envoi d’e-mail n’est exposé. Erreur 400 avec `field` et `fields` (messages par champ) ; 429 après 20 tentatives en 15 minutes par adresse réseau. Aucune lecture publique des demandes. Une demande et son ticket administratif sont enregistrés dans une transaction.
+- `POST /api/auth/register` accepte `postalCode` facultatif.
+- `GET /api/profile`, `GET /api/auth/session`, `PATCH /api/profile` et l’export du profil incluent `postalCode`. Une modification sans ce champ conserve sa valeur ; une chaîne vide l’efface.
+
+Les demandes publiques alimentent `/api/admin/tickets` et utilisent les droits de cette ressource. Les formulaires ne créent ni session, ni rôle professionnel, ni abonnement payant. La liste d’attente envoie un e-mail transactionnel avec son lien de désinscription. Les autres formulaires ne déclenchent pas d’e-mail automatique.
+
+- `POST /api/public/unsubscribe-link` : `email`, réponse générique `{ accepted: true }` que l’adresse soit inscrite ou non. Envoie un lien personnel aux adresses inscrites, y compris les anciennes demandes.
+- `POST /api/public/unsubscribe` : `token` aléatoire de 64 caractères hexadécimaux, transmis depuis `#desinscription/<token>`. Un GET ne retire jamais le consentement. Le POST est idempotent, met à jour `public_waitlist_subscriptions.withdrawn_at` et indique le retrait dans les tickets associés. Le jeton est stocké uniquement sous forme de SHA-256 ; les liens personnels ne sont jamais renvoyés par l’API publique.
+- Une nouvelle inscription explicite peut réactiver le consentement ; rejouer une ancienne requête ne le réactive pas. Toute future campagne doit sélectionner uniquement les souscriptions dont `withdrawn_at IS NULL`. Les demandes historiques restent distinctes de ce consentement courant.
+- Ces routes partagent la limite de 20 tentatives / 15 minutes / adresse réseau. La migration centrale `016_public_unsubscribe.sql` conserve les demandes existantes.

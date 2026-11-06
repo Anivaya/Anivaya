@@ -1,5 +1,13 @@
 import type { ComponentType } from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import PublicFooter from "./shared/layout/PublicFooter.tsx";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import type { AuthUser, Profile } from "../../shared/account.ts";
 import type {
   Actions,
@@ -19,7 +27,6 @@ import { useDashboard } from "./shared/hooks.ts";
 import Sidebar, { AccountMenu, SIDEBAR_ID } from "./shared/layout/Sidebar.tsx";
 import { isTabNavigation } from "./shared/layout/tabNavigation.ts";
 import Modal from "./shared/ui/Modal.tsx";
-import HomePage from "./pages/home/HomePage.tsx";
 import AuthPage from "./pages/auth/AuthPage.tsx";
 import PublicEmergencyPage from "./pages/animals/PublicEmergencyPage.tsx";
 import DashboardPage from "./pages/dashboard/DashboardPage.tsx";
@@ -35,6 +42,7 @@ import ContactPage, {
   PublicContactPage,
 } from "./pages/contact/ContactPage.tsx";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage.tsx";
+import UnsubscribePage from "./pages/auth/UnsubscribePage.tsx";
 import Icon from "./shared/ui/Icon.tsx";
 import {
   AnimalDetails,
@@ -54,7 +62,8 @@ import {
 } from "./pages/documents/DocumentDialogs.tsx";
 import SharingDialog from "./pages/sharing/SharingDialogs.tsx";
 import AiImport from "./pages/documents/AiImport.tsx";
-import AdminWorkspace from "./pages/admin/AdminWorkspace.tsx";
+const HomePage = lazy(() => import("./pages/home/HomePage.tsx"));
+const AdminWorkspace = lazy(() => import("./pages/admin/AdminWorkspace.tsx"));
 
 /** Pages de l’espace connecté : titre du fil d’Ariane et contenu tiré du dashboard. */
 const workspacePages: Record<
@@ -80,6 +89,28 @@ const secondaryPages = new Set(["notifications", "contact", "informations"]);
 const informationTabs = new Set(["ressources", "service", "donnees"]);
 
 export default function App() {
+  const [hash, setHash] = useState(location.hash);
+  useEffect(() => {
+    const update = () => setHash(location.hash);
+    window.addEventListener("hashchange", update);
+    return () => window.removeEventListener("hashchange", update);
+  }, []);
+  return (
+    <>
+      <Suspense
+        fallback={
+          <div className="session-screen" role="status">
+            Chargement de la page…
+          </div>
+        }
+      >
+        <AppContent />
+      </Suspense>
+      {hash !== "" && !hash.startsWith("#accueil") && <PublicFooter />}
+    </>
+  );
+}
+function AppContent() {
   const sessionVersion = useRef(0);
   const [route, setRoute] = useState(
     () => window.location.hash.slice(1) || "accueil",
@@ -90,8 +121,10 @@ export default function App() {
     [error, setError] = useState("");
   useEffect(() => {
     const navigate = () => {
-      setRoute(window.location.hash.slice(1) || "accueil");
-      if (!isTabNavigation()) window.scrollTo(0, 0);
+      const nextRoute = window.location.hash.slice(1) || "accueil";
+      setRoute(nextRoute);
+      if (nextRoute.split("/")[0] !== "accueil" && !isTabNavigation())
+        window.scrollTo(0, 0);
     };
     const expired = () => {
       sessionVersion.current++;
@@ -155,9 +188,13 @@ export default function App() {
     return (
       <PublicEmergencyPage key={route} token={params[0]?.split("?")[0] || ""} />
     );
+  if (page === "desinscription")
+    return <UnsubscribePage key={route} token={params[0]?.split("?")[0]} />;
   if (page === "accueil")
     return (
       <HomePage
+        user={user}
+        onLogout={logout}
         section={homeSection}
         accountDeleted={deletedNotice}
         onDismiss={() => setDeletedNotice(false)}
@@ -414,10 +451,6 @@ function Workspace({
               />
             )}
           </main>
-          <footer className="connected-help">
-            <a href="#contact">Contact</a>
-            <a href="#informations">Informations du service</a>
-          </footer>
         </div>
       </div>
       {modal && data && (

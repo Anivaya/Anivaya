@@ -133,6 +133,7 @@ export default function SupportPanel({
                 </Field>
                 <Field name="message" label="Motif du recours" error={error}>
                   <textarea
+                    data-resize-none
                     style={{ resize: "none" }}
                     id="message"
                     name="message"

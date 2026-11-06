@@ -296,6 +296,7 @@
 /* Tableaux sur tablette et mobile : ils défilent toujours, mais sans barre visible. */
 @media (max-width: 1024px) {
   .admin-table-scroll {
+    scrollbar-color: inherit;
     scrollbar-width: none;
   }
   .admin-table-scroll::-webkit-scrollbar {
@@ -450,6 +451,7 @@ details[open] > .toggle-summary::after {
 }
 @media (max-width: 1024px) {
   .admin-analytics .admin-table-scroll[aria-label="Cohortes par mois"] {
+    scrollbar-color: inherit;
     scrollbar-width: none;
   }
 }

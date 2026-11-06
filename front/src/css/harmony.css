@@ -1,0 +1,272 @@
+/* Alignement des contrôles partagés : hauteur stable, sans étirement par le contenu voisin. */
+.landing-v2 .landing-fields {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  display: grid;
+  gap: 18px;
+}
+.landing-v2 .landing-form-feedback {
+  min-height: 24px;
+}
+.landing-v2 .landing-form-feedback:empty {
+  min-height: 0;
+}
+.landing-v2 .form-error {
+  color: var(--danger);
+  margin: 0;
+}
+.landing-v2 .btn:disabled {
+  cursor: wait;
+  opacity: 0.65;
+  transform: none;
+  box-shadow: none;
+}
+.landing-v2 [aria-invalid="true"] {
+  border-color: var(--danger);
+}
+.landing-v2 .form {
+  min-height: 300px;
+}
+.landing-v2 .nav .account-menu {
+  min-width: 0;
+}
+.mobile-help-link,
+.mobile-help-nav {
+  display: none !important;
+}
+@media (max-width: 767px) {
+  .account-actions .mobile-help-link {
+    display: flex !important;
+  }
+  .landing-v2 .mobile-help-nav {
+    display: block !important;
+  }
+}
+.button {
+  align-self: center;
+  flex-shrink: 0;
+  line-height: 1.25;
+}
+:is(
+  .heading-actions,
+  .record-page .actions,
+  .sharing-heading .row-buttons,
+  .save-buttons
+) {
+  align-items: center !important;
+}
+:is(
+    .heading-actions,
+    .record-page .actions,
+    .sharing-heading .row-buttons,
+    .save-buttons
+  )
+  > .button {
+  width: 184px;
+  max-width: 100%;
+  height: 44px;
+  min-height: 44px;
+  padding-block: 0 !important;
+  align-self: center;
+  justify-self: center;
+}
+.auth-card .submit {
+  height: 52px;
+  padding-block: 0;
+}
+/* Les actions conservent leur taille et passent à la ligne dans les panneaux étroits. */
+@media (min-width: 621px) {
+  .record-page .actions.actions {
+    display: flex;
+    flex-wrap: wrap;
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+/* Même centrage des liens dans les deux barres latérales. */
+.workspace .side-nav a {
+  justify-content: flex-start;
+  text-align: left;
+  flex-shrink: 0;
+}
+.side-nav a[aria-current="page"] svg {
+  color: var(--gold);
+}
+.button:not(.outline, .danger, .cancel) svg {
+  color: var(--gold);
+}
+/* Les cases gardent leur géométrie même dans un champ ou à côté d'un long libellé. */
+input[type="checkbox"]:not(.notification-row input, .landing-v2 .chip input),
+input[type="radio"]:not(.landing-v2 .chip input) {
+  width: 22px;
+  min-width: 22px;
+  max-width: 22px;
+  height: 22px;
+  min-height: 22px;
+  max-height: 22px;
+  flex: 0 0 22px;
+  padding: 0;
+  margin: 0;
+  align-self: center;
+}
+.profile-page .notification-row input {
+  width: 1px;
+  min-width: 0;
+  max-width: 1px;
+  height: 1px;
+  min-height: 0;
+  max-height: 1px;
+  padding: 0;
+}
+.profile-page .switch-track {
+  align-self: center;
+  min-width: 44px;
+  max-width: 44px;
+  min-height: 26px;
+  max-height: 26px;
+}
+:is(.public-site, .auth-page, .service-public) .header > nav {
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+}
+:is(.public-site, .auth-page, .service-public) .header nav > a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+/* Le base-select du navigateur n'aligne pas le texte comme un select natif. */
+select:not([multiple], [size]) {
+  vertical-align: middle;
+  line-height: 1.35;
+  padding-block: 0 !important;
+  height: 44px;
+  min-height: 44px;
+}
+@supports (appearance: base-select) {
+  select:not([multiple], [size]) {
+    display: inline-flex;
+    align-items: center;
+  }
+  select:not([multiple], [size]) option {
+    min-height: 40px;
+    align-items: center;
+  }
+}
+.admin-pagination select {
+  height: 34px;
+  min-height: 34px;
+}
+:is(.results-label, .admin-result-count) {
+  align-self: center;
+  margin-block: 0;
+}
+@media (max-width: 620px) {
+  :is(
+      .heading-actions,
+      .record-page .actions,
+      .sharing-heading .row-buttons,
+      .save-buttons
+    )
+    > .button {
+    width: 100%;
+    max-width: 184px;
+  }
+}
+
+/* Même en-tête public sur les formulaires et les pages de service. */
+.public-header-shell.landing-v2 {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  overflow: visible;
+  width: 100%;
+  grid-row: 1;
+  grid-column: 1;
+  align-self: start;
+}
+.public-header-shell .brand {
+  padding: 0;
+  margin: 0;
+}
+.public-header-shell.landing-v2 .brand .brand__picto {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+.public-header-shell.landing-v2 .brand .brand__word {
+  width: auto;
+  height: 18px;
+  object-fit: contain;
+}
+.landing-v2 .nav__cta[hidden] {
+  display: none;
+}
+
+/* Menus et pied de page compact. */
+.landing-v2 .site-header .account-popup {
+  top: 100%;
+  bottom: auto;
+  left: auto;
+  right: 0;
+}
+@media (min-width: 1101px) {
+  .landing-v2 .site-header .nav {
+    height: 100%;
+  }
+  .landing-v2 .site-header .account-menu {
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+  }
+  .landing-v2 .site-header .account-popup {
+    top: calc(100% + 1px);
+  }
+}
+.workspace > .sidebar {
+  grid-column: 1;
+  grid-row: 1;
+}
+.workspace > .app-main {
+  grid-column: 2;
+  grid-row: 1;
+}
+.side-nav a {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.registration-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 16px;
+}
+.registration-fields > * {
+  grid-column: 1 / -1;
+}
+.registration-fields > .auth-field-name,
+.registration-fields > .auth-field-postalCode {
+  grid-column: auto;
+}
+.profile-page .profile-fields {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+.profile-page .profile-fields .field {
+  grid-column: span 2;
+  min-width: 0;
+}
+.profile-page .profile-fields .profile-field-name,
+.profile-page .profile-fields .profile-field-email {
+  grid-column: span 3;
+}
+@media (max-width: 600px) {
+  .profile-page .profile-fields {
+    grid-template-columns: 1fr;
+  }
+  .profile-page .profile-fields .field {
+    grid-column: 1;
+  }
+}

@@ -129,10 +129,10 @@ const shapes: Record<string, { viewBox: string; body: ReactNode }> = {
     ),
   },
   home: {
-    viewBox: "0 0 32 32",
+    viewBox: "0 0 24 24",
     body: (
       <>
-        <path d="M3 15 16 4l13 11M7 13v16h7v-9h5v9h6V13" />
+        <path d="M2 11 12 3l10 8M5 10v12h5v-7h4v7h5V10" />
       </>
     ),
   },

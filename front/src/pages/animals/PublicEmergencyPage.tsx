@@ -33,6 +33,7 @@ function ReportForm({ token }: { token: string }) {
   return (
     <form
       className="public-report"
+      noValidate
       onSubmit={async (event: FormEvent) => {
         event.preventDefault();
         if (message.trim().length < 10) {

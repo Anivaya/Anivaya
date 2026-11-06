@@ -93,6 +93,7 @@ export default function SharingDialog({
               error={validation.error}
             >
               <textarea
+                data-resize-none
                 id="note"
                 name="note"
                 maxLength={500}

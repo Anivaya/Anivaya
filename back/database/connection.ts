@@ -16,6 +16,7 @@ const migrations = [
   "011_reminder_notifications.sql",
   "012_wording.sql",
   "013_contact_wording.sql",
+  "014_profile_postal_code.sql",
 ];
 const sql = (file: string) =>
   readFileSync(new URL(file, import.meta.url), "utf8");
@@ -44,7 +45,11 @@ export function transaction<T>(
   }
 }
 
-export function openDatabase(path = databasePath(), demo = true, empty = emptyStateMode()): Database {
+export function openDatabase(
+  path = databasePath(),
+  demo = true,
+  empty = emptyStateMode(),
+): Database {
   if (emptyStateMode(empty)) demo = false;
   if (path !== ":memory:") mkdirSync(dirname(path), { recursive: true });
   const database = new DatabaseSync(path);
@@ -58,7 +63,9 @@ export function openDatabase(path = databasePath(), demo = true, empty = emptySt
     transaction(database, () => {
       database.exec(sql(file));
       if (empty && name === "005_notifications.sql")
-        database.prepare("DELETE FROM notifications WHERE id='bienvenue'").run();
+        database
+          .prepare("DELETE FROM notifications WHERE id='bienvenue'")
+          .run();
       database.prepare("INSERT INTO schema_migrations VALUES (?)").run(name);
     });
   };

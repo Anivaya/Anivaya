@@ -3,10 +3,17 @@ import type { Input } from "../database/types.ts";
 export class ApiError extends Error {
   status: number;
   field?: string;
-  constructor(status: number, message: string, field?: string) {
+  fields?: Record<string, string>;
+  constructor(
+    status: number,
+    message: string,
+    field?: string,
+    fields?: Record<string, string>,
+  ) {
     super(message);
     this.status = status;
     this.field = field;
+    this.fields = fields;
   }
 }
 
@@ -63,6 +70,17 @@ export function emailAddress(value: unknown) {
   if (!isEmail(email))
     throw new ApiError(400, "Vérifiez votre adresse e-mail.", "email");
   return email;
+}
+
+export function postalCode(value: unknown) {
+  const code = text(value ?? "", "postalCode", 5, false);
+  if (code && !/^\d{5}$/.test(code))
+    throw new ApiError(
+      400,
+      "Indiquez un code postal à 5 chiffres.",
+      "postalCode",
+    );
+  return code;
 }
 
 export function date(value: unknown, field = "date") {

@@ -2,6 +2,7 @@ import type { UploadedFile } from "./models.ts";
 export interface Profile {
   name: string;
   email: string;
+  postalCode?: string;
   phone: string;
   city: string;
   photo: string | null;

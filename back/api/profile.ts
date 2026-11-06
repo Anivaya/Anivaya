@@ -9,6 +9,7 @@ import {
   isBase64,
   emailAddress,
   documentFile,
+  postalCode,
 } from "./validation.ts";
 
 interface ProfileRow {
@@ -16,6 +17,7 @@ interface ProfileRow {
   email: string;
   phone: string;
   city: string;
+  postal_code: string;
   photo: Uint8Array | null;
   photo_type: string | null;
   notifications: string;
@@ -65,6 +67,7 @@ export function profileRepository(db: Database) {
       email: p.email,
       phone: p.phone,
       city: p.city,
+      postalCode: p.postal_code,
       photo: p.photo
         ? `/api/profile/photo?v=${encodeURIComponent(p.updated_at)}`
         : null,
@@ -89,6 +92,10 @@ export function profileRepository(db: Database) {
       const notifications = notificationValues(data.notifications);
       // undefined : photo inchangée ; null : photo supprimée.
       const old = row();
+      const code =
+        data.postalCode === undefined
+          ? old.postal_code
+          : postalCode(data.postalCode);
       const photo =
         data.photo === undefined
           ? { content: old.photo, type: old.photo_type }
@@ -98,12 +105,13 @@ export function profileRepository(db: Database) {
       const [first, ...last] = name.split(/\s+/);
       transaction(db, () => {
         db.prepare(
-          "UPDATE user_profile SET name=?,email=?,phone=?,city=?,photo=?,photo_type=?,notifications=?,updated_at=? WHERE id=1",
+          "UPDATE user_profile SET name=?,email=?,phone=?,city=?,postal_code=?,photo=?,photo_type=?,notifications=?,updated_at=? WHERE id=1",
         ).run(
           name,
           email,
           phone,
           city,
+          code,
           photo.content,
           photo.type,
           JSON.stringify(notifications),

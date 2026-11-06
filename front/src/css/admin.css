@@ -18,6 +18,7 @@
 }
 .admin-workspace .sidebar {
   overflow: visible;
+  scrollbar-color: inherit;
   scrollbar-width: none;
   scrollbar-gutter: auto;
 }
@@ -35,6 +36,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  scrollbar-color: inherit;
   scrollbar-width: none;
   scrollbar-gutter: auto;
   gap: 3px;
@@ -741,8 +743,12 @@ button.admin-stat:active {
  * longs se terminent par « … » (texte complet au survol et pour les lecteurs d’écran).
  */
 @media (max-width: 1024px) {
-  .admin-table-team td:not(:last-child) > :is(.admin-record-link, small, .admin-cell-text),
-  .admin-table-feedback td:is(:nth-child(1), :nth-child(2)) > :is(.admin-record-link, small, .admin-cell-text) {
+  .admin-table-team
+    td:not(:last-child)
+    > :is(.admin-record-link, small, .admin-cell-text),
+  .admin-table-feedback
+    td:is(:nth-child(1), :nth-child(2))
+    > :is(.admin-record-link, small, .admin-cell-text) {
     display: block;
     max-width: 160px;
     overflow: hidden;
@@ -755,8 +761,12 @@ button.admin-stat:active {
   }
 }
 @media (max-width: 620px) {
-  .admin-table-team td:not(:last-child) > :is(.admin-record-link, small, .admin-cell-text),
-  .admin-table-feedback td:is(:nth-child(1), :nth-child(2)) > :is(.admin-record-link, small, .admin-cell-text) {
+  .admin-table-team
+    td:not(:last-child)
+    > :is(.admin-record-link, small, .admin-cell-text),
+  .admin-table-feedback
+    td:is(:nth-child(1), :nth-child(2))
+    > :is(.admin-record-link, small, .admin-cell-text) {
     max-width: 140px;
   }
 }
@@ -931,6 +941,7 @@ button.admin-stat:active {
 .admin-pending-scroll {
   max-height: 340px;
   overflow-y: auto;
+  scrollbar-color: inherit;
   scrollbar-width: none;
   scrollbar-gutter: auto;
   padding-right: 4px;
@@ -1245,7 +1256,6 @@ button.admin-stat:active {
   }
 }
 @media (max-width: 620px) {
-
   .admin-list-panel {
     padding: 18px;
   }
@@ -1305,10 +1315,6 @@ button.admin-stat:active {
   margin-left: auto;
   order: 2;
 }
-
-
-
-
 
 .admin-analytics {
   font-size: 16px;

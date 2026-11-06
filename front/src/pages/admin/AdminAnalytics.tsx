@@ -74,7 +74,7 @@ export default function AdminAnalytics() {
           <p className="admin-analytics-description">
             {!data.available
               ? "Aucun foyer n’est encore inscrit."
-              : `Photographie au ${new Date(data.asOf).toLocaleDateString("fr-FR")} des comptes de cette installation. L’activité est mesurée depuis la mise en place du suivi : les carnets plus anciens comptent à partir de cette date.`}
+              : `Indicateurs au ${new Date(data.asOf).toLocaleDateString("fr-FR")} pour les comptes de cet espace.`}
           </p>
         )}
         {(!!data?.cohorts.length || zone || channel) && (

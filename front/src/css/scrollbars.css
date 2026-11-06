@@ -1,0 +1,52 @@
+/* Comportement commun à tous les écrans : défilement conservé, barres internes masquées.
+   Chargée après les styles de domaine pour couvrir aussi les tableaux et dialogues. */
+:root body,
+:root body * {
+  scrollbar-width: none !important;
+  scrollbar-gutter: auto !important;
+}
+:root body::-webkit-scrollbar,
+:root body *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Géométrie constante : la barre devient transparente, sans décaler le contenu. */
+:root,
+:root [data-page-scroll] {
+  --page-scrollbar-thumb: transparent;
+  scrollbar-width: thin !important;
+  scrollbar-color: var(--page-scrollbar-thumb) transparent !important;
+  scrollbar-gutter: stable !important;
+}
+:root.page-is-scrolling,
+:root [data-page-scroll].page-is-scrolling {
+  --page-scrollbar-thumb: var(--muted);
+}
+:root::-webkit-scrollbar,
+:root [data-page-scroll]::-webkit-scrollbar {
+  display: block !important;
+  width: 6px !important;
+  height: 6px !important;
+}
+:root::-webkit-scrollbar-thumb,
+:root [data-page-scroll]::-webkit-scrollbar-thumb {
+  background: var(--page-scrollbar-thumb);
+  border-radius: 6px;
+}
+:root::-webkit-scrollbar-track,
+:root [data-page-scroll]::-webkit-scrollbar-track {
+  background: transparent;
+}
+:root::-webkit-scrollbar-button,
+:root [data-page-scroll]::-webkit-scrollbar-button {
+  display: none;
+}
+
+@media (forced-colors: active) {
+  :root.page-is-scrolling,
+  :root [data-page-scroll].page-is-scrolling {
+    --page-scrollbar-thumb: CanvasText;
+  }
+}

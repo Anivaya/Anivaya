@@ -20,6 +20,7 @@ import {
   centralMigration,
 } from "../database/connection.ts";
 import { profileRepository } from "./profile.ts";
+import { postalCode } from "./validation.ts";
 import { mfaService } from "./mfa.ts";
 import type { SocialNotice } from "./social.ts";
 import { ApiError, text, emailAddress } from "./validation.ts";
@@ -86,7 +87,8 @@ export function authentication(
   emptyStateMode(empty);
   const initialAccounts = empty ? emptyAccounts : demoAccounts;
   const adminAccount = empty ? "empty-admin" : DEMO_ADMIN.id;
-  const SESSION_COOKIE = cookieName || (empty ? "anivaya_empty_session" : "anivaya_session");
+  const SESSION_COOKIE =
+    cookieName || (empty ? "anivaya_empty_session" : "anivaya_session");
   const isDemo = (account: Pick<Account, "id">) =>
     initialAccounts.some((demo) => demo.id === account.id);
   db.exec(`CREATE TABLE IF NOT EXISTS accounts(id TEXT PRIMARY KEY,email TEXT NOT NULL UNIQUE,password TEXT NOT NULL,workspace TEXT NOT NULL UNIQUE);
@@ -157,7 +159,11 @@ export function authentication(
   function workspace(account: Account) {
     let own = connections.get(account.id);
     if (!own) {
-      own = openDatabase(workspacePath(account.workspace), isDemo(account), empty);
+      own = openDatabase(
+        workspacePath(account.workspace),
+        isDemo(account),
+        empty,
+      );
       connections.set(account.id, own);
     }
     return own;
@@ -414,7 +420,9 @@ export function authentication(
       // Le temps de réponse ne révèle pas si l’adresse existe.
       const stored =
         account ||
-        db.prepare("SELECT * FROM accounts WHERE id=?").get<Account>(initialAccounts[0].id)!;
+        db
+          .prepare("SELECT * FROM accounts WHERE id=?")
+          .get<Account>(initialAccounts[0].id)!;
       if (!(await verifyPassword(stored, password)) || !account) {
         failed(email, account);
         throw new ApiError(401, "Adresse e-mail ou mot de passe incorrect.");
@@ -499,6 +507,7 @@ export function authentication(
       rate(req);
       const email = emailAddress(data.email),
         name = text(data.name, "name", 120),
+        code = postalCode(data.postalCode),
         password = passwordValue(data.password);
       const problem = passwordProblem(password);
       if (problem) throw new ApiError(400, problem, "password");
@@ -517,6 +526,7 @@ export function authentication(
       profileRepository(workspace(account)).save({
         name,
         email,
+        postalCode: code,
         phone: "",
         city: "",
         notifications: defaultNotifications,
