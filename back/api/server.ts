@@ -5,7 +5,7 @@ import { openDatabase, databasePath } from "../database/connection.ts";
 import { emptyStateMode } from "../database/empty-state.ts";
 import { createApi } from "./app.ts";
 
-// Réglages locaux (SMTP, clé de l’API Claude…) : fichier .env à la racine, jamais commité.
+// Réglages locaux (SMTP, clé OpenRouter…) : fichier .env à la racine, jamais commité.
 const env = fileURLToPath(new URL("../../.env", import.meta.url));
 if (existsSync(env)) process.loadEnvFile(env);
 

@@ -88,7 +88,7 @@ Les rôles d’équipe (Administrateur, Modérateur, Support, Vétérinaire réf
 | GET        | /api/support                                 | Demandes, signalements, recours et retours du compte connecté, réponses de l’équipe incluses                                |
 | GET / POST | /api/account/mfa                             | État de la double authentification / `action` setup, enable, renew ou disable avec `password` et `mfaCode`                  |
 | POST       | /api/account/deletion-request                | message facultatif : demande de suppression examinée par l’équipe (409 si une demande est en cours)                         |
-| POST       | /api/imports/extract                         | type, content (PDF/JPEG/PNG en base64) : lecture du document par l’IA, sans rien enregistrer ; 503 sans `ANTHROPIC_API_KEY` |
+| POST       | /api/imports/extract                         | type, content (PDF/JPEG/PNG en base64) : lecture du document par l’IA, sans rien enregistrer ; 503 sans `OPENROUTER_API_KEY`|
 | POST       | /api/imports                                 | name, kind (Fichier ou Exemple intégré) : suivi d’un import assisté validé par l’utilisateur                                |
 | POST       | /api/public/emergency/:token/report          | name facultatif, message : signalement d’une fiche publique, avec ou sans session                                           |
 | GET        | /api/admin/pros/:id/documents/:document/file | Pièce justificative reçue (PDF, JPEG ou PNG)                                                                                |

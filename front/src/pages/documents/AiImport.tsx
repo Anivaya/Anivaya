@@ -11,7 +11,7 @@ import { errorMessage } from "../../shared/types.ts";
 import ImportFeedback from "./ImportFeedback.tsx";
 
 /**
- * Import assisté par IA : le document est lu par l’API Claude, la personne vérifie
+ * Import assisté par IA : le document est lu par l’IA (OpenRouter), la personne vérifie
  * chaque champ, puis le document, l’identité, l’événement et le rappel choisis sont
  * enregistrés dans le carnet.
  */
@@ -763,12 +763,20 @@ function Stepper({ step }: { step: number }) {
       if (!track.current || !bar.current || !label) return;
       const outer = track.current.getBoundingClientRect();
       const inner = label.getBoundingClientRect();
-      bar.current.style.width = inner.width + "px";
-      bar.current.style.transform = `translateX(${inner.left - outer.left}px)`;
+      // Mesures à l’écran, zoom compris (grands écrans, voir wideZoom.ts) ; le style, lui,
+      // s’écrit avant zoom : on ramène les mesures à l’échelle de la page.
+      const scale = outer.width / track.current.offsetWidth || 1;
+      bar.current.style.width = inner.width / scale + "px";
+      bar.current.style.transform = `translateX(${(inner.left - outer.left) / scale}px)`;
     };
     place();
+    // Les libellés changent de largeur (traduction chargée après coup, police) sans que le
+    // bloc change de taille : on suit aussi chaque étape pour garder le trait dessous.
     const observer = new ResizeObserver(place);
     observer.observe(track.current!);
+    track.current!.querySelectorAll("li").forEach((item) =>
+      observer.observe(item),
+    );
     return () => observer.disconnect();
   }, [step]);
   return (

@@ -77,10 +77,11 @@ export function mountLanding(host: HTMLElement, t: (text: string) => string) {
       event.preventDefault();
       const previous = faqState.get(details);
       const wanted = !(previous?.wanted ?? details.open);
-      const start = details.getBoundingClientRect().height;
+      // offsetHeight : hauteur avant zoom, la même unité que le style animé (grands écrans).
+      const start = details.offsetHeight;
       previous?.animation?.cancel();
       details.open = wanted;
-      const end = details.getBoundingClientRect().height;
+      const end = details.offsetHeight;
       details.open = true;
       details.style.overflow = "hidden";
       const animation = animate(

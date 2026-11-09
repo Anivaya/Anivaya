@@ -1512,10 +1512,14 @@ export const particularEnglish: Record<string, string> = {
   "Les mots de passe ne correspondent pas.": "The passwords do not match.",
   "Limitez la sélection à 500 accès par opération.":
     "Limit each operation to 500 access links.",
-  "L’import par IA n’est pas configuré : ajoutez une clé ANTHROPIC_API_KEY valide.":
-    "AI import is not configured: add a valid ANTHROPIC_API_KEY.",
-  "L’import par IA n’est pas configuré : ajoutez une clé ANTHROPIC_API_KEY.":
-    "AI import is not configured: add an ANTHROPIC_API_KEY.",
+  "L’import par IA est indisponible : le crédit OpenRouter est épuisé.":
+    "AI import is unavailable: the OpenRouter credit is used up.",
+  "L’import par IA n’est pas configuré : ajoutez une clé OPENROUTER_API_KEY valide.":
+    "AI import is not configured: add a valid OPENROUTER_API_KEY.",
+  "L’import par IA n’est pas configuré : ajoutez une clé OPENROUTER_API_KEY.":
+    "AI import is not configured: add an OPENROUTER_API_KEY.",
+  "L’import par IA n’est pas configuré : le modèle OPENROUTER_MODEL est introuvable ou refusé par vos réglages OpenRouter.":
+    "AI import is not configured: the OPENROUTER_MODEL model cannot be found or is blocked by your OpenRouter settings.",
   "Mot de passe incorrect.": "Incorrect password.",
   "Notification introuvable.": "Notification not found.",
   "Origine non autorisée.": "Origin not allowed.",

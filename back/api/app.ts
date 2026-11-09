@@ -341,7 +341,7 @@ api.post(
     requireAdmin(admin).requestDeletion(account!, await body()),
   201,
 );
-// Import assisté : lecture du document par l’API Claude ; rien n’est enregistré à ce stade.
+// Import assisté : lecture du document par l’IA (OpenRouter) ; rien n’est enregistré à ce stade.
 api.post("/api/imports/extract", async ({ body }) =>
   extractDocument(await body()),
 );

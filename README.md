@@ -50,7 +50,7 @@ Chaque compte, y compris les comptes de démonstration, dispose d’une base dan
 Copiez `.env.example` en `.env` à la racine (jamais commité) :
 
 - **E-mails** (`SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `MAIL_FROM`, `APP_URL`) : mot de passe oublié (lien valable une heure, à usage unique), invitations de l’équipe, partages de documents, confirmations, déplacements et annulations de réservation avec reçu, accusé de réception et réponses du support, décisions de modération, rappels selon le délai choisi (vérifiés toutes les heures, si « Rappels » est activé dans les préférences). Sans `SMTP_HOST`, chaque e-mail est déposé dans `back/database/data/outbox/` pour être consulté. Aucun e-mail n’est envoyé aux adresses des comptes de démonstration ni aux domaines réservés (`.example`, `.test`).
-- **Import par IA** (`ANTHROPIC_API_KEY`) : le document (photo ou PDF) est lu par l’API Claude (`claude-opus-5-5`, repli automatique en cas de refus) ; les champs proposés sont vérifiés par la personne, puis le document, l’identité, l’événement et le rappel choisis sont enregistrés dans le carnet. Sans clé, l’import affiche un message de configuration.
+- **Import par IA** (`OPENROUTER_API_KEY`, `OPENROUTER_MODEL`) : le document (photo ou PDF) est lu par un modèle choisi sur OpenRouter (gratuit par défaut pour les tests, `anthropic/claude-haiku-5.5` conseillé en production) ; les champs proposés sont vérifiés par la personne, puis le document, l’identité, l’événement et le rappel choisis sont enregistrés dans le carnet. Sans clé, l’import affiche un message de configuration.
 
 Le paiement des réservations reste simulé (aucun débit) ; la confirmation et le reçu sont envoyés par e-mail.
 

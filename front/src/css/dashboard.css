@@ -976,6 +976,22 @@
     grid-template-columns: 42px minmax(0, 1fr);
   }
 }
+/*
+ * Liste étroite (colonne « Documents récents » entre 1101 et ~1400 px, quelle que soit la
+ * largeur de l’écran) : les cinq actions passent sous le nom, qui garde toute la largeur.
+ */
+.documents-list {
+  container-type: inline-size;
+}
+@container (max-width: 440px) {
+  .document-row {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+  .doc-actions {
+    grid-column: 2;
+    justify-self: end;
+  }
+}
 /* Barre du haut : cloche des notifications, avec le nombre de non lues. */
 .notification-bell {
   position: relative;
