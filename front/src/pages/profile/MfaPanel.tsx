@@ -1,3 +1,4 @@
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import { useEffect, useState } from "react";
 import { request } from "../../shared/services/api.ts";
 import { errorMessage } from "../../shared/types.ts";
@@ -9,6 +10,7 @@ interface Status {
   recoveryRemaining: number;
 }
 export default function MfaPanel() {
+  const tr = useText();
   const [status, setStatus] = useState<Status | null>(null),
     [error, setError] = useState(""),
     [mode, setMode] = useState(""),
@@ -49,31 +51,34 @@ export default function MfaPanel() {
   };
   return (
     <section className="admin-panel">
-      <h2>Double authentification</h2>
+      <h2>{tr("Double authentification")}</h2>
       <p>
-        Ajoutez un code de votre application d’authentification à chaque
-        connexion.
+        {tr(
+          "Ajoutez un code de votre application d’authentification à chaque connexion.",
+        )}
       </p>
       {error ? (
         <div role="alert">
-          <p>{error}</p>
+          <p>{tr(error)}</p>
           <button
             className="button outline"
             onClick={() => setRetry((n) => n + 1)}
           >
-            Réessayer
+            {tr("Réessayer")}
           </button>
         </div>
       ) : !status ? (
-        <p role="status">Chargement de la sécurité…</p>
+        <p role="status">{tr("Chargement de la sécurité…")}</p>
       ) : (
         <>
           <p>
             <span className="admin-badge">
-              {status.enabled ? "Activée" : "Désactivée"}
+              {status.enabled ? tr("Activée") : tr("Désactivée")}
             </span>
             {status.enabled &&
-              ` · ${status.recoveryRemaining} codes de secours disponibles`}
+              tr(" · {0} codes de secours disponibles", [
+                status.recoveryRemaining,
+              ])}
           </p>
           <div className="admin-dialog-actions">
             {(status.enabled ? ["renew", "disable"] : ["setup"]).map(
@@ -88,7 +93,7 @@ export default function MfaPanel() {
                     setCodes([]);
                   }}
                 >
-                  {labels[action]}
+                  {tr(labels[action])}
                 </button>
               ),
             )}
@@ -97,17 +102,18 @@ export default function MfaPanel() {
       )}
       {!!codes.length && (
         <div className="admin-proof" role="status">
-          <h3>Conservez vos codes de secours</h3>
+          <h3>{tr("Conservez vos codes de secours")}</h3>
           <p>
-            Ils sont affichés une seule fois. Chaque code peut être utilisé une
-            seule fois.
+            {tr(
+              "Ils sont affichés une seule fois. Chaque code peut être utilisé une seule fois.",
+            )}
           </p>
           <pre>{codes.join("\n")}</pre>
           <button className="button outline" onClick={download}>
-            Télécharger les codes
+            {tr("Télécharger les codes")}
           </button>
           <button className="button outline" onClick={() => setCodes([])}>
-            J’ai conservé mes codes
+            {tr("J’ai conservé mes codes")}
           </button>
         </div>
       )}
@@ -122,16 +128,24 @@ export default function MfaPanel() {
         >
           <SubmissionForm
             key={mode}
-            title={labels[mode]}
+            title={tr(labels[mode])}
             description={
               mode === "disable"
-                ? "La connexion ne demandera plus de seconde vérification. Vos autres sessions seront fermées."
+                ? tr(
+                    "La connexion ne demandera plus de seconde vérification. Vos autres sessions seront fermées.",
+                  )
                 : mode === "renew"
-                  ? "Les anciens codes de secours seront invalidés. Vos autres sessions seront fermées."
-                  : "Confirmez avec votre mot de passe actuel. La configuration expire après 10 minutes."
+                  ? tr(
+                      "Les anciens codes de secours seront invalidés. Vos autres sessions seront fermées.",
+                    )
+                  : tr(
+                      "Confirmez avec votre mot de passe actuel. La configuration expire après 10 minutes.",
+                    )
             }
             submitLabel={
-              mode === "setup" ? "Préparer la configuration" : "Confirmer"
+              mode === "setup"
+                ? tr("Préparer la configuration")
+                : tr("Confirmer")
             }
             danger={mode === "disable"}
             busy={busy}
@@ -168,18 +182,21 @@ export default function MfaPanel() {
                 {setup && (
                   <div>
                     <p>
-                      Scannez ce QR dans votre application d’authentification,
-                      puis saisissez le code obtenu.
+                      {tr(
+                        "Scannez ce QR dans votre application d’authentification, puis saisissez le code obtenu.",
+                      )}
                     </p>
                     <img
                       src={setup.qr}
                       width="240"
                       height="240"
-                      alt="QR de configuration de votre application d’authentification"
+                      alt={tr(
+                        "QR de configuration de votre application d’authentification",
+                      )}
                     />
                     <details>
                       <summary className="toggle-summary">
-                        Configurer sans QR
+                        {tr("Configurer sans QR")}
                       </summary>
                       <code>{setup.secret}</code>
                     </details>
@@ -187,7 +204,7 @@ export default function MfaPanel() {
                 )}
                 <Field
                   name="password"
-                  label="Mot de passe actuel"
+                  label={tr("Mot de passe actuel")}
                   error={error}
                 >
                   <div className="password-field">
@@ -203,8 +220,8 @@ export default function MfaPanel() {
                       type="button"
                       aria-label={
                         visible
-                          ? "Masquer le mot de passe"
-                          : "Afficher le mot de passe"
+                          ? tr("Masquer le mot de passe")
+                          : tr("Afficher le mot de passe")
                       }
                       aria-pressed={visible}
                       onClick={() => setVisible(!visible)}
@@ -216,7 +233,7 @@ export default function MfaPanel() {
                 {mode !== "setup" && (
                   <Field
                     name="mfaCode"
-                    label="Code de vérification ou code de secours"
+                    label={tr("Code de vérification ou code de secours")}
                     error={error}
                   >
                     <input

@@ -1,3 +1,4 @@
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import EmptyState from "../../shared/ui/EmptyState.tsx";
 import type { ReactNode } from "react";
 import Icon from "../../shared/ui/Icon.tsx";
@@ -16,6 +17,7 @@ export function PersonLink({
   avatar?: boolean;
   back?: SocialDialog;
 }) {
+  const tr = useText();
   return (
     <button
       type="button"
@@ -27,7 +29,7 @@ export function PersonLink({
       )}
       <span>
         {personName(ctx.data, id)}
-        {id === ctx.data.me && <small> (vous)</small>}
+        {id === ctx.data.me && <small>{tr(" (vous)")}</small>}
       </span>
     </button>
   );
@@ -59,11 +61,12 @@ export function BackLink({
   tab: SocialTab;
   className?: string;
 }) {
+  const tr = useText();
   return (
     <a
       className={`social-back ${className}`}
       href={socialHref(tab)}
-      aria-label="Retour à la liste"
+      aria-label={tr("Retour à la liste")}
     >
       <Icon name="back" />
     </a>
@@ -86,12 +89,13 @@ export function IconButton({
   disabled?: boolean;
   className?: string;
 }) {
+  const tr = useText();
   return (
     <button
       type="button"
       className={`social-icon ${danger ? "danger" : ""} ${className}`}
-      aria-label={label}
-      title={label}
+      aria-label={tr(label)}
+      title={tr(label)}
       disabled={disabled}
       onClick={onClick}
     >

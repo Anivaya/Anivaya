@@ -1,3 +1,4 @@
+import { useText } from "../i18n/HomeLocale.tsx";
 /**
  * Onglets accessibles : flèches gauche/droite, Début et Fin.
  * Chaque onglet `clé` contrôle le panneau `panel-clé`.
@@ -16,6 +17,7 @@ export default function Tabs<K extends string>({
   /** Transition latérale du soulignement (désactivée en mouvement réduit). */
   animated?: boolean;
 }) {
+  const tr = useText();
   const keys = tabs.map(([key]) => key);
   function select(key: K) {
     onChange(key);
@@ -25,7 +27,7 @@ export default function Tabs<K extends string>({
     <div
       className={"page-tabs" + (animated ? " animated" : "")}
       role="tablist"
-      aria-label={label}
+      aria-label={tr(label)}
     >
       {tabs.map(([key, text], index) => (
         <button
@@ -49,7 +51,7 @@ export default function Tabs<K extends string>({
             select(keys[target]);
           }}
         >
-          {text}
+          {tr(text)}
         </button>
       ))}
     </div>

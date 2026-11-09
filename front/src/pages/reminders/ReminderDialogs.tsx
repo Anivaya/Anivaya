@@ -1,3 +1,4 @@
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import type { Reminder, DialogProps } from "../../shared/types.ts";
 import SubmissionForm, {
   Field,
@@ -27,6 +28,7 @@ export function ReminderDetails({
   busy,
   setBusy,
 }: DialogProps<Reminder>) {
+  const tr = useText();
   const { error, run } = useDialogAction(setBusy);
   return (
     <>
@@ -34,7 +36,8 @@ export function ReminderDetails({
         {item.name}
       </h2>
       <p className="dialog-copy">
-        Rappel pour {animalName(data.animals, item.animal)}
+        {tr("Rappel pour ")}
+        {animalName(data.animals, item.animal)}
       </p>
       <div className="detail-meta">
         {[
@@ -44,15 +47,16 @@ export function ReminderDetails({
           ["Prévenir", item.notice],
         ].map(([label, value]) => (
           <div key={label}>
-            <small>{label}</small>
-            <strong>{value}</strong>
+            <small>{tr(label)}</small>
+            <strong>{tr(value)}</strong>
           </div>
         ))}
       </div>
       {item.note && <p className="dialog-copy preserve-lines">{item.note}</p>}
       <p className="dialog-copy">
-        Vous serez prévenu par notification et par e-mail, selon le délai
-        choisi.
+        {tr(
+          "Vous serez prévenu par notification et par e-mail, selon le délai choisi.",
+        )}
       </p>
       <FormAlert message={error} />
       <div className="dialog-actions">
@@ -69,17 +73,17 @@ export function ReminderDetails({
           }
         >
           {busy
-            ? "Enregistrement…"
+            ? tr("Enregistrement…")
             : item.done
-              ? "Remettre à faire"
-              : "Marquer comme fait"}
+              ? tr("Remettre à faire")
+              : tr("Marquer comme fait")}
         </button>
         <button
           className="button outline"
           disabled={busy}
           onClick={() => onOpenDialog("edit-reminder", item)}
         >
-          Modifier
+          {tr("Modifier")}
         </button>
         {/* Marge automatique : les deux actions restent à gauche, Fermer à droite. */}
         <button
@@ -87,7 +91,7 @@ export function ReminderDetails({
           disabled={busy}
           onClick={onClose}
         >
-          Fermer
+          {tr("Fermer")}
         </button>
       </div>
     </>
@@ -99,13 +103,16 @@ export function ReminderForm({
   item = {},
   ...props
 }: DialogProps<Partial<Reminder>>) {
+  const tr = useText();
   return (
     <SubmissionForm
       {...props}
-      title={item.id ? "Modifier le rappel" : "Ajouter un rappel"}
-      description="Choisissez une date à suivre pour votre animal. Vous serez prévenu par notification et par e-mail."
-      submitLabel={item.id ? "Enregistrer" : "Ajouter"}
-      successMessage={item.id ? "Rappel modifié." : "Rappel ajouté."}
+      title={item.id ? tr("Modifier le rappel") : tr("Ajouter un rappel")}
+      description={tr(
+        "Choisissez une date à suivre pour votre animal. Vous serez prévenu par notification et par e-mail.",
+      )}
+      submitLabel={item.id ? tr("Enregistrer") : tr("Ajouter")}
+      successMessage={item.id ? tr("Rappel modifié.") : tr("Rappel ajouté.")}
       disabled={!data.animals.length}
       onSubmit={(values) =>
         item.id ? api.editReminder(item.id, values) : api.addReminder(values)
@@ -113,7 +120,7 @@ export function ReminderForm({
     >
       {({ error, invalid }) => (
         <>
-          <Field name="name" label="Intitulé" error={error}>
+          <Field name="name" label={tr("Intitulé")} error={error}>
             <input
               id="name"
               name="name"
@@ -129,7 +136,7 @@ export function ReminderForm({
             error={error}
             invalid={invalid}
           />
-          <Field name="date" label="Date" error={error}>
+          <Field name="date" label={tr("Date")} error={error}>
             <input
               id="date"
               name="date"
@@ -146,7 +153,7 @@ export function ReminderForm({
                 ["notice", "Prévenir"],
               ] as const
             ).map(([name, label]) => (
-              <Field key={name} name={name} label={label} error={error}>
+              <Field key={name} name={name} label={tr(label)} error={error}>
                 <select
                   id={name}
                   name={name}
@@ -154,13 +161,15 @@ export function ReminderForm({
                   {...invalid(name)}
                 >
                   {choices[name].map((value) => (
-                    <option key={value}>{value}</option>
+                    <option key={value} value={value}>
+                      {tr(value)}
+                    </option>
                   ))}
                 </select>
               </Field>
             ))}
           </div>
-          <Field name="note" label="Note (facultatif)" error={error}>
+          <Field name="note" label={tr("Note (facultatif)")} error={error}>
             <textarea
               data-resize-none
               id="note"

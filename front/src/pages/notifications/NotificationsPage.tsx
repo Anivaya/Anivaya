@@ -1,3 +1,6 @@
+import { uiLocale } from "../../shared/i18n/locale.ts";
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
+import { notificationText } from "../../../../shared/translations/notification.ts";
 import EmptyState from "../../shared/ui/EmptyState.tsx";
 import { useEffect, useRef, useState } from "react";
 import type { Notification, PageProps } from "../../shared/types.ts";
@@ -16,7 +19,7 @@ const categories = {
 type Category = keyof typeof categories;
 
 const formatDate = (value: string) =>
-  new Date(value).toLocaleString("fr-FR", {
+  new Date(value).toLocaleString(uiLocale(), {
     day: "numeric",
     month: "long",
     hour: "2-digit",
@@ -24,6 +27,7 @@ const formatDate = (value: string) =>
   });
 
 export default function NotificationsPage({ data, actions }: PageProps) {
+  const tr = useText();
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [category, setCategory] = useState<Category | "all">("all");
   const [error, setError] = useState("");
@@ -72,12 +76,12 @@ export default function NotificationsPage({ data, actions }: PageProps) {
     <div className="profile-page">
       <div className="welcome">
         <div>
-          <h1>Vos notifications</h1>
-          <p>Les nouvelles de vos compagnons, au même endroit.</p>
+          <h1>{tr("Vos notifications")}</h1>
+          <p>{tr("Les nouvelles de vos compagnons, au même endroit.")}</p>
         </div>
         {data.notifications.length > 0 && (
           <a className="button outline" href="#profil/notifications">
-            Mes préférences
+            {tr("Mes préférences")}
           </a>
         )}
       </div>
@@ -86,7 +90,7 @@ export default function NotificationsPage({ data, actions }: PageProps) {
           <div
             className="notification-tabs"
             role="group"
-            aria-label="Afficher les notifications"
+            aria-label={tr("Afficher les notifications")}
             ref={filters}
           >
             <button
@@ -94,27 +98,28 @@ export default function NotificationsPage({ data, actions }: PageProps) {
               aria-pressed={!unreadOnly}
               onClick={() => setUnreadOnly(false)}
             >
-              Toutes
+              {tr("Toutes")}
             </button>
             <button
               type="button"
               aria-pressed={unreadOnly}
               onClick={() => setUnreadOnly(true)}
             >
-              Non lues {unread}
+              {tr("Non lues ")}
+              {unread}
             </button>
           </div>
           <div className="notification-category">
-            <label htmlFor="category-filter">Catégorie</label>
+            <label htmlFor="category-filter">{tr("Catégorie")}</label>
             <select
               id="category-filter"
               value={category}
               onChange={(e) => setCategory(e.target.value as Category | "all")}
             >
-              <option value="all">Toutes les catégories</option>
+              <option value="all">{tr("Toutes les catégories")}</option>
               {(Object.keys(categories) as Category[]).map((key) => (
                 <option key={key} value={key}>
-                  {categories[key][0]}
+                  {tr(categories[key][0])}
                 </option>
               ))}
             </select>
@@ -131,19 +136,21 @@ export default function NotificationsPage({ data, actions }: PageProps) {
                 )
               }
             >
-              Tout marquer comme lu
+              {tr("Tout marquer comme lu")}
             </button>
           )}
         </div>
       )}
       {error && (
         <p className="profile-feedback error" role="alert">
-          {error}
+          {tr(error)}
         </p>
       )}
       {visible.length > 0 && (
         <p className="muted" aria-live="polite">
-          {visible.length} notification{visible.length > 1 ? "s" : ""}
+          {visible.length}
+          {tr(" notification")}
+          {visible.length > 1 ? tr("s") : ""}
         </p>
       )}
       {visible.length ? (
@@ -158,11 +165,11 @@ export default function NotificationsPage({ data, actions }: PageProps) {
               </span>
               <div className="notification-item-body">
                 <p className="notification-meta">
-                  {categories[n.category][1]} · {formatDate(n.date)}
-                  {n.read ? "" : " · Non lue"}
+                  {tr(categories[n.category][1])} · {formatDate(n.date)}
+                  {n.read ? "" : tr(" · Non lue")}
                 </p>
-                <h2>{n.title}</h2>
-                <p>{n.text}</p>
+                <h2>{notificationText(n, "title", tr)}</h2>
+                <p>{notificationText(n, "text", tr)}</p>
                 <div className="notification-item-actions">
                   <a
                     href={n.href}
@@ -170,15 +177,17 @@ export default function NotificationsPage({ data, actions }: PageProps) {
                       if (!n.read) void update(api.setNotification(n.id, true));
                     }}
                   >
-                    {n.action}
+                    {tr(n.action)}
                   </a>
                   <button
                     type="button"
                     id={"toggle-" + n.id}
                     onClick={() => toggle(n)}
-                    aria-label={`${n.read ? "Marquer comme non lue" : "Marquer comme lue"} : ${n.title}`}
+                    aria-label={`${tr(n.read ? "Marquer comme non lue" : "Marquer comme lue")} : ${notificationText(n, "title", tr)}`}
                   >
-                    {n.read ? "Marquer comme non lue" : "Marquer comme lue"}
+                    {n.read
+                      ? tr("Marquer comme non lue")
+                      : tr("Marquer comme lue")}
                   </button>
                 </div>
               </div>
@@ -189,8 +198,8 @@ export default function NotificationsPage({ data, actions }: PageProps) {
         <EmptyState
           kind="reminders"
           className="empty-notifications"
-          title="Vous êtes à jour"
-          description="Les nouvelles de vos compagnons apparaîtront ici."
+          title={tr("Vous êtes à jour")}
+          description={tr("Les nouvelles de vos compagnons apparaîtront ici.")}
           filtered={data.notifications.length > 0}
         />
       )}

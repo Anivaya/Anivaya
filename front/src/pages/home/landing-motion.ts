@@ -1,8 +1,5 @@
-import { getLanguage } from "../../shared/language.ts";
-import { homeText } from "../../shared/i18n/home-text.ts";
 /** Navigation et animations de la vitrine ; les formulaires sont gérés par React. */
-export function mountLanding(host: HTMLElement) {
-  const t = (text: string) => homeText(text, getLanguage());
+export function mountLanding(host: HTMLElement, t: (text: string) => string) {
   const events = new AbortController();
   const { signal } = events;
   const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;

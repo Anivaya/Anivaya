@@ -1,3 +1,4 @@
+import { useText } from "../../../shared/i18n/HomeLocale.tsx";
 import type { ReactNode } from "react";
 import type {
   Actions,
@@ -53,6 +54,7 @@ export default function EmergencySheet({
   actions: Actions;
   startEditing?: boolean;
 }) {
+  const tr = useText();
   const [enlarged, setEnlarged] = useState(false);
   const [editing, setEditing] = useState(startEditing || !saved);
   const [settings, setSettings] = useState(saved?.settings || defaults);
@@ -105,10 +107,10 @@ export default function EmergencySheet({
         href={svgImage(sheet.qrSvg)}
         download={`anivaya-qr-${pet.id}.svg`}
       >
-        Télécharger le QR
+        {tr("Télécharger le QR")}
       </a>
       <button className="button outline" onClick={() => window.print()}>
-        Imprimer
+        {tr("Imprimer")}
       </button>
     </>
   );
@@ -117,9 +119,9 @@ export default function EmergencySheet({
       type="button"
       className="qr-wrap qr-enlarge"
       onClick={() => setEnlarged(true)}
-      aria-label={`Agrandir le QR de ${pet.name}`}
+      aria-label={tr("Agrandir le QR de {0}", [pet.name])}
     >
-      <img src={svgImage(sheet.qrSvg)} alt={`QR de ${pet.name}`} />
+      <img src={svgImage(sheet.qrSvg)} alt={tr("QR de {0}", [pet.name])} />
     </button>
   );
 
@@ -147,14 +149,14 @@ export default function EmergencySheet({
               />
             )}
             <div>
-              <span className="badge">Fiche d’urgence sauvegardée</span>
+              <span className="badge">{tr("Fiche d’urgence sauvegardée")}</span>
               <div className="saved-title-line">
                 <h1>{sheet.name}</h1>
                 <div className="saved-tools">
                   <button
                     className="icon-btn"
-                    title="Modifier"
-                    aria-label="Modifier la fiche d’urgence"
+                    title={tr("Modifier")}
+                    aria-label={tr("Modifier la fiche d’urgence")}
                     onClick={() => {
                       setSettings(saved.settings);
                       setEditing(true);
@@ -164,29 +166,30 @@ export default function EmergencySheet({
                   </button>
                   <button
                     className="icon-btn delete"
-                    title="Supprimer"
-                    aria-label="Supprimer la fiche d’urgence"
+                    title={tr("Supprimer")}
+                    aria-label={tr("Supprimer la fiche d’urgence")}
                     onClick={remove}
                   >
                     <Icon name="trash" />
                   </button>
                 </div>
               </div>
-              <p className="muted">{sheet.details || sheet.species}</p>
+              <p className="muted">{sheet.details || tr(sheet.species)}</p>
               <p className="muted sheet-identifier">
-                Identifiant : {pet.identifier || "Non renseigné"}
+                {tr("Identifiant : ")}
+                {pet.identifier || tr("Non renseigné")}
               </p>
             </div>
           </div>
           {sheet.notes && (
             <section className="saved-section">
-              <h2>Consignes</h2>
+              <h2>{tr("Consignes")}</h2>
               <p className="muted emergency-notes">{sheet.notes}</p>
             </section>
           )}
           {(sheet.contact || sheet.vet) && (
             <section className="saved-section">
-              <h2>Contacts</h2>
+              <h2>{tr("Contacts")}</h2>
               {[
                 ["Contact principal", sheet.contact],
                 ["Vétérinaire habituel", sheet.vet],
@@ -195,7 +198,7 @@ export default function EmergencySheet({
                 .map(([label, value]) => (
                   <dl key={label}>
                     <div className="datum">
-                      <dt>{label}</dt>
+                      <dt>{tr(label)}</dt>
                       <dd>{value}</dd>
                     </div>
                   </dl>
@@ -203,12 +206,16 @@ export default function EmergencySheet({
             </section>
           )}
           <div className="saved-qr-section">
-            <h2>Son QR code</h2>
+            <h2>{tr("Son QR code")}</h2>
             {qr}
             <p className="muted">
               {sheet.qrSvg
-                ? "Ce QR ouvre la fiche publique avec les informations sélectionnées."
-                : "La fiche est désactivée. Modifiez-la pour préparer un nouveau QR."}
+                ? tr(
+                    "Ce QR ouvre la fiche publique avec les informations sélectionnées.",
+                  )
+                : tr(
+                    "La fiche est désactivée. Modifiez-la pour préparer un nouveau QR.",
+                  )}
             </p>
             <div className="actions">
               {downloads}
@@ -219,7 +226,7 @@ export default function EmergencySheet({
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Voir la fiche publique
+                  {tr("Voir la fiche publique")}
                 </a>
               )}
             </div>
@@ -228,15 +235,16 @@ export default function EmergencySheet({
       ) : (
         <>
           <div className="emergency-welcome">
-            <h1>Sa fiche d’urgence</h1>
+            <h1>{tr("Sa fiche d’urgence")}</h1>
             <p className="muted">
-              Choisissez ce qu’une personne qui retrouve {pet.name} pourra
-              consulter.
+              {tr("Choisissez ce qu’une personne qui retrouve ")}
+              {pet.name}
+              {tr(" pourra consulter.")}
             </p>
           </div>
           <div className="grid">
             <section className="panel">
-              <h2>Informations visibles</h2>
+              <h2>{tr("Informations visibles")}</h2>
               {(
                 Object.entries(labels) as [
                   keyof EmergencySettings,
@@ -258,55 +266,62 @@ export default function EmergencySheet({
                       }
                     />
                     <label htmlFor={`visibility-${key}`}>
-                      {label}
-                      <small>{help}</small>
+                      {tr(label)}
+                      <small>{tr(help)}</small>
                     </label>
                   </div>
                   {key === "photo" && (
                     <div className="emergency-information">
                       <span className="muted">
-                        Toujours inclus : nom et espèce. L’identification
-                        complète, les documents privés et l’adresse du foyer
-                        sont exclus.
+                        {tr(
+                          "Toujours inclus : nom et espèce. L’identification complète, les documents privés et l’adresse du foyer sont exclus.",
+                        )}
                       </span>
                     </div>
                   )}
                 </div>
               ))}
               <p className="note">
-                Ces choix concernent uniquement la fiche d’urgence. Ils ne
-                donnent jamais accès au carnet complet.
+                {tr(
+                  "Ces choix concernent uniquement la fiche d’urgence. Ils ne donnent jamais accès au carnet complet.",
+                )}
               </p>
             </section>
             <div className="stack">
               <section className="panel qr-panel" aria-busy={loading}>
-                <h2>Le QR de {pet.name}</h2>
+                <h2>
+                  {tr("Le QR de ")}
+                  {pet.name}
+                </h2>
                 {!settings.active && (
-                  <span className="active-status">Fiche désactivée</span>
+                  <span className="active-status">
+                    {tr("Fiche désactivée")}
+                  </span>
                 )}
                 {settings.active ? (
                   <>
                     {loading ? (
                       <div className="qr-loading" role="status">
                         <span className="qr-spinner" />
-                        Mise à jour du QR…
+                        {tr("Mise à jour du QR…")}
                       </div>
                     ) : current?.error ? (
                       <div className="empty">
-                        <p role="alert">{current.error}</p>
+                        <p role="alert">{tr(current.error)}</p>
                         <button
                           className="button outline"
                           onClick={() => setRetry((n) => n + 1)}
                         >
-                          Réessayer
+                          {tr("Réessayer")}
                         </button>
                       </div>
                     ) : (
                       qr
                     )}
                     <p className="muted">
-                      Le QR ouvre sa fiche publique. Sauvegardez pour publier
-                      vos choix de visibilité.
+                      {tr(
+                        "Le QR ouvre sa fiche publique. Sauvegardez pour publier vos choix de visibilité.",
+                      )}
                     </p>
                     <div className="actions">
                       <button
@@ -314,7 +329,7 @@ export default function EmergencySheet({
                         disabled={busy || loading || !sheet.qrSvg}
                         onClick={save}
                       >
-                        {busy ? "Sauvegarde…" : "Sauvegarder"}
+                        {busy ? tr("Sauvegarde…") : tr("Sauvegarder")}
                       </button>
                       {downloads}
                       {saved && (
@@ -323,14 +338,14 @@ export default function EmergencySheet({
                           onClick={remove}
                           disabled={busy}
                         >
-                          Supprimer
+                          {tr("Supprimer")}
                         </button>
                       )}
                     </div>
                     {sheet.payload && (
                       <details>
                         <summary className="muted toggle-summary">
-                          Voir le contenu du QR
+                          {tr("Voir le contenu du QR")}
                         </summary>
                         <pre className="qr-payload">{sheet.payload}</pre>
                       </details>
@@ -339,11 +354,14 @@ export default function EmergencySheet({
                 ) : (
                   <>
                     <p className="empty">
-                      La fiche est désactivée. Enregistrez ce choix pour retirer
-                      l’accès public.
+                      {tr(
+                        "La fiche est désactivée. Enregistrez ce choix pour retirer l’accès public.",
+                      )}
                     </p>
                     <button className="button" disabled={busy} onClick={save}>
-                      {busy ? "Sauvegarde…" : "Sauvegarder la désactivation"}
+                      {busy
+                        ? tr("Sauvegarde…")
+                        : tr("Sauvegarder la désactivation")}
                     </button>
                   </>
                 )}
@@ -357,19 +375,19 @@ export default function EmergencySheet({
                       setError("");
                     }}
                   >
-                    Annuler les modifications
+                    {tr("Annuler les modifications")}
                   </button>
                 )}
                 {error && (
                   <p className="form-error" role="alert">
-                    {error}
+                    {tr(error)}
                   </p>
                 )}
               </section>
               <p className="note">
-                La désactivation retire l’accès public, y compris avec un QR
-                déjà téléchargé. Pour scanner depuis un autre appareil, le site
-                doit être hébergé à une adresse accessible.
+                {tr(
+                  "La désactivation retire l’accès public, y compris avec un QR déjà téléchargé. Pour scanner depuis un autre appareil, le site doit être hébergé à une adresse accessible.",
+                )}
               </p>
             </div>
           </div>
@@ -387,12 +405,12 @@ export default function EmergencySheet({
       {sheet.qrSvg && (
         <div className="qr-print">
           <h1>{sheet.name}</h1>
-          <p>{sheet.details || sheet.species}</p>
+          <p>{sheet.details || tr(sheet.species)}</p>
           {sheet.notes && <p className="emergency-notes">{sheet.notes}</p>}
           <p>{sheet.contact}</p>
           <p>{sheet.vet}</p>
-          <img src={svgImage(sheet.qrSvg)} alt="QR à imprimer" />
-          <p>Anivaya · Fiche d’urgence</p>
+          <img src={svgImage(sheet.qrSvg)} alt={tr("QR à imprimer")} />
+          <p>{tr("Anivaya · Fiche d’urgence")}</p>
         </div>
       )}
     </>
@@ -411,10 +429,18 @@ export function QrDialog({
   onClose: () => void;
   children: ReactNode;
 }) {
+  const tr = useText();
   return (
     <Modal className="qr-dialog" busy={false} onClose={onClose}>
-      <h2 id="action-title">Le QR de {name}</h2>
-      <img className="large-qr" src={svgImage(qrSvg)} alt={`QR de ${name}`} />
+      <h2 id="action-title">
+        {tr("Le QR de ")}
+        {name}
+      </h2>
+      <img
+        className="large-qr"
+        src={svgImage(qrSvg)}
+        alt={tr("QR de {0}", [name])}
+      />
       <div className="dialog-actions">{children}</div>
     </Modal>
   );

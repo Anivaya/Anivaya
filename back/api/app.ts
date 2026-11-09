@@ -19,6 +19,7 @@ import { startReminderMail } from "./reminder-mail.ts";
 import { extractDocument } from "./ai-import.ts";
 import type { SharedAccess } from "./shared-access.ts";
 import { ApiError, text } from "./validation.ts";
+import { translationCatalogue } from "../../shared/translations/catalogue.ts";
 
 const MAX_BODY_BYTES = 14 * 1024 * 1024;
 const LOCAL_ORIGINS = [
@@ -114,6 +115,15 @@ function requireAdmin(admin: AdminService | null) {
 // Routes accessibles sans session.
 const open = router<RequestContext>();
 open.get("/api/health", () => ({ status: "ok" }));
+open.get("/api/translations", ({ query }) => {
+  const scope = query.get("scope") || "home";
+  const language = query.get("lang") || "fr";
+  if (scope !== "home" && scope !== "particular")
+    throw new ApiError(400, "Périmètre de traduction invalide.");
+  if (language !== "fr" && language !== "en")
+    throw new ApiError(400, "Langue non prise en charge.");
+  return translationCatalogue(scope, language);
+});
 open.post(
   "/api/public/leads",
   async ({ publicSite, request, body }) =>

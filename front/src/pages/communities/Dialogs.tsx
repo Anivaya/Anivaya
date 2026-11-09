@@ -1,3 +1,4 @@
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import type {
@@ -34,6 +35,7 @@ export default function SocialDialogView({
   dialog: SocialDialog;
   onClose: () => void;
 }) {
+  const tr = useText();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [dirty, setDirty] = useState(false);
@@ -63,14 +65,14 @@ export default function SocialDialogView({
       heading = dialog.title;
       body = (
         <>
-          <p className="social-copy">{dialog.text}</p>
+          <p className="social-copy">{tr(dialog.text)}</p>
           <div className="dialog-actions">
             <button
               type="button"
               className="button outline cancel"
               onClick={onClose}
             >
-              Annuler
+              {tr("Annuler")}
             </button>
             <button
               type="button"
@@ -80,7 +82,7 @@ export default function SocialDialogView({
                 if ((await submit(dialog.work, dialog.message)).ok) onClose();
               }}
             >
-              {dialog.label}
+              {tr(dialog.label)}
             </button>
           </div>
         </>
@@ -104,7 +106,7 @@ export default function SocialDialogView({
       body = <PersonProfile {...shared} dialog={dialog} />;
       break;
     case "options":
-      heading = "Options · " + personName(ctx.data, dialog.id);
+      heading = tr("Options · {0}", [personName(ctx.data, dialog.id)]);
       body = <PersonOptions {...shared} dialog={dialog} />;
       break;
     case "friends":
@@ -120,8 +122,9 @@ export default function SocialDialogView({
       break;
     case "report":
       heading =
-        "Signaler " +
-        (dialog.type === "message" ? "un message" : "une personne");
+        dialog.type === "message"
+          ? "Signaler un message"
+          : "Signaler une personne";
       body = <Report {...shared} dialog={dialog} />;
       break;
     case "photo":
@@ -140,19 +143,21 @@ export default function SocialDialogView({
       <div className="social-modal-heading">
         {dialog.back && (
           <IconButton
-            label="Retour à la liste des participants"
+            label={tr("Retour à la liste des participants")}
             icon="back"
             onClick={() => ctx.open(dialog.back!)}
           />
         )}
         <h2 id="action-title" tabIndex={-1} ref={title}>
-          {heading}
+          {dialog.kind === "person" || dialog.kind === "options"
+            ? heading
+            : tr(heading)}
         </h2>
         <button
           type="button"
           className="close"
-          aria-label="Fermer la fenêtre"
-          title="Fermer"
+          aria-label={tr("Fermer la fenêtre")}
+          title={tr("Fermer")}
           disabled={busy}
           onClick={requestClose}
         >
@@ -162,27 +167,27 @@ export default function SocialDialogView({
       {body}
       {discarding && (
         <div className="social-copy">
-          <p>Abandonner les modifications non enregistrées ?</p>
+          <p>{tr("Abandonner les modifications non enregistrées ?")}</p>
           <div className="dialog-actions">
             <button
               type="button"
               className="button outline"
               onClick={() => setDiscarding(false)}
             >
-              Continuer la saisie
+              {tr("Continuer la saisie")}
             </button>
             <button
               type="button"
               className="button outline danger"
               onClick={onClose}
             >
-              Abandonner
+              {tr("Abandonner")}
             </button>
           </div>
         </div>
       )}
       <p className="social-error" role="alert">
-        {error}
+        {tr(error)}
       </p>
     </Modal>
   );
@@ -209,12 +214,13 @@ function Field({
   error?: string;
   children: ReactNode;
 }) {
+  const tr = useText();
   return (
     <div className="field">
-      <label htmlFor={"social-" + id}>{label}</label>
+      <label htmlFor={"social-" + id}>{tr(label)}</label>
       {children}
       <span id={"error-" + id} className="social-error">
-        {error}
+        {tr(error)}
       </span>
     </div>
   );
@@ -257,6 +263,7 @@ function CommunityEditor({
   setDirty,
   id,
 }: Shared & { id?: string }) {
+  const tr = useText();
   const item = ctx.data.communities.find((g) => g.id === id);
   const form = useForm(
     {
@@ -287,22 +294,24 @@ function CommunityEditor({
   }
   return (
     <form id="social-editor" noValidate onSubmit={save}>
-      <Field id="name" label="Nom" error={form.errors.name}>
+      <Field id="name" label={tr("Nom")} error={form.errors.name}>
         <input {...form.input("name", { maxLength: 90 })} />
       </Field>
-      <Field id="city" label="Ville" error={form.errors.city}>
+      <Field id="city" label={tr("Ville")} error={form.errors.city}>
         <input {...form.input("city", { maxLength: 80 })} />
       </Field>
-      <Field id="topic" label="Thème">
+      <Field id="topic" label={tr("Thème")}>
         <select {...form.input("topic")}>
           {communityTopics.map((topic) => (
-            <option key={topic}>{topic}</option>
+            <option key={topic} value={topic}>
+              {tr(topic)}
+            </option>
           ))}
         </select>
       </Field>
       <Field
         id="description"
-        label="Présentation"
+        label={tr("Présentation")}
         error={form.errors.description}
       >
         <textarea
@@ -311,15 +320,16 @@ function CommunityEditor({
         />
       </Field>
       <p className="social-copy">
-        Indiquez un quartier ou un lieu de rendez-vous public, sans publier
-        votre adresse personnelle.
+        {tr(
+          "Indiquez un quartier ou un lieu de rendez-vous public, sans publier votre adresse personnelle.",
+        )}
       </p>
       <div className="dialog-actions">
         <button type="button" className="button outline cancel" onClick={close}>
-          Annuler
+          {tr("Annuler")}
         </button>
         <button className="button" type="submit">
-          {id ? "Enregistrer" : "Créer"}
+          {id ? tr("Enregistrer") : tr("Créer")}
         </button>
       </div>
     </form>
@@ -334,6 +344,7 @@ function EventEditor({
   id,
   community,
 }: Shared & { id?: string; community?: string }) {
+  const tr = useText();
   const item = ctx.data.events.find((e) => e.id === id);
   const form = useForm(
     {
@@ -373,30 +384,34 @@ function EventEditor({
   }
   return (
     <form id="social-editor" noValidate onSubmit={save}>
-      <Field id="name" label="Nom" error={form.errors.name}>
+      <Field id="name" label={tr("Nom")} error={form.errors.name}>
         <input {...form.input("name", { maxLength: 90 })} />
       </Field>
-      <Field id="city" label="Ville" error={form.errors.city}>
+      <Field id="city" label={tr("Ville")} error={form.errors.city}>
         <input {...form.input("city", { maxLength: 80 })} />
       </Field>
-      <Field id="place" label="Lieu du rendez-vous" error={form.errors.place}>
+      <Field
+        id="place"
+        label={tr("Lieu du rendez-vous")}
+        error={form.errors.place}
+      >
         <input {...form.input("place", { maxLength: 150 })} />
       </Field>
-      <Field id="date" label="Date et heure" error={form.errors.date}>
+      <Field id="date" label={tr("Date et heure")} error={form.errors.date}>
         <input {...form.input("date", { type: "datetime-local" })} />
       </Field>
       <Field
         id="capacity"
-        label="Nombre de places"
+        label={tr("Nombre de places")}
         error={form.errors.capacity}
       >
         <input
           {...form.input("capacity", { type: "number", min: 1, max: 200 })}
         />
       </Field>
-      <Field id="community" label="Communauté (facultatif)">
+      <Field id="community" label={tr("Communauté (facultatif)")}>
         <select {...form.input("community")}>
-          <option value="">Événement ouvert à tous</option>
+          <option value="">{tr("Événement ouvert à tous")}</option>
           {ctx.data.communities
             .filter((g) => g.members.includes(ctx.data.me))
             .map((g) => (
@@ -408,7 +423,7 @@ function EventEditor({
       </Field>
       <Field
         id="description"
-        label="Présentation"
+        label={tr("Présentation")}
         error={form.errors.description}
       >
         <textarea
@@ -417,15 +432,16 @@ function EventEditor({
         />
       </Field>
       <p className="social-copy">
-        Indiquez un quartier ou un lieu de rendez-vous public, sans publier
-        votre adresse personnelle.
+        {tr(
+          "Indiquez un quartier ou un lieu de rendez-vous public, sans publier votre adresse personnelle.",
+        )}
       </p>
       <div className="dialog-actions">
         <button type="button" className="button outline cancel" onClick={close}>
-          Annuler
+          {tr("Annuler")}
         </button>
         <button className="button" type="submit">
-          {id ? "Enregistrer" : "Créer"}
+          {id ? tr("Enregistrer") : tr("Créer")}
         </button>
       </div>
     </form>
@@ -499,6 +515,7 @@ function useMemberActions({ ctx, submit, close }: Shared) {
 function Members(
   props: Shared & { dialog: Extract<SocialDialog, { kind: "members" }> },
 ) {
+  const tr = useText();
   const { ctx, dialog } = props;
   const { data } = ctx;
   const actions = useMemberActions(props);
@@ -513,17 +530,17 @@ function Members(
             <div className="participant-row" key={member}>
               <div className="participant-identity">
                 <PersonLink ctx={ctx} id={member} back={dialog} />
-                {member === dialog.owner && <small>Créateur</small>}
+                {member === dialog.owner && <small>{tr("Créateur")}</small>}
               </div>
               {member === data.me ? (
-                <span className="participant-self">Vous</span>
+                <span className="participant-self">{tr("Vous")}</span>
               ) : (
                 <div className="participant-actions">
                   <IconButton
                     label={
                       blocked
-                        ? "Discussion indisponible (personne bloquée)"
-                        : "Discuter en privé"
+                        ? tr("Discussion indisponible (personne bloquée)")
+                        : tr("Discuter en privé")
                     }
                     icon="chat"
                     disabled={blocked}
@@ -532,7 +549,7 @@ function Members(
                   <IconButton
                     label={
                       blocked
-                        ? "Amitié indisponible (personne bloquée)"
+                        ? tr("Amitié indisponible (personne bloquée)")
                         : friend.label
                     }
                     icon={friend.icon}
@@ -541,7 +558,7 @@ function Members(
                     onClick={() => actions.friend(member, friend.action)}
                   />
                   <IconButton
-                    label={mine ? "Débloquer" : "Bloquer"}
+                    label={mine ? tr("Débloquer") : tr("Bloquer")}
                     icon="block"
                     className="block-action"
                     onClick={() =>
@@ -551,7 +568,7 @@ function Members(
                     }
                   />
                   <IconButton
-                    label="Plus d’options"
+                    label={tr("Plus d’options")}
                     icon="more"
                     className="more-action"
                     onClick={() =>
@@ -577,7 +594,7 @@ function Members(
               })
             }
           >
-            Inviter une personne
+            {tr("Inviter une personne")}
           </button>
         )}
     </>
@@ -587,6 +604,7 @@ function Members(
 function PersonProfile(
   props: Shared & { dialog: Extract<SocialDialog, { kind: "person" }> },
 ) {
+  const tr = useText();
   const { ctx, dialog } = props;
   const { data } = ctx;
   const id = dialog.id;
@@ -600,17 +618,18 @@ function PersonProfile(
       <div className="member-profile">
         <span className="social-avatar large">{personInitials(data, id)}</span>
         <p>
-          {person?.city || "Membre de la communauté"}
+          {person?.city || tr("Membre de la communauté")}
           {person?.animal && (
             <>
               <br />
-              Avec {person.animal}
+              {tr("Avec ")}
+              {person.animal}
             </>
           )}
         </p>
       </div>
       {id === data.me ? (
-        <p>Voici votre profil dans les communautés.</p>
+        <p>{tr("Voici votre profil dans les communautés.")}</p>
       ) : (
         <>
           <div className="member-profile-actions">
@@ -618,13 +637,13 @@ function PersonProfile(
               {!blocked && (
                 <>
                   <IconButton
-                    label="Discuter en privé"
+                    label={tr("Discuter en privé")}
                     icon="chat"
                     onClick={() => void actions.dm(id)}
                   />
                   {f?.status === "accepted" ? (
                     <IconButton
-                      label="Retirer de mes amis"
+                      label={tr("Retirer de mes amis")}
                       icon="close"
                       danger
                       onClick={() => actions.friend(id, "remove")}
@@ -633,12 +652,12 @@ function PersonProfile(
                     f.to === data.me ? (
                       <>
                         <IconButton
-                          label="Accepter la demande d’amitié"
+                          label={tr("Accepter la demande d’amitié")}
                           icon="check"
                           onClick={() => actions.friend(id, "accept")}
                         />
                         <IconButton
-                          label="Refuser la demande d’amitié"
+                          label={tr("Refuser la demande d’amitié")}
                           icon="close"
                           danger
                           onClick={() => actions.friend(id, "remove")}
@@ -646,7 +665,7 @@ function PersonProfile(
                       </>
                     ) : (
                       <IconButton
-                        label="Annuler ma demande d’amitié"
+                        label={tr("Annuler ma demande d’amitié")}
                         icon="close"
                         danger
                         onClick={() => actions.friend(id, "remove")}
@@ -654,7 +673,7 @@ function PersonProfile(
                     )
                   ) : (
                     <IconButton
-                      label="Ajouter en ami"
+                      label={tr("Ajouter en ami")}
                       icon="friend"
                       onClick={() => actions.friend(id, "request")}
                     />
@@ -662,7 +681,7 @@ function PersonProfile(
                 </>
               )}
               <IconButton
-                label="Signaler cette personne"
+                label={tr("Signaler cette personne")}
                 icon="flag"
                 danger
                 onClick={() =>
@@ -676,7 +695,7 @@ function PersonProfile(
               />
             </div>
             <IconButton
-              label={mine ? "Débloquer" : "Bloquer"}
+              label={mine ? tr("Débloquer") : tr("Bloquer")}
               icon="block"
               className="profile-block"
               onClick={() =>
@@ -686,7 +705,7 @@ function PersonProfile(
           </div>
           {blocked && (
             <p className="social-copy">
-              Les échanges privés sont bloqués entre ces deux comptes.
+              {tr("Les échanges privés sont bloqués entre ces deux comptes.")}
             </p>
           )}
         </>
@@ -698,6 +717,7 @@ function PersonProfile(
 function PersonOptions(
   props: Shared & { dialog: Extract<SocialDialog, { kind: "options" }> },
 ) {
+  const tr = useText();
   const { ctx, dialog } = props;
   const id = dialog.id;
   const actions = useMemberActions(props);
@@ -712,7 +732,7 @@ function PersonOptions(
         onClick={() => ctx.open({ kind: "person", id, back: dialog.back })}
       >
         <Icon name="people" />
-        Voir le profil
+        {tr("Voir le profil")}
       </button>
       <button
         type="button"
@@ -722,7 +742,7 @@ function PersonOptions(
         }
       >
         <Icon name="flag" />
-        Signaler cette personne
+        {tr("Signaler cette personne")}
       </button>
       {incoming && (
         <button
@@ -730,7 +750,7 @@ function PersonOptions(
           className="button outline"
           onClick={() => actions.friend(id, "remove")}
         >
-          Refuser la demande d’amitié
+          {tr("Refuser la demande d’amitié")}
         </button>
       )}
     </div>
@@ -738,6 +758,7 @@ function PersonOptions(
 }
 
 function Friends({ ctx }: Shared) {
+  const tr = useText();
   const { data } = ctx;
   const pending = data.friends.filter(
     (f) => f.to === data.me && f.status === "pending",
@@ -747,7 +768,10 @@ function Friends({ ctx }: Shared) {
     ctx.act(() => api.friend(id, action), friendMessages[action]);
   return (
     <>
-      <h3>Invitations reçues ({pending.length})</h3>
+      <h3>
+        {tr("Invitations reçues (")}
+        {pending.length})
+      </h3>
       {pending.length ? (
         pending.map((f) => (
           <div className="friend-row" key={f.from}>
@@ -757,30 +781,37 @@ function Friends({ ctx }: Shared) {
               className="button outline"
               onClick={() => respond(f.from, "accept")}
             >
-              Accepter
+              {tr("Accepter")}
             </button>
             <button
               type="button"
               className="button outline"
               onClick={() => respond(f.from, "remove")}
             >
-              Refuser
+              {tr("Refuser")}
             </button>
           </div>
         ))
       ) : (
-        <p>Aucune invitation en attente.</p>
+        <p>{tr("Aucune invitation en attente.")}</p>
       )}
-      <h3>Mes amis ({accepted.length})</h3>
+      <h3>
+        {tr("Mes amis (")}
+        {accepted.length})
+      </h3>
       {accepted.length ? (
         accepted.map((f) => {
           const other = f.from === data.me ? f.to : f.from;
           return <PersonLink key={other} ctx={ctx} id={other} />;
         })
       ) : (
-        <p>Ouvrez le profil d’un membre pour lui proposer de devenir amis.</p>
+        <p>
+          {tr(
+            "Ouvrez le profil d’un membre pour lui proposer de devenir amis.",
+          )}
+        </p>
       )}
-      <h3>Trouver une personne</h3>
+      <h3>{tr("Trouver une personne")}</h3>
       <div className="social-member-list">
         {data.people
           .filter((p) => p.id !== data.me)
@@ -799,6 +830,7 @@ function NewThread({
   setDirty,
   dialog,
 }: Shared & { dialog: Extract<SocialDialog, { kind: "new-thread" }> }) {
+  const tr = useText();
   const { data } = ctx;
   const { group, existing } = dialog;
   const thread = existing
@@ -844,7 +876,7 @@ function NewThread({
   return (
     <form noValidate onSubmit={save}>
       {group && !existing && (
-        <Field id="group-name" label="Nom du groupe" error={nameError}>
+        <Field id="group-name" label={tr("Nom du groupe")} error={nameError}>
           <input
             id="social-group-name"
             maxLength={90}
@@ -861,7 +893,7 @@ function NewThread({
       )}
       <fieldset className="people-picker">
         <legend>
-          {group ? "Choisir les participants" : "Choisir une personne"}
+          {group ? tr("Choisir les participants") : tr("Choisir une personne")}
         </legend>
         {candidates.length ? (
           candidates.map((p) => (
@@ -893,27 +925,29 @@ function NewThread({
             </label>
           ))
         ) : (
-          <p>Aucune personne disponible.</p>
+          <p>{tr("Aucune personne disponible.")}</p>
         )}
       </fieldset>
       <p className="social-error" role="alert">
-        {pickError}
+        {tr(pickError)}
       </p>
       {group && (
         <p className="social-copy">
-          Les personnes ajoutées pourront lire l’historique du groupe privé.
+          {tr(
+            "Les personnes ajoutées pourront lire l’historique du groupe privé.",
+          )}
         </p>
       )}
       <div className="dialog-actions">
         <button type="button" className="button outline cancel" onClick={close}>
-          Annuler
+          {tr("Annuler")}
         </button>
         <button className="button" type="submit">
           {existing
-            ? "Inviter"
+            ? tr("Inviter")
             : group
-              ? "Créer le groupe"
-              : "Ouvrir la discussion"}
+              ? tr("Créer le groupe")
+              : tr("Ouvrir la discussion")}
         </button>
       </div>
     </form>
@@ -925,6 +959,7 @@ function Report({
   close,
   dialog,
 }: Shared & { dialog: Extract<SocialDialog, { kind: "report" }> }) {
+  const tr = useText();
   const [reason, setReason] = useState<string>(reportReasons[0]);
   return (
     <form
@@ -941,27 +976,30 @@ function Report({
       }}
     >
       <div className="field">
-        <label htmlFor="report-reason">Motif</label>
+        <label htmlFor="report-reason">{tr("Motif")}</label>
         <select
           id="report-reason"
           value={reason}
           onChange={(e) => setReason(e.target.value)}
         >
           {reportReasons.map((r) => (
-            <option key={r}>{r}</option>
+            <option key={r} value={r}>
+              {tr(r)}
+            </option>
           ))}
         </select>
       </div>
       <p className="social-copy">
-        Le signalement est enregistré pour l’équipe de modération. Aucune
-        notification n’est envoyée à la personne concernée.
+        {tr(
+          "Le signalement est enregistré pour l’équipe de modération. Aucune notification n’est envoyée à la personne concernée.",
+        )}
       </p>
       <div className="dialog-actions">
         <button type="button" className="button outline cancel" onClick={close}>
-          Annuler
+          {tr("Annuler")}
         </button>
         <button className="button" type="submit">
-          Enregistrer le signalement
+          {tr("Enregistrer le signalement")}
         </button>
       </div>
     </form>

@@ -53,6 +53,18 @@ const adminTitles: Record<string, string> = {
 };
 const englishPublicTitles: Record<string, string> = {
   Accueil: "Home",
+  "Mon espace": "My space",
+  "Mes animaux": "My animals",
+  "Mes documents": "My documents",
+  "Mes rappels": "My reminders",
+  "Gestion de profil": "Profile settings",
+  Réservations: "Bookings",
+  Partage: "Sharing",
+  Communautés: "Communities",
+  Notifications: "Notifications",
+  Contact: "Contact",
+  "Informations du service": "About the service",
+  "Fiche d’urgence": "Emergency sheet",
   Professionnels: "Professionals",
   Cliniques: "Clinics",
   Entreprises: "Businesses",
@@ -74,5 +86,5 @@ export function pageTitle(hash: string, homeView?: string, language = "fr") {
             ["ressources", "service", "donnees"].includes(section)
           ? titles.informations
           : titles[page] || "Mon espace";
-  return `Anivaya · ${page === "accueil" && language === "en" ? englishPublicTitles[label] || label : label}`;
+  return `Anivaya · ${page !== "admin" && language === "en" ? englishPublicTitles[label] || label : label}`;
 }

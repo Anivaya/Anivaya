@@ -1,3 +1,4 @@
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import EmptyState from "../../shared/ui/EmptyState.tsx";
 import { api } from "../../shared/services/api.ts";
 import Icon from "../../shared/ui/Icon.tsx";
@@ -13,14 +14,15 @@ export function CommunityDetail({
   ctx: SocialContext;
   id: string;
 }) {
+  const tr = useText();
   const { data } = ctx;
   const group = data.communities.find((g) => g.id === id);
   if (!group)
     return (
       <>
         <BackLink tab="communautes" />
-        <Empty kind={null} title="Communauté introuvable">
-          Cette communauté a été supprimée.
+        <Empty kind={null} title={tr("Communauté introuvable")}>
+          {tr("Cette communauté a été supprimée.")}
         </Empty>
       </>
     );
@@ -35,18 +37,18 @@ export function CommunityDetail({
         <div className="detail-heading">
           <BackLink tab="communautes" />
           <span className="social-kicker">
-            {group.city} · {group.topic}
+            {group.city} · {tr(group.topic)}
           </span>
           <div className="social-actions">
             {owner && (
               <>
                 <IconButton
-                  label="Modifier la communauté"
+                  label={tr("Modifier la communauté")}
                   icon="edit"
                   onClick={() => ctx.open({ kind: "community-editor", id })}
                 />
                 <IconButton
-                  label="Supprimer la communauté"
+                  label={tr("Supprimer la communauté")}
                   icon="trash"
                   danger
                   onClick={() =>
@@ -80,7 +82,7 @@ export function CommunityDetail({
                   })
                 }
               >
-                Quitter
+                {tr("Quitter")}
               </button>
             ) : (
               <button
@@ -93,7 +95,7 @@ export function CommunityDetail({
                   )
                 }
               >
-                Rejoindre
+                {tr("Rejoindre")}
               </button>
             )}
           </div>
@@ -101,7 +103,11 @@ export function CommunityDetail({
         </div>
         <p className="social-description">{group.description}</p>
         <div className="detail-members">
-          <div className="members-strip" tabIndex={0} aria-label="Membres">
+          <div
+            className="members-strip"
+            tabIndex={0}
+            aria-label={tr("Membres")}
+          >
             {group.members.map((member) => (
               <PersonLink key={member} ctx={ctx} id={member} />
             ))}
@@ -117,26 +123,29 @@ export function CommunityDetail({
               })
             }
           >
-            {group.members.length} membres
+            {group.members.length}
+            {tr(" membres")}
           </button>
         </div>
       </section>
       <div className="social-detail-grid">
         <section className="social-discussion">
-          <h2>La discussion du groupe</h2>
+          <h2>{tr("La discussion du groupe")}</h2>
           {joined ? (
             <Discussion
               ctx={ctx}
               thread={data.threads.find((t) => t.id === group.thread)}
             />
           ) : (
-            <Empty kind={null} title="Faites connaissance">
-              Rejoignez la communauté pour lire et participer à la discussion.
+            <Empty kind={null} title={tr("Faites connaissance")}>
+              {tr(
+                "Rejoignez la communauté pour lire et participer à la discussion.",
+              )}
             </Empty>
           )}
         </section>
         <aside className="social-aside">
-          <h3>Prochains rendez-vous</h3>
+          <h3>{tr("Prochains rendez-vous")}</h3>
           {upcoming.length ? (
             upcoming.map((e) => (
               <a
@@ -157,13 +166,14 @@ export function CommunityDetail({
               className="button outline"
               onClick={() => ctx.open({ kind: "event-editor", community: id })}
             >
-              Proposer un événement
+              {tr("Proposer un événement")}
             </button>
           )}
-          <h3>Un groupe accueillant</h3>
+          <h3>{tr("Un groupe accueillant")}</h3>
           <p>
-            Respectez les autres membres. Depuis leur nom, vous pouvez discuter
-            en privé, proposer de devenir amis ou signaler un comportement.
+            {tr(
+              "Respectez les autres membres. Depuis leur nom, vous pouvez discuter en privé, proposer de devenir amis ou signaler un comportement.",
+            )}
           </p>
         </aside>
       </div>
@@ -172,14 +182,15 @@ export function CommunityDetail({
 }
 
 export function EventDetail({ ctx, id }: { ctx: SocialContext; id: string }) {
+  const tr = useText();
   const { data } = ctx;
   const event = data.events.find((e) => e.id === id);
   if (!event)
     return (
       <>
         <BackLink tab="evenements" />
-        <Empty kind={null} title="Événement introuvable">
-          Revenez à la liste des événements.
+        <Empty kind={null} title={tr("Événement introuvable")}>
+          {tr("Revenez à la liste des événements.")}
         </Empty>
       </>
     );
@@ -197,9 +208,9 @@ export function EventDetail({ ctx, id }: { ctx: SocialContext; id: string }) {
               className={`social-kicker ${event.cancelled ? "danger" : ""}`}
             >
               {event.cancelled
-                ? "Événement annulé"
+                ? tr("Événement annulé")
                 : closed
-                  ? "Événement passé"
+                  ? tr("Événement passé")
                   : dateText(event.date)}
             </span>
             <h2>{event.name}</h2>
@@ -209,7 +220,7 @@ export function EventDetail({ ctx, id }: { ctx: SocialContext; id: string }) {
               (event.owner === data.me ? (
                 <>
                   <IconButton
-                    label="Modifier l’événement"
+                    label={tr("Modifier l’événement")}
                     icon="edit"
                     onClick={() => ctx.open({ kind: "event-editor", id })}
                   />
@@ -227,7 +238,7 @@ export function EventDetail({ ctx, id }: { ctx: SocialContext; id: string }) {
                       })
                     }
                   >
-                    Annuler l’événement
+                    {tr("Annuler l’événement")}
                   </button>
                 </>
               ) : joined ? (
@@ -245,7 +256,7 @@ export function EventDetail({ ctx, id }: { ctx: SocialContext; id: string }) {
                     })
                   }
                 >
-                  Annuler ma participation
+                  {tr("Annuler ma participation")}
                 </button>
               ) : (
                 <button
@@ -259,7 +270,7 @@ export function EventDetail({ ctx, id }: { ctx: SocialContext; id: string }) {
                     )
                   }
                 >
-                  {full ? "Complet" : "Participer"}
+                  {full ? tr("Complet") : tr("Participer")}
                 </button>
               ))}
           </div>
@@ -270,14 +281,14 @@ export function EventDetail({ ctx, id }: { ctx: SocialContext; id: string }) {
         <p className="social-description">{event.description}</p>
         {event.community && (
           <p>
-            Avec{" "}
+            {tr("Avec")}{" "}
             <a href={socialHref("communautes", event.community)}>
-              {community?.name || "la communauté"}
+              {community?.name || tr("la communauté")}
             </a>
           </p>
         )}
         <div className="detail-members">
-          <span>Organisé par</span>
+          <span>{tr("Organisé par")}</span>
           {event.owner && <PersonLink ctx={ctx} id={event.owner} />}
           <button
             type="button"
@@ -290,20 +301,21 @@ export function EventDetail({ ctx, id }: { ctx: SocialContext; id: string }) {
               })
             }
           >
-            {event.participants.length} / {event.capacity} participants
+            {event.participants.length} / {event.capacity}
+            {tr(" participants")}
           </button>
         </div>
       </section>
       <section className="social-discussion event-discussion">
-        <h2>Avant et après la rencontre</h2>
+        <h2>{tr("Avant et après la rencontre")}</h2>
         {joined ? (
           <Discussion
             ctx={ctx}
             thread={data.threads.find((t) => t.id === event.thread)}
           />
         ) : (
-          <Empty kind={null} title="Retrouvez les participants">
-            Inscrivez-vous pour accéder à la discussion de l’événement.
+          <Empty kind={null} title={tr("Retrouvez les participants")}>
+            {tr("Inscrivez-vous pour accéder à la discussion de l’événement.")}
           </Empty>
         )}
       </section>

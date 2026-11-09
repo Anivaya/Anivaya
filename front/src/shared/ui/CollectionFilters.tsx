@@ -1,3 +1,4 @@
+import { useText } from "../i18n/HomeLocale.tsx";
 import type { Animal } from "../types.ts";
 export default function CollectionFilters({
   search,
@@ -20,20 +21,21 @@ export default function CollectionFilters({
   options: [string, string][];
   label: string;
 }) {
+  const tr = useText();
   return (
     <div className="collection-filters">
       <input
-        aria-label="Rechercher par nom"
-        placeholder="Rechercher par nom…"
+        aria-label={tr("Rechercher par nom")}
+        placeholder={tr("Rechercher par nom…")}
         value={search}
         onChange={(e) => onSearch(e.target.value)}
       />
       <select
-        aria-label="Filtrer par animal"
+        aria-label={tr("Filtrer par animal")}
         value={animal}
         onChange={(e) => onAnimal(e.target.value)}
       >
-        <option value="">Tous les animaux</option>
+        <option value="">{tr("Tous les animaux")}</option>
         {animals.map((a) => (
           <option key={a.id} value={a.id}>
             {a.name}
@@ -41,13 +43,13 @@ export default function CollectionFilters({
         ))}
       </select>
       <select
-        aria-label={label}
+        aria-label={tr(label)}
         value={filter}
         onChange={(e) => onFilter(e.target.value)}
       >
         {options.map(([value, text]) => (
           <option key={value} value={value}>
-            {text}
+            {tr(text)}
           </option>
         ))}
       </select>

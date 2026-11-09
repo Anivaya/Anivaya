@@ -1,3 +1,5 @@
+import { uiLocale } from "../../shared/i18n/locale.ts";
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import type { Thread } from "../../../../shared/social.ts";
@@ -40,6 +42,7 @@ export default function Messaging({
   limit: number;
   onMore: () => void;
 }) {
+  const tr = useText();
   const { data } = ctx;
   const [kind, setKind] = useState<KindFilter>("all");
   // Sous-filtres de « Privé » : type de discussion et non lues.
@@ -63,7 +66,7 @@ export default function Messaging({
           <div
             className="conversation-filters"
             role="group"
-            aria-label="Type de discussion"
+            aria-label={tr("Type de discussion")}
           >
             {kindFilters.map(([key, label]) => (
               <button
@@ -72,13 +75,16 @@ export default function Messaging({
                 aria-pressed={kind === key}
                 onClick={() => setKind(key)}
               >
-                {label}
+                {tr(label)}
               </button>
             ))}
           </div>
           {kind === "private" && (
             <div className="conversation-subfilters">
-              <div role="group" aria-label="Filtrer les discussions privées">
+              <div
+                role="group"
+                aria-label={tr("Filtrer les discussions privées")}
+              >
                 {(
                   [
                     ["direct", "Discussion privée"],
@@ -93,7 +99,7 @@ export default function Messaging({
                       setPrivateKind(privateKind === key ? "" : key)
                     }
                   >
-                    {label}
+                    {tr(label)}
                   </button>
                 ))}
                 <button
@@ -101,17 +107,17 @@ export default function Messaging({
                   aria-pressed={unreadOnly}
                   onClick={() => setUnreadOnly(!unreadOnly)}
                 >
-                  Non lues
+                  {tr("Non lues")}
                 </button>
               </div>
               <div className="conversation-shortcuts">
                 <IconButton
-                  label="Mes amis"
+                  label={tr("Mes amis")}
                   icon="people"
                   onClick={() => ctx.open({ kind: "friends" })}
                 />
                 <IconButton
-                  label="Créer un groupe privé"
+                  label={tr("Créer un groupe privé")}
                   icon="group-add"
                   onClick={() => ctx.open({ kind: "new-thread", group: true })}
                 />
@@ -130,8 +136,8 @@ export default function Messaging({
               <ThreadAvatar thread={t} />
               <span>
                 <strong>{threadName(data, t)}</strong>
-                <small>{threadKinds[t.kind]}</small>
-                <span>{t.messages.at(-1)?.text || "Aucun message"}</span>
+                <small>{tr(threadKinds[t.kind])}</small>
+                <span>{t.messages.at(-1)?.text || tr("Aucun message")}</span>
               </span>
               {t.unread > 0 && <b className="unread-dot">{t.unread}</b>}
             </a>
@@ -140,18 +146,18 @@ export default function Messaging({
             <Empty
               title={
                 data.threads.length
-                  ? "Aucune discussion trouvée"
-                  : "Aucune discussion pour le moment"
+                  ? tr("Aucune discussion trouvée")
+                  : tr("Aucune discussion pour le moment")
               }
             >
               {data.threads.length
-                ? "Modifiez votre recherche ou vos filtres."
-                : "Commencez une conversation avec un membre."}
+                ? tr("Modifiez votre recherche ou vos filtres.")
+                : tr("Commencez une conversation avec un membre.")}
             </Empty>
           )}
           {threads.length > limit && (
             <button type="button" className="button outline" onClick={onMore}>
-              Afficher plus
+              {tr("Afficher plus")}
             </button>
           )}
         </div>
@@ -160,13 +166,14 @@ export default function Messaging({
         {thread ? (
           <Conversation key={thread.id} ctx={ctx} thread={thread} />
         ) : id ? (
-          <Empty kind={null} title="Discussion inaccessible">
-            Vous avez quitté ce groupe ou un échange a été bloqué.
+          <Empty kind={null} title={tr("Discussion inaccessible")}>
+            {tr("Vous avez quitté ce groupe ou un échange a été bloqué.")}
           </Empty>
         ) : (
-          <Empty title="Un petit message, un nouveau lien">
-            Choisissez une conversation ou écrivez à une personne rencontrée
-            dans votre communauté.
+          <Empty title={tr("Un petit message, un nouveau lien")}>
+            {tr(
+              "Choisissez une conversation ou écrivez à une personne rencontrée dans votre communauté.",
+            )}
           </Empty>
         )}
       </section>
@@ -188,6 +195,7 @@ function ThreadAvatar({ thread }: { thread: Thread }) {
 
 /** En-tête de la discussion ouverte : profil, recherche, paramètres, puis l’historique. */
 function Conversation({ ctx, thread }: { ctx: SocialContext; thread: Thread }) {
+  const tr = useText();
   const { data } = ctx;
   const [searching, setSearching] = useState(false);
   const [focus, setFocus] = useState<{ id: string; nonce: number }>();
@@ -203,24 +211,27 @@ function Conversation({ ctx, thread }: { ctx: SocialContext; thread: Thread }) {
         <ThreadAvatar thread={thread} />
         <div className="conversation-title">
           <h2>{threadName(data, thread)}</h2>
-          <small>{thread.members.length} participants</small>
+          <small>
+            {thread.members.length}
+            {tr(" participants")}
+          </small>
         </div>
         <div className="social-actions">
           <IconButton
-            label="Rechercher dans la conversation"
+            label={tr("Rechercher dans la conversation")}
             icon="search"
             className={searching ? "active" : ""}
             onClick={() => setSearching(!searching)}
           />
           {other ? (
             <IconButton
-              label="Voir le profil"
+              label={tr("Voir le profil")}
               icon="user"
               onClick={() => ctx.open({ kind: "person", id: other })}
             />
           ) : (
             <IconButton
-              label="Voir les membres"
+              label={tr("Voir les membres")}
               icon="people"
               onClick={() =>
                 ctx.open({
@@ -240,8 +251,10 @@ function Conversation({ ctx, thread }: { ctx: SocialContext; thread: Thread }) {
                 thread.ref,
               )}
             >
-              Voir{" "}
-              {thread.kind === "community" ? "la communauté" : "l’événement"}
+              {tr("Voir")}{" "}
+              {thread.kind === "community"
+                ? tr("la communauté")
+                : tr("l’événement")}
             </a>
           )}
           <ThreadSettings
@@ -286,6 +299,7 @@ function ThreadSettings({
   other: string | undefined;
   onRename: () => void;
 }) {
+  const tr = useText();
   const { data } = ctx;
   const [open, setOpen] = useState(false);
   const menu = useRef<HTMLDivElement>(null);
@@ -460,7 +474,7 @@ function ThreadSettings({
   return (
     <div className="thread-settings" ref={menu}>
       <IconButton
-        label="Paramètres de la conversation"
+        label={tr("Paramètres de la conversation")}
         icon="settings"
         className={open ? "active" : ""}
         onClick={() => setOpen(!open)}
@@ -479,7 +493,7 @@ function ThreadSettings({
               }}
             >
               <Icon name={icon} />
-              {label}
+              {tr(label)}
             </button>
           ))}
         </div>
@@ -489,7 +503,7 @@ function ThreadSettings({
         type="file"
         hidden
         accept={PHOTO_TYPES.join(",")}
-        aria-label="Photo de la conversation (1 Mo maximum)"
+        aria-label={tr("Photo de la conversation (1 Mo maximum)")}
         onChange={async (e) => {
           const chosen = e.target.files?.[0];
           e.target.value = "";
@@ -525,12 +539,13 @@ function RenameDialog({
   thread: Thread;
   onClose: () => void;
 }) {
+  const tr = useText();
   const [name, setName] = useState(thread.name);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   return (
     <Modal busy={busy} onClose={onClose}>
-      <h2 id="action-title">Renommer la conversation</h2>
+      <h2 id="action-title">{tr("Renommer la conversation")}</h2>
       <form
         noValidate
         onSubmit={async (event) => {
@@ -550,7 +565,7 @@ function RenameDialog({
         }}
       >
         <div className="field">
-          <label htmlFor="thread-name">Nom</label>
+          <label htmlFor="thread-name">{tr("Nom")}</label>
           <input
             id="thread-name"
             maxLength={90}
@@ -563,14 +578,14 @@ function RenameDialog({
             aria-describedby="thread-name-error"
           />
           <span id="thread-name-error" className="social-error" role="alert">
-            {error}
+            {tr(error)}
           </span>
         </div>
         {thread.kind !== "private" && (
           <p className="social-copy">
-            Le nom de la{" "}
-            {thread.kind === "community" ? "communauté" : "l’événement"} change
-            aussi.
+            {tr("Le nom de la")}{" "}
+            {thread.kind === "community" ? tr("communauté") : tr("l’événement")}
+            {tr(" change aussi.")}
           </p>
         )}
         <div className="dialog-actions">
@@ -579,10 +594,10 @@ function RenameDialog({
             className="button outline cancel"
             onClick={onClose}
           >
-            Annuler
+            {tr("Annuler")}
           </button>
           <button type="submit" className="button" disabled={busy}>
-            Renommer
+            {tr("Renommer")}
           </button>
         </div>
       </form>
@@ -612,6 +627,7 @@ function MessageSearch({
   onSelect: (messageId: string) => void;
   onClose: () => void;
 }) {
+  const tr = useText();
   const { data } = ctx;
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
@@ -675,8 +691,8 @@ function MessageSearch({
         <input
           type="search"
           autoFocus
-          placeholder="Rechercher dans la conversation…"
-          aria-label="Rechercher dans la conversation"
+          placeholder={tr("Rechercher dans la conversation…")}
+          aria-label={tr("Rechercher dans la conversation")}
           aria-controls="message-search-results"
           aria-activedescendant={
             results.length ? `search-result-${current}` : undefined
@@ -689,7 +705,7 @@ function MessageSearch({
           onKeyDown={keyDown}
         />
         <IconButton
-          label="Fermer la recherche"
+          label={tr("Fermer la recherche")}
           icon="close"
           className="close-icon"
           onClick={onClose}
@@ -698,8 +714,10 @@ function MessageSearch({
       {needle && (
         <p className="message-search-count" role="status">
           {results.length
-            ? `${results.length} résultat(s) · ↑ ↓ pour parcourir, Entrée pour afficher`
-            : "Aucun message ne contient ce texte."}
+            ? tr("{0} résultat(s) · ↑ ↓ pour parcourir, Entrée pour afficher", [
+                results.length,
+              ])
+            : tr("Aucun message ne contient ce texte.")}
         </p>
       )}
       {results.length > 0 && (
@@ -716,7 +734,7 @@ function MessageSearch({
             >
               <strong>{personName(data, m.sender)}</strong>
               <time dateTime={m.at}>
-                {new Date(m.at).toLocaleString("fr-FR", {
+                {new Date(m.at).toLocaleString(uiLocale(), {
                   day: "numeric",
                   month: "short",
                   hour: "2-digit",

@@ -1,3 +1,4 @@
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import type { ValidationState, DialogProps } from "../../shared/types.ts";
 import { useEffect, useRef, useState } from "react";
 import SubmissionForm, { Field } from "../../shared/forms/SubmissionForm.tsx";
@@ -17,6 +18,7 @@ export default function SharingDialog({
   onOpenDialog,
   ...props
 }: DialogProps) {
+  const tr = useText();
   const [animals, setAnimals] = useState(
     item.animals || (item.animal ? [item.animal] : []),
   );
@@ -41,7 +43,7 @@ export default function SharingDialog({
       required = false,
     ) =>
     ({ error, invalid }: ValidationState) => (
-      <Field name={name} label={label} error={error}>
+      <Field name={name} label={tr(label)} error={error}>
         <input
           id={name}
           name={name}
@@ -57,10 +59,14 @@ export default function SharingDialog({
     return (
       <SubmissionForm
         {...props}
-        title={item.id ? "Modifier la personne" : "Ajouter une personne"}
-        description="Renseignez au moins un e-mail ou un téléphone. Un e-mail est nécessaire pour lui partager des documents."
-        submitLabel="Enregistrer"
-        successMessage="Personne de confiance enregistrée."
+        title={
+          item.id ? tr("Modifier la personne") : tr("Ajouter une personne")
+        }
+        description={tr(
+          "Renseignez au moins un e-mail ou un téléphone. Un e-mail est nécessaire pour lui partager des documents.",
+        )}
+        submitLabel={tr("Enregistrer")}
+        successMessage={tr("Personne de confiance enregistrée.")}
         onSubmit={(values) => api.savePerson(item.id, { ...values, animals })}
       >
         {(validation) => (
@@ -69,7 +75,7 @@ export default function SharingDialog({
               {input("name", "Nom", "text", 120, true)(validation)}
               <Field
                 name="role"
-                label="Lien avec les animaux"
+                label={tr("Lien avec les animaux")}
                 error={validation.error}
               >
                 <select
@@ -79,7 +85,9 @@ export default function SharingDialog({
                 >
                   {["Proche", "Famille", "Garde", "Professionnel", "Autre"].map(
                     (r) => (
-                      <option key={r}>{r}</option>
+                      <option key={r} value={r}>
+                        {tr(r)}
+                      </option>
                     ),
                   )}
                 </select>
@@ -89,7 +97,7 @@ export default function SharingDialog({
             </div>
             <Field
               name="note"
-              label="Note (facultatif)"
+              label={tr("Note (facultatif)")}
               error={validation.error}
             >
               <textarea
@@ -102,7 +110,7 @@ export default function SharingDialog({
             </Field>
             <SelectionGroup
               name="animals"
-              title="Animaux associés (facultatif)"
+              title={tr("Animaux associés (facultatif)")}
               items={data.animals}
               selected={animals}
               onChange={setAnimals}
@@ -125,31 +133,40 @@ export default function SharingDialog({
         danger
         title={
           revoke
-            ? "Révoquer ce partage ?"
+            ? tr("Révoquer ce partage ?")
             : remove
-              ? "Retirer cette personne du carnet ?"
-              : "Supprimer cette personne ?"
+              ? tr("Retirer cette personne du carnet ?")
+              : tr("Supprimer cette personne ?")
         }
         description={
           revoke
-            ? `L’accès de ${item.recipient} à ce document sera désactivé immédiatement. Ses autres partages sont conservés.`
+            ? tr(
+                "L’accès de {0} à ce document sera désactivé immédiatement. Ses autres partages sont conservés.",
+                [item.recipient],
+              )
             : remove
-              ? `${item.name} sera retirée des contacts de cet animal. Ses partages de documents restent inchangés.`
-              : `${item.name} sera retirée de la liste et des carnets associés. Ses partages seront révoqués.`
+              ? tr(
+                  "{0} sera retirée des contacts de cet animal. Ses partages de documents restent inchangés.",
+                  [item.name],
+                )
+              : tr(
+                  "{0} sera retirée de la liste et des carnets associés. Ses partages seront révoqués.",
+                  [item.name],
+                )
         }
         submitLabel={
           revoke
-            ? "Révoquer le partage"
+            ? tr("Révoquer le partage")
             : remove
-              ? "Retirer du carnet"
-              : "Supprimer la personne"
+              ? tr("Retirer du carnet")
+              : tr("Supprimer la personne")
         }
         successMessage={
           revoke
-            ? "Partage révoqué."
+            ? tr("Partage révoqué.")
             : remove
-              ? "Personne retirée du carnet."
-              : "Personne supprimée et partages révoqués."
+              ? tr("Personne retirée du carnet.")
+              : tr("Personne supprimée et partages révoqués.")
         }
         onSubmit={() =>
           revoke
@@ -172,24 +189,27 @@ export default function SharingDialog({
     return (
       <>
         <h2 id="action-title" className="dialog-title">
-          Détail du partage
+          {tr("Détail du partage")}
         </h2>
         <p className="dialog-copy">
           <strong>{doc?.name}</strong> · {animalName(data.animals, doc?.animal)}
         </p>
         <p className="dialog-copy">
-          Destinataire : {item.recipient}
+          {tr("Destinataire : ")}
+          {item.recipient}
           <br />
           {item.email}
           <br />
-          Fin : {fullDate(item.until!)}
+          {tr("Fin : ")}
+          {fullDate(item.until!)}
           <br />
-          Accès : lecture seule ·{" "}
-          {item.status && shareLabels[item.status].toLocaleLowerCase("fr")}
+          {tr("Accès : lecture seule ·")}{" "}
+          {item.status && tr(shareLabels[item.status])}
         </p>
         <p className="share-note">
-          Ce partage concerne uniquement ce document. Aucun accès réel n’a été
-          créé.
+          {tr(
+            "Ce partage concerne uniquement ce document. Aucun accès réel n’a été créé.",
+          )}
         </p>
         <div className="dialog-actions">
           {item.status === "active" && (
@@ -197,14 +217,14 @@ export default function SharingDialog({
               className="button danger"
               onClick={() => onOpenDialog("revoke-share", item)}
             >
-              Révoquer
+              {tr("Révoquer")}
             </button>
           )}
           <button
             className="button outline close-action"
             onClick={props.onClose}
           >
-            Fermer
+            {tr("Fermer")}
           </button>
         </div>
       </>
@@ -218,22 +238,24 @@ export default function SharingDialog({
       <>
         <h2 className="dialog-title" id="action-title">
           {!data.people.length
-            ? "Ajoutez une personne de confiance"
-            : "Ajoutez d’abord un animal"}
+            ? tr("Ajoutez une personne de confiance")
+            : tr("Ajoutez d’abord un animal")}
         </h2>
         <p className="dialog-copy">
-          Une personne et un animal sont nécessaires pour créer une association.
+          {tr(
+            "Une personne et un animal sont nécessaires pour créer une association.",
+          )}
         </p>
         {!data.people.length ? (
           <button
             className="button"
             onClick={() => onOpenDialog("add-person", item)}
           >
-            Ajouter une personne
+            {tr("Ajouter une personne")}
           </button>
         ) : (
           <a className="button" href="#animaux" onClick={props.onClose}>
-            Mes animaux
+            {tr("Mes animaux")}
           </a>
         )}
         <CloseDialogButton onClose={props.onClose} />
@@ -243,10 +265,10 @@ export default function SharingDialog({
     return (
       <SubmissionForm
         {...props}
-        title="Associer des personnes de confiance"
-        description="Sélectionnez les personnes et les animaux concernés."
-        submitLabel="Confirmer les associations"
-        successMessage="Associations mises à jour dans les carnets."
+        title={tr("Associer des personnes de confiance")}
+        description={tr("Sélectionnez les personnes et les animaux concernés.")}
+        submitLabel={tr("Confirmer les associations")}
+        successMessage={tr("Associations mises à jour dans les carnets.")}
         onSubmit={(values) =>
           api.associate({ mode: values.mode, animals, people })
         }
@@ -255,7 +277,7 @@ export default function SharingDialog({
           <>
             <SelectionGroup
               name="people"
-              title="Personnes de confiance"
+              title={tr("Personnes de confiance")}
               items={data.people.map((p) => ({
                 ...p,
                 help: p.email || p.phone,
@@ -265,24 +287,25 @@ export default function SharingDialog({
             />
             <SelectionGroup
               name="animals"
-              title="Animaux"
+              title={tr("Animaux")}
               items={data.animals}
               selected={animals}
               onChange={setAnimals}
             />
-            <Field name="mode" label="Action" error={error}>
+            <Field name="mode" label={tr("Action")} error={error}>
               <select id="mode" name="mode">
                 <option value="add">
-                  Ajouter aux contacts des animaux sélectionnés
+                  {tr("Ajouter aux contacts des animaux sélectionnés")}
                 </option>
                 <option value="remove">
-                  Retirer des contacts des animaux sélectionnés
+                  {tr("Retirer des contacts des animaux sélectionnés")}
                 </option>
               </select>
             </Field>
             <p className="share-note">
-              Ces associations concernent les contacts des carnets. Les accès
-              aux documents se gèrent dans « Documents partagés ».
+              {tr(
+                "Ces associations concernent les contacts des carnets. Les accès aux documents se gèrent dans « Documents partagés ».",
+              )}
             </p>
           </>
         )}
@@ -296,24 +319,26 @@ export default function SharingDialog({
       <>
         <h2 className="dialog-title" id="action-title">
           {!data.documents.length
-            ? "Ajoutez d’abord un document"
-            : "Choisissez vos destinataires"}
+            ? tr("Ajoutez d’abord un document")
+            : tr("Choisissez vos destinataires")}
         </h2>
         <p className="dialog-copy">
           {!data.documents.length
-            ? "Ajoutez un document au carnet pour préparer un partage."
-            : "Ajoutez un destinataire avec un e-mail avant de préparer un partage."}
+            ? tr("Ajoutez un document au carnet pour préparer un partage.")
+            : tr(
+                "Ajoutez un destinataire avec un e-mail avant de préparer un partage.",
+              )}
         </p>
         {!data.documents.length ? (
           <a className="button" href="#documents" onClick={props.onClose}>
-            Mes documents
+            {tr("Mes documents")}
           </a>
         ) : (
           <button
             className="button"
             onClick={() => onOpenDialog("add-person", item)}
           >
-            Ajouter une personne
+            {tr("Ajouter une personne")}
           </button>
         )}
         <CloseDialogButton onClose={props.onClose} />
@@ -327,9 +352,15 @@ export default function SharingDialog({
     <>
       <SubmissionForm
         {...props}
-        title={single ? `Partager : ${item.name}` : "Partager des documents"}
-        description="Chaque destinataire reçoit une invitation par e-mail et retrouve les documents dans « Partage avec moi », en lecture seule, jusqu’à la date choisie."
-        submitLabel="Confirmer le partage"
+        title={
+          single
+            ? tr("Partager : {0}", [item.name])
+            : tr("Partager des documents")
+        }
+        description={tr(
+          "Chaque destinataire reçoit une invitation par e-mail et retrouve les documents dans « Partage avec moi », en lecture seule, jusqu’à la date choisie.",
+        )}
+        submitLabel={tr("Confirmer le partage")}
         onSubmit={async (values) => {
           const result = await api.share({
             ...values,
@@ -341,7 +372,12 @@ export default function SharingDialog({
                 : {}
               : { people }),
           });
-          return `${result.created} partage(s) enregistré(s).${result.skipped ? ` ${result.skipped} accès existant(s) conservé(s).` : ""}`;
+          return (
+            tr("{0} partage(s) enregistré(s).", [result.created]) +
+            (result.skipped
+              ? " " + tr("{0} accès existant(s) conservé(s).", [result.skipped])
+              : "")
+          );
         }}
       >
         {({ error, invalid }) => (
@@ -350,7 +386,7 @@ export default function SharingDialog({
               <>
                 <SelectionGroup
                   name="documents"
-                  title="Documents à partager"
+                  title={tr("Documents à partager")}
                   items={data.documents.map((d) => ({
                     ...d,
                     help: `${animalName(data.animals, d.animal)}${d.example ? " · Sans fichier" : ""}`,
@@ -360,7 +396,7 @@ export default function SharingDialog({
                 />
                 <SelectionGroup
                   name="people"
-                  title="Destinataires"
+                  title={tr("Destinataires")}
                   items={data.people.map((p) => ({
                     ...p,
                     help:
@@ -375,13 +411,13 @@ export default function SharingDialog({
             {single && (
               <>
                 {eligible.length > 0 && (
-                  <Field name="person" label="Personne de confiance">
+                  <Field name="person" label={tr("Personne de confiance")}>
                     <select
                       id="person"
                       value={recipient}
                       onChange={(e) => setRecipient(e.target.value)}
                     >
-                      <option value="">Saisir un destinataire</option>
+                      <option value="">{tr("Saisir un destinataire")}</option>
                       {eligible.map((p) => (
                         <option key={p.id} value={p.id}>
                           {p.name} · {p.email}
@@ -394,7 +430,7 @@ export default function SharingDialog({
                   <div className="field-grid">
                     <Field
                       name="recipient"
-                      label="Nom du destinataire"
+                      label={tr("Nom du destinataire")}
                       error={error}
                     >
                       <input
@@ -405,7 +441,7 @@ export default function SharingDialog({
                         {...invalid("recipient")}
                       />
                     </Field>
-                    <Field name="email" label="E-mail" error={error}>
+                    <Field name="email" label={tr("E-mail")} error={error}>
                       <input
                         id="email"
                         name="email"
@@ -419,7 +455,11 @@ export default function SharingDialog({
                 )}
               </>
             )}
-            <Field name="until" label="Date de fin de l’accès" error={error}>
+            <Field
+              name="until"
+              label={tr("Date de fin de l’accès")}
+              error={error}
+            >
               <input
                 id="until"
                 name="until"
@@ -432,16 +472,20 @@ export default function SharingDialog({
             </Field>
             <p className="share-note">
               {single
-                ? "1 document · 1 destinataire"
-                : `${documents.length} document(s) × ${people.length} personne(s) : ${documents.length * people.length} accès`}{" "}
-              en lecture seule. Aucun accès au reste du carnet.
+                ? tr("1 document · 1 destinataire")
+                : tr("{0} document(s) × {1} personne(s) : {2} accès", [
+                    documents.length,
+                    people.length,
+                    documents.length * people.length,
+                  ])}{" "}
+              {tr("en lecture seule. Aucun accès au reste du carnet.")}
             </p>
           </>
         )}
       </SubmissionForm>
       {single && (
         <div className="previous-shares">
-          <h3>Partages de ce document</h3>
+          <h3>{tr("Partages de ce document")}</h3>
           {data.shares
             .filter((s) => s.doc === item.id)
             .map((s) => (
@@ -449,9 +493,11 @@ export default function SharingDialog({
                 <div className="person-info">
                   <strong>{s.recipient}</strong>
                   <p>
-                    {s.email} · Jusqu’au {fullDate(s.until)}
+                    {s.email}
+                    {tr(" · Jusqu’au ")}
+                    {fullDate(s.until)}
                   </p>
-                  <small>{shareLabels[s.status]}</small>
+                  <small>{tr(shareLabels[s.status])}</small>
                 </div>
                 {s.status === "active" && (
                   <button
@@ -459,13 +505,15 @@ export default function SharingDialog({
                     disabled={props.busy}
                     onClick={() => onOpenDialog("revoke-share", s)}
                   >
-                    Révoquer
+                    {tr("Révoquer")}
                   </button>
                 )}
               </div>
             ))}
           {!data.shares.some((s) => s.doc === item.id) && (
-            <p className="dialog-copy">Aucun partage pour ce document.</p>
+            <p className="dialog-copy">
+              {tr("Aucun partage pour ce document.")}
+            </p>
           )}
         </div>
       )}
@@ -488,6 +536,7 @@ function SelectionGroup({
   onChange: (selected: string[]) => void;
   help?: string;
 }) {
+  const tr = useText();
   const enabled = items.filter((item) => !item.disabled).map((item) => item.id);
   const count = enabled.filter((id) => selected.includes(id)).length;
   const all = enabled.length > 0 && count === enabled.length;
@@ -498,7 +547,7 @@ function SelectionGroup({
   return (
     <fieldset className="selection-group">
       <legend>{title}</legend>
-      {help && <p className="selection-help">{help}</p>}
+      {help && <p className="selection-help">{tr(help)}</p>}
       {enabled.length > 0 && (
         <label className="pick-all">
           <input
@@ -513,7 +562,9 @@ function SelectionGroup({
               )
             }
           />
-          <span>{all ? "Tout désélectionner" : "Tout sélectionner"}</span>
+          <span>
+            {all ? tr("Tout désélectionner") : tr("Tout sélectionner")}
+          </span>
         </label>
       )}
       <div className="pick-list">
@@ -540,7 +591,7 @@ function SelectionGroup({
           </label>
         ))}
         {!items.length && (
-          <p className="selection-help">Aucun élément disponible.</p>
+          <p className="selection-help">{tr("Aucun élément disponible.")}</p>
         )}
       </div>
     </fieldset>

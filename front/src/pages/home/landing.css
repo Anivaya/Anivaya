@@ -2637,7 +2637,7 @@
     align-items: stretch;
     gap: 1rem;
     margin: 0;
-    padding: 1.25rem var(--gutter) 2rem;
+    padding: 0.5rem var(--gutter) 1.5rem;
     background: #fff;
     overflow-y: auto;
     border-top: 1px solid var(--line);
@@ -2650,7 +2650,7 @@
     gap: 0;
   }
   .landing-v2.js .nav__links a {
-    padding: 1rem 0.25rem;
+    padding: 0.625rem 0.25rem;
     font-size: 1.25rem;
     font-weight: 850;
     border-radius: 0;

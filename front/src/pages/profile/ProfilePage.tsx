@@ -1,3 +1,4 @@
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import LanguageMenu from "../../shared/ui/LanguageMenu.tsx";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
@@ -54,6 +55,7 @@ export default function ProfilePage({
   /** Contenu de l’onglet Sécurité ; par défaut, la double authentification. */
   security?: ReactNode;
 }) {
+  const tr = useText();
   const [photoLoading, setPhotoLoading] = useState(false);
   const logoutAction = useRef<(() => Promise<void>) | null>(null);
   const [form, setForm] = useState(profile),
@@ -148,13 +150,13 @@ export default function ProfilePage({
       {!embedded && (
         <div className="welcome">
           <div>
-            <h1>Gestion de profil</h1>
-            <p>Votre profil et vos préférences, au même endroit.</p>
+            <h1>{tr("Gestion de profil")}</h1>
+            <p>{tr("Votre profil et vos préférences, au même endroit.")}</p>
           </div>
         </div>
       )}
       <Tabs
-        label="Gestion de profil"
+        label={tr("Gestion de profil")}
         tabs={profileTabs}
         active={tab}
         onChange={setTab}
@@ -173,16 +175,16 @@ export default function ProfilePage({
             hidden={tab !== "profile"}
           >
             <section className="profile-panel">
-              <h2>Votre photo de profil</h2>
+              <h2>{tr("Votre photo de profil")}</h2>
               <p className="muted">
-                Choisissez la photo qui apparaîtra dans votre espace.
+                {tr("Choisissez la photo qui apparaîtra dans votre espace.")}
               </p>
               <div className="photo-editor">
                 <div className="photo-preview">
                   {form.photo ? (
                     <img
                       src={form.photo}
-                      alt="Aperçu de votre photo de profil"
+                      alt={tr("Aperçu de votre photo de profil")}
                     />
                   ) : (
                     initials(form.name)
@@ -196,7 +198,7 @@ export default function ProfilePage({
                       onClick={() => file.current?.click()}
                       disabled={busy}
                     >
-                      Changer la photo
+                      {tr("Changer la photo")}
                     </button>
                     {form.photo && (
                       <button
@@ -209,7 +211,7 @@ export default function ProfilePage({
                           setForm({ ...form, photo: null });
                         }}
                       >
-                        Retirer la photo
+                        {tr("Retirer la photo")}
                       </button>
                     )}
                   </div>
@@ -219,7 +221,7 @@ export default function ProfilePage({
                     type="file"
                     hidden
                     accept="image/png,image/jpeg,image/webp"
-                    aria-label="Choisir une photo de profil"
+                    aria-label={tr("Choisir une photo de profil")}
                     onChange={async (e) => {
                       const candidate = e.target.files?.[0];
                       if (!candidate) return;
@@ -256,17 +258,19 @@ export default function ProfilePage({
                     }}
                   />
                   <p className="field-help">
-                    JPG, PNG ou WebP · 5 Mo maximum.
+                    {tr("JPG, PNG ou WebP · 5 Mo maximum.")}
                     <br />
-                    La photo sera recadrée au centre pour votre avatar.
+                    {tr("La photo sera recadrée au centre pour votre avatar.")}
                   </p>
                 </div>
               </div>
             </section>
             <section className="profile-panel">
-              <h2>Vos informations</h2>
+              <h2>{tr("Vos informations")}</h2>
               <p className="muted">
-                Votre nom est affiché à côté de votre photo dans le menu.
+                {tr(
+                  "Votre nom est affiché à côté de votre photo dans le menu.",
+                )}
               </p>
               <div className="profile-fields">
                 {(
@@ -274,15 +278,15 @@ export default function ProfilePage({
                 ).map((key) => (
                   <div className={"field profile-field-" + key} key={key}>
                     <label htmlFor={"profile-" + key}>
-                      {
+                      {tr(
                         {
                           name: "Nom affiché",
                           email: "Adresse e-mail",
                           phone: "Téléphone (facultatif)",
                           postalCode: "Code postal (facultatif)",
                           city: "Ville (facultatif)",
-                        }[key]
-                      }
+                        }[key],
+                      )}
                     </label>
                     <input
                       id={"profile-" + key}
@@ -322,9 +326,11 @@ export default function ProfilePage({
               </div>
             </section>
             <section className="profile-panel">
-              <h2>Mot de passe</h2>
+              <h2>{tr("Mot de passe")}</h2>
               <p className="muted">
-                Recevez un lien par e-mail pour choisir un nouveau mot de passe.
+                {tr(
+                  "Recevez un lien par e-mail pour choisir un nouveau mot de passe.",
+                )}
               </p>
               <button
                 type="button"
@@ -345,7 +351,9 @@ export default function ProfilePage({
                   }
                 }}
               >
-                {passwordLink.busy ? "Envoi…" : "Changer mon mot de passe"}
+                {passwordLink.busy
+                  ? tr("Envoi…")
+                  : tr("Changer mon mot de passe")}
               </button>
               <p
                 className={
@@ -354,7 +362,7 @@ export default function ProfilePage({
                 }
                 role="status"
               >
-                {passwordLink.text}
+                {tr(passwordLink.text)}
               </p>
             </section>
           </div>
@@ -366,21 +374,22 @@ export default function ProfilePage({
           >
             <div className="profile-panel">
               <div className="profile-language">
-                <h2>Langue</h2>
+                <h2>{tr("Langue")}</h2>
                 <LanguageMenu variant="preferences" />
               </div>
-              <h2>Vos notifications</h2>
+              <h2>{tr("Vos notifications")}</h2>
               <p className="muted">
-                Choisissez les informations que vous souhaitez retrouver dans
-                votre espace.
+                {tr(
+                  "Choisissez les informations que vous souhaitez retrouver dans votre espace.",
+                )}
               </p>
               {(Object.keys(notices) as (keyof Profile["notifications"])[]).map(
                 (key) => (
                   <label className="notification-row" key={key}>
                     <span>
-                      <strong>{notices[key][0]}</strong>
+                      <strong>{tr(notices[key][0])}</strong>
                       <span id={"notify-" + key + "-help"}>
-                        {notices[key][1]}
+                        {tr(notices[key][1])}
                       </span>
                     </span>
                     <input
@@ -403,8 +412,9 @@ export default function ProfilePage({
                 ),
               )}
               <p className="notification-demo">
-                Chaque type activé arrive dans votre espace et par e-mail, à
-                l’adresse de votre compte.
+                {tr(
+                  "Chaque type activé arrive dans votre espace et par e-mail, à l’adresse de votre compte.",
+                )}
               </p>
             </div>
           </section>
@@ -414,20 +424,20 @@ export default function ProfilePage({
               className="profile-feedback error"
               role="alert"
             >
-              {error.message}
+              {tr(error.message)}
             </p>
           )}
           {message && (
             <p className="profile-feedback success" role="status">
-              {message}
+              {tr(message)}
             </p>
           )}
           <div className="profile-save">
-            <span className="save-note">
-              {dirty
-                ? "Modifications non enregistrées"
-                : "Vos paramètres sont à jour"}
-            </span>
+            {dirty && (
+              <span className="save-note">
+                {tr("Modifications non enregistrées")}
+              </span>
+            )}
             <div className="save-buttons">
               <button
                 type="button"
@@ -435,10 +445,12 @@ export default function ProfilePage({
                 disabled={busy}
                 onClick={reset}
               >
-                Annuler les modifications
+                {tr("Annuler les modifications")}
               </button>
               <button className="button" disabled={busy}>
-                {busy ? "Enregistrement…" : "Enregistrer les modifications"}
+                {busy
+                  ? tr("Enregistrement…")
+                  : tr("Enregistrer les modifications")}
               </button>
             </div>
           </div>
@@ -482,13 +494,13 @@ export default function ProfilePage({
       </section>
       {leave && (
         <Modal busy={busy} onClose={() => setLeave(null)}>
-          <h2 id="action-title">Quitter sans enregistrer ?</h2>
+          <h2 id="action-title">{tr("Quitter sans enregistrer ?")}</h2>
           <p className="dialog-copy">
-            Les modifications de votre profil ne seront pas conservées.
+            {tr("Les modifications de votre profil ne seront pas conservées.")}
           </p>
           <div className="dialog-actions">
             <button className="button outline" onClick={() => setLeave(null)}>
-              Continuer la modification
+              {tr("Continuer la modification")}
             </button>
             <button
               className="button danger"
@@ -500,7 +512,7 @@ export default function ProfilePage({
                 } else window.location.hash = leave;
               }}
             >
-              Quitter sans enregistrer
+              {tr("Quitter sans enregistrer")}
             </button>
           </div>
         </Modal>

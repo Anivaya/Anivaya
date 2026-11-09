@@ -1,3 +1,4 @@
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import EmptyState from "../../shared/ui/EmptyState.tsx";
 import { useState } from "react";
 import type {
@@ -31,11 +32,12 @@ const unavailableText: Partial<Record<ReceivedShareState, string>> = {
 
 /** Illustration de l’animal confié (image commune, cadrée par espèce). */
 function AnimalPhoto({ animal }: { animal: ReceivedAnimal }) {
+  const tr = useText();
   return (
     <span
       className="received-animal-photo"
       role="img"
-      aria-label={`Illustration : ${animal.species.toLowerCase()}`}
+      aria-label={tr("Illustration : {0}", [tr(animal.species).toLowerCase()])}
       style={{
         backgroundPosition: animal.species === "Chat" ? "80% 60%" : "32% 0%",
       }}
@@ -51,6 +53,7 @@ export default function ReceivedShares({
   shares: ReceivedShare[];
   actions: Actions;
 }) {
+  const tr = useText();
   const [search, setSearch] = useState("");
   const [state, setState] = useState<ReceivedShareState | "">("");
   const [openId, setOpenId] = useState<string | null>(null);
@@ -65,48 +68,52 @@ export default function ReceivedShares({
       <EmptyState
         kind="documents"
         className="sharing-panel"
-        title="Aucun partage reçu"
-        description="Les invitations d’autres propriétaires apparaîtront ici."
+        title={tr("Aucun partage reçu")}
+        description={tr(
+          "Les invitations d’autres propriétaires apparaîtront ici.",
+        )}
       />
     );
   return (
     <section className="sharing-panel">
       <div className="sharing-heading">
         <div>
-          <h2>Partage avec moi</h2>
+          <h2>{tr("Partage avec moi")}</h2>
           <p className="muted">
-            Les invitations et les informations que d’autres propriétaires vous
-            confient.
+            {tr(
+              "Les invitations et les informations que d’autres propriétaires vous confient.",
+            )}
           </p>
         </div>
       </div>
       <div className="received-filters">
         <label>
-          Rechercher
+          {tr("Rechercher")}
           <input
             type="search"
-            placeholder="Un animal, un document, une personne…"
+            placeholder={tr("Un animal, un document, une personne…")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </label>
         <label>
-          Statut
+          {tr("Statut")}
           <select
             value={state}
             onChange={(e) => setState(e.target.value as ReceivedShareState)}
           >
-            <option value="">Tous les statuts</option>
+            <option value="">{tr("Tous les statuts")}</option>
             {Object.entries(receivedLabels).map(([key, label]) => (
               <option key={key} value={key}>
-                {label}
+                {tr(label)}
               </option>
             ))}
           </select>
         </label>
       </div>
       <p className="muted" role="status">
-        {visible.length} partage(s) reçu(s)
+        {visible.length}
+        {tr(" partage(s) reçu(s)")}
       </p>
       {visible.map((share) => (
         <article className="access-row received-row" key={share.id}>
@@ -120,26 +127,32 @@ export default function ReceivedShares({
           <div className="person-info">
             <h3>{share.title}</h3>
             <p>
-              De {share.sender} · {share.email}
+              {tr("De ")}
+              {share.sender} · {share.email}
             </p>
-            <p>{share.permission}</p>
+            <p>{tr(share.permission)}</p>
             <p>
               {share.kind === "animal"
-                ? "Informations de l’animal sélectionnées par son propriétaire"
-                : "Un document uniquement"}
+                ? tr(
+                    "Informations de l’animal sélectionnées par son propriétaire",
+                  )
+                : tr("Un document uniquement")}
             </p>
-            <p>Jusqu’au {fullDate(share.until)}</p>
+            <p>
+              {tr("Jusqu’au ")}
+              {fullDate(share.until)}
+            </p>
             <span className={`received-state ${share.state}`}>
-              {receivedLabels[share.state]}
+              {tr(receivedLabels[share.state])}
             </span>
           </div>
           <div className="row-buttons">
             <button onClick={() => setOpenId(share.id)}>
               {share.state === "pending"
-                ? "Voir l’invitation"
+                ? tr("Voir l’invitation")
                 : share.state === "accepted"
-                  ? "Consulter"
-                  : "Voir le statut"}
+                  ? tr("Consulter")
+                  : tr("Voir le statut")}
             </button>
           </div>
         </article>
@@ -168,6 +181,7 @@ function ReceivedDetail({
   actions: Actions;
   onClose: () => void;
 }) {
+  const tr = useText();
   const [declining, setDeclining] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -200,14 +214,15 @@ function ReceivedDetail({
   if (declining)
     return (
       <Modal busy={busy} onClose={onClose} className="sharing-modal">
-        <h2 id="action-title">Refuser cette invitation ?</h2>
+        <h2 id="action-title">{tr("Refuser cette invitation ?")}</h2>
         <p className="dialog-copy">
-          Vous n’aurez pas accès à {share.title}. Aucune donnée de votre espace
-          ne sera modifiée.
+          {tr("Vous n’aurez pas accès à ")}
+          {share.title}
+          {tr(". Aucune donnée de votre espace ne sera modifiée.")}
         </p>
         {error && (
           <p className="form-error" role="alert">
-            {error}
+            {tr(error)}
           </p>
         )}
         <div className="dialog-actions">
@@ -216,14 +231,14 @@ function ReceivedDetail({
             disabled={busy}
             onClick={() => setDeclining(false)}
           >
-            Revenir à l’invitation
+            {tr("Revenir à l’invitation")}
           </button>
           <button
             className="button danger"
             disabled={busy}
             onClick={() => respond("declined")}
           >
-            Refuser l’invitation
+            {tr("Refuser l’invitation")}
           </button>
         </div>
       </Modal>
@@ -233,27 +248,39 @@ function ReceivedDetail({
     <Modal busy={busy} onClose={onClose} className="sharing-modal">
       <h2 id="action-title">{share.title}</h2>
       <p className="dialog-copy">
-        De <strong>{share.sender}</strong> · {share.email}
+        {tr("De ")}
+        <strong>{share.sender}</strong> · {share.email}
         <br />
-        Pour {share.animalName} · Jusqu’au {fullDate(share.until)}
+        {tr("Pour ")}
+        {share.animalName}
+        {tr(" · Jusqu’au ")}
+        {fullDate(share.until)}
       </p>
       <p className="share-note">
         {share.kind === "animal"
-          ? "Le propriétaire vous propose de devenir une personne de confiance. Seules les informations sélectionnées ci-dessous sont accessibles après acceptation."
-          : "Ce partage concerne un seul document. Le reste du carnet reste inaccessible."}{" "}
-        Lecture seule.
+          ? tr(
+              "Le propriétaire vous propose de devenir une personne de confiance. Seules les informations sélectionnées ci-dessous sont accessibles après acceptation.",
+            )
+          : tr(
+              "Ce partage concerne un seul document. Le reste du carnet reste inaccessible.",
+            )}{" "}
+        {tr("Lecture seule.")}
       </p>
       {share.state === "pending" && (
         <>
           <p className="dialog-copy">
             {share.kind === "animal"
-              ? "Informations proposées : identité, consignes et contact du propriétaire."
-              : `Document proposé : ${share.title}.`}{" "}
-            Accepter cette invitation ne l’ajoute pas à vos propres animaux.
+              ? tr(
+                  "Informations proposées : identité, consignes et contact du propriétaire.",
+                )
+              : tr("Document proposé : {0}.", [share.title])}{" "}
+            {tr(
+              "Accepter cette invitation ne l’ajoute pas à vos propres animaux.",
+            )}
           </p>
           {error && (
             <p className="form-error" role="alert">
-              {error}
+              {tr(error)}
             </p>
           )}
           <div className="dialog-actions">
@@ -262,14 +289,14 @@ function ReceivedDetail({
               disabled={busy}
               onClick={() => setDeclining(true)}
             >
-              Refuser
+              {tr("Refuser")}
             </button>
             <button
               className="button"
               disabled={busy}
               onClick={() => respond("accepted")}
             >
-              Accepter l’invitation
+              {tr("Accepter l’invitation")}
             </button>
           </div>
         </>
@@ -281,25 +308,28 @@ function ReceivedDetail({
             <div className="received-animal-identity">
               <h3>{animal.name}</h3>
               <p>
-                {animal.species} · {animal.breed} · {animal.sex}
+                {tr(animal.species)} · {animal.breed} · {tr(animal.sex)}
               </p>
-              <p>Identifiant : {animal.identifier}</p>
+              <p>
+                {tr("Identifiant : ")}
+                {animal.identifier}
+              </p>
             </div>
             <span className="received-state accepted received-sheet-status">
-              <span>Fiche partagée</span>
-              <span>Lecture seule</span>
+              <span>{tr("Fiche partagée")}</span>
+              <span>{tr("Lecture seule")}</span>
             </span>
           </div>
-          <h3>Consignes</h3>
+          <h3>{tr("Consignes")}</h3>
           <p>{animal.instructions}</p>
-          <h3>Contact</h3>
+          <h3>{tr("Contact")}</h3>
           <p>{animal.contact}</p>
         </section>
       )}
       {share.state === "accepted" && document && (
         <section className="received-preview">
           <span className="received-state accepted">
-            Document partagé · Lecture seule
+            {tr("Document partagé · Lecture seule")}
           </span>
           <h3>{document.document}</h3>
           <p>{document.description}</p>
@@ -318,26 +348,28 @@ function ReceivedDetail({
               rel="noopener noreferrer"
             >
               <Icon name="eye" />
-              Ouvrir le document
+              {tr("Ouvrir le document")}
             </a>
           ) : (
-            <p className="muted">Aucun fichier n’est joint à ce document.</p>
+            <p className="muted">
+              {tr("Aucun fichier n’est joint à ce document.")}
+            </p>
           )}
         </section>
       )}
       {share.state !== "pending" && !share.content && (
         <div className="received-unavailable">
-          <h3>{receivedLabels[share.state]}</h3>
+          <h3>{tr(receivedLabels[share.state])}</h3>
           <p>
-            {unavailableText[share.state] ??
-              "Le contenu de ce partage n’est pas disponible."}
+            {tr(unavailableText[share.state]) ||
+              tr("Le contenu de ce partage n’est pas disponible.")}
           </p>
         </div>
       )}
       {share.state !== "pending" && (
         <div className="dialog-actions">
           <button className="button outline close-action" onClick={onClose}>
-            Fermer
+            {tr("Fermer")}
           </button>
         </div>
       )}

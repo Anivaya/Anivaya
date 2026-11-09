@@ -1,3 +1,4 @@
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import type { ExportCategory } from "../../../../shared/account.ts";
@@ -49,6 +50,7 @@ function downloadJson(data: unknown, name: string) {
 
 /** Onglet « Exportation » : choix des catégories puis fichier JSON. */
 export function ExportPanel() {
+  const tr = useText();
   const [selected, setSelected] = useState<ExportCategory[]>([]);
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string }>();
@@ -82,9 +84,9 @@ export function ExportPanel() {
       aria-busy={busy}
     >
       <section className="profile-panel">
-        <h2>Que souhaitez-vous récupérer ?</h2>
+        <h2>{tr("Que souhaitez-vous récupérer ?")}</h2>
         <p className="muted">
-          Choisissez les catégories à inclure dans votre fichier.
+          {tr("Choisissez les catégories à inclure dans votre fichier.")}
         </p>
         {exportCategories.map((key) => (
           <label className="export-choice" key={key}>
@@ -101,37 +103,41 @@ export function ExportPanel() {
               }}
             />
             <span>
-              <strong>{categoryLabels[key][0]}</strong>
-              <small>{categoryLabels[key][1]}</small>
+              <strong>{tr(categoryLabels[key][0])}</strong>
+              <small>{tr(categoryLabels[key][1])}</small>
             </span>
           </label>
         ))}
         <p className="field-help">
-          Les données de votre espace sont exportées ; les exemples sont
-          signalés. Cet export ne remplace pas une sauvegarde des fichiers
-          d’origine.
+          {tr(
+            "Les données de votre espace sont exportées ; les exemples sont signalés. Cet export ne remplace pas une sauvegarde des fichiers d’origine.",
+          )}
         </p>
       </section>
       <section className="profile-panel">
-        <h2>Un fichier JSON</h2>
+        <h2>{tr("Un fichier JSON")}</h2>
         <p>
-          Ce format rassemble vos informations dans un fichier structuré,
-          lisible avec un éditeur de texte.
+          {tr(
+            "Ce format rassemble vos informations dans un fichier structuré, lisible avec un éditeur de texte.",
+          )}
         </p>
         <ul className="export-notes">
           <li>
-            Documents : noms, catégories et informations enregistrées ; les
-            fichiers PDF ou photos d’origine ne sont pas inclus.
+            {tr(
+              "Documents : noms, catégories et informations enregistrées ; les fichiers PDF ou photos d’origine ne sont pas inclus.",
+            )}
           </li>
           <li>
-            Partages reçus : informations sur les invitations et leur état ;
-            aucun contenu appartenant aux autres propriétaires.
+            {tr(
+              "Partages reçus : informations sur les invitations et leur état ; aucun contenu appartenant aux autres propriétaires.",
+            )}
           </li>
-          <li>Aucun mot de passe ni information bancaire.</li>
+          <li>{tr("Aucun mot de passe ni information bancaire.")}</li>
         </ul>
         <p className="field-help">
-          Le fichier peut contenir vos coordonnées et celles de vos proches.
-          Conservez-le dans un endroit personnel.
+          {tr(
+            "Le fichier peut contenir vos coordonnées et celles de vos proches. Conservez-le dans un endroit personnel.",
+          )}
         </p>
       </section>
       {feedback && (
@@ -139,13 +145,14 @@ export function ExportPanel() {
           className={`profile-feedback ${feedback.ok ? "success" : "error"}`}
           role={feedback.ok ? "status" : "alert"}
         >
-          {feedback.text}
+          {tr(feedback.text)}
         </p>
       )}
       <div className="export-actions">
         {partial && (
           <button type="submit" className="button outline" disabled={busy}>
-            Exporter mes données ({selected.length})
+            {tr("Exporter mes données (")}
+            {selected.length})
           </button>
         )}
         <button
@@ -155,7 +162,7 @@ export function ExportPanel() {
           disabled={busy}
           onClick={() => submit([...exportCategories])}
         >
-          Exporter toutes mes données
+          {tr("Exporter toutes mes données")}
         </button>
       </div>
     </form>
@@ -172,6 +179,7 @@ export function DeletionPanel({
   onExportFirst: () => void;
   onDeleted: () => void;
 }) {
+  const tr = useText();
   const [open, setOpen] = useState(false);
   const [consent, setConsent] = useState(false);
   const [word, setWord] = useState("");
@@ -202,34 +210,35 @@ export function DeletionPanel({
         className="profile-panel account-danger"
         aria-labelledby="delete-account-title"
       >
-        <h2 id="delete-account-title">Supprimer mon compte</h2>
+        <h2 id="delete-account-title">{tr("Supprimer mon compte")}</h2>
         <p>
-          Cette action efface votre profil, vos animaux, documents, rappels,
-          partages, réservations et fiches d’urgence, puis ferme votre session.
-          Pensez à exporter vos données avant de continuer.
+          {tr(
+            "Cette action efface votre profil, vos animaux, documents, rappels, partages, réservations et fiches d’urgence, puis ferme votre session. Pensez à exporter vos données avant de continuer.",
+          )}
         </p>
         <button
           className="button danger"
           type="button"
           onClick={() => setOpen(true)}
         >
-          Supprimer mon compte
+          {tr("Supprimer mon compte")}
         </button>
-        <p className="field-help security-note">
-          {demo
-            ? "Cet espace sera recréé avec ses données initiales et ses identifiants resteront utilisables."
-            : "La suppression est définitive : votre compte et votre espace ne pourront pas être récupérés."}
-        </p>
+        {!demo && (
+          <p className="field-help security-note">
+            {tr(
+              "La suppression est définitive : votre compte et votre espace ne pourront pas être récupérés.",
+            )}
+          </p>
+        )}
       </section>
       <DeletionRequestPanel />
       {open && (
         <Modal busy={busy} onClose={close}>
-          <h2 id="action-title">Supprimer votre compte ?</h2>
+          <h2 id="action-title">{tr("Supprimer votre compte ?")}</h2>
           <p className="muted">
-            Votre profil, vos animaux, documents, rappels, partages,
-            réservations et fiches d’urgence seront effacés. Les fiches
-            publiques et leurs QR codes cesseront de fonctionner. Les fichiers
-            déjà téléchargés sur votre appareil sont conservés.
+            {tr(
+              "Votre profil, vos animaux, documents, rappels, partages, réservations et fiches d’urgence seront effacés. Les fiches publiques et leurs QR codes cesseront de fonctionner. Les fichiers déjà téléchargés sur votre appareil sont conservés.",
+            )}
           </p>
           <p>
             <button
@@ -240,7 +249,7 @@ export function DeletionPanel({
                 onExportFirst();
               }}
             >
-              Exporter mes données avant de continuer
+              {tr("Exporter mes données avant de continuer")}
             </button>
           </p>
           <label className="delete-consent">
@@ -249,11 +258,11 @@ export function DeletionPanel({
               checked={consent}
               onChange={(e) => setConsent(e.target.checked)}
             />
-            <span>Je comprends que mes données seront effacées.</span>
+            <span>{tr("Je comprends que mes données seront effacées.")}</span>
           </label>
           <div className="field">
             <label htmlFor="delete-word">
-              Saisissez SUPPRIMER pour confirmer
+              {tr("Saisissez SUPPRIMER pour confirmer")}
             </label>
             <input
               id="delete-word"
@@ -266,7 +275,7 @@ export function DeletionPanel({
             />
           </div>
           <p className="profile-inline-error" id="delete-error" role="alert">
-            {error}
+            {tr(error)}
           </p>
           <div className="dialog-actions">
             <button
@@ -275,7 +284,7 @@ export function DeletionPanel({
               disabled={busy}
               onClick={close}
             >
-              Conserver mon compte
+              {tr("Conserver mon compte")}
             </button>
             <button
               type="button"
@@ -283,7 +292,7 @@ export function DeletionPanel({
               disabled={!ready || busy}
               onClick={confirm}
             >
-              {busy ? "Suppression…" : "Supprimer mon compte"}
+              {busy ? tr("Suppression…") : tr("Supprimer mon compte")}
             </button>
           </div>
         </Modal>
@@ -294,6 +303,7 @@ export function DeletionPanel({
 
 /** Variante confiée à l’équipe : le compte reste actif jusqu’à la décision. */
 function DeletionRequestPanel() {
+  const tr = useText();
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string }>();
@@ -303,11 +313,13 @@ function DeletionRequestPanel() {
         className="profile-panel"
         aria-labelledby="deletion-request-title"
       >
-        <h2 id="deletion-request-title">Confier la suppression à l’équipe</h2>
+        <h2 id="deletion-request-title">
+          {tr("Confier la suppression à l’équipe")}
+        </h2>
         <p>
-          Vous préférez qu’une personne vérifie votre demande avant l’effacement
-          ? L’équipe Anivaya l’examine et vous conservez l’accès à votre espace
-          jusqu’à sa décision.
+          {tr(
+            "Vous préférez qu’une personne vérifie votre demande avant l’effacement ? L’équipe Anivaya l’examine et vous conservez l’accès à votre espace jusqu’à sa décision.",
+          )}
         </p>
         <form
           noValidate
@@ -331,7 +343,9 @@ function DeletionRequestPanel() {
           }}
         >
           <div className="field">
-            <label htmlFor="deletion-message">Précisions (facultatif)</label>
+            <label htmlFor="deletion-message">
+              {tr("Précisions (facultatif)")}
+            </label>
             <textarea
               data-resize-none
               id="deletion-message"
@@ -345,12 +359,12 @@ function DeletionRequestPanel() {
               className={`profile-feedback ${feedback.ok ? "success" : "error"}`}
               role={feedback.ok ? "status" : "alert"}
             >
-              {feedback.text}
+              {tr(feedback.text)}
             </p>
           )}
           <div>
             <button className="button outline" type="submit" disabled={busy}>
-              {busy ? "Envoi…" : "Demander la suppression à l’équipe"}
+              {busy ? tr("Envoi…") : tr("Demander la suppression à l’équipe")}
             </button>
           </div>
         </form>

@@ -1,3 +1,4 @@
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import type { Animal, DialogItem, DialogProps } from "../../shared/types.ts";
 import type { AnimalInput } from "../../../../shared/models.ts";
 import SubmissionForm, {
@@ -17,6 +18,7 @@ export function AnimalDetails({
   onClose,
   onOpenRecord,
 }: DialogProps<Animal>) {
+  const tr = useText();
   const pet = data.animals.find((a) => a.id === item.id) || item;
   const saved = data.emergencySheets.find((s) => s.animal === pet.id);
   const title = (name: string) => (
@@ -27,7 +29,7 @@ export function AnimalDetails({
       <button
         className="close"
         onClick={onClose}
-        aria-label="Fermer la fenêtre"
+        aria-label={tr("Fermer la fenêtre")}
       >
         <Icon name="close" />
       </button>
@@ -42,22 +44,25 @@ export function AnimalDetails({
             <div>
               {title(saved.snapshot.name)}
               <p className="dialog-copy">
-                {saved.snapshot.details || pet.species}
+                {saved.snapshot.details || tr(pet.species)}
               </p>
               <p className="dialog-copy sheet-identifier">
-                Identifiant : {pet.identifier || "Non renseigné"}
+                {tr("Identifiant : ")}
+                {pet.identifier || tr("Non renseigné")}
               </p>
             </div>
           </div>
           {saved.snapshot.notes && (
             <>
-              <h3>Consignes</h3>
+              <h3>{tr("Consignes")}</h3>
               <p className="dialog-copy emergency-notes">
                 {saved.snapshot.notes}
               </p>
             </>
           )}
-          {(saved.snapshot.contact || saved.snapshot.vet) && <h3>Contacts</h3>}
+          {(saved.snapshot.contact || saved.snapshot.vet) && (
+            <h3>{tr("Contacts")}</h3>
+          )}
           <p className="dialog-copy">{saved.snapshot.contact}</p>
           <p className="dialog-copy">{saved.snapshot.vet}</p>
           {saved.snapshot.qrSvg && (
@@ -65,9 +70,11 @@ export function AnimalDetails({
               <img
                 className="saved-qr"
                 src={svgImage(saved.snapshot.qrSvg)}
-                alt={`QR sauvegardé de ${pet.name}`}
+                alt={tr("QR sauvegardé de {0}", [pet.name])}
               />
-              <p className="dialog-copy">QR sauvegardé · Fiche publique</p>
+              <p className="dialog-copy">
+                {tr("QR sauvegardé · Fiche publique")}
+              </p>
               {saved.snapshot.payload?.startsWith("http") && (
                 <a
                   className="text-button"
@@ -75,7 +82,7 @@ export function AnimalDetails({
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Voir la fiche publique
+                  {tr("Voir la fiche publique")}
                 </a>
               )}
             </div>
@@ -87,9 +94,9 @@ export function AnimalDetails({
           {/* Un seul bloc : l’identifiant en haut, la race en dessous. */}
           <div className="detail-meta single">
             <div>
-              <small>Identifiant</small>
-              <strong>{pet.identifier || "Non renseigné"}</strong>
-              <small>Race</small>
+              <small>{tr("Identifiant")}</small>
+              <strong>{pet.identifier || tr("Non renseigné")}</strong>
+              <small>{tr("Race")}</small>
               <strong>{pet.breed || pet.description}</strong>
             </div>
           </div>
@@ -97,10 +104,10 @@ export function AnimalDetails({
       )}
       <div className="dialog-actions sheet-footer">
         <button className="button outline" onClick={() => onOpenRecord(pet)}>
-          Carnet complet
+          {tr("Carnet complet")}
         </button>
         <button className="button outline close-action" onClick={onClose}>
-          Fermer
+          {tr("Fermer")}
         </button>
       </div>
     </div>
@@ -131,19 +138,24 @@ const editOrder = [
 ];
 
 export function AnimalForm({ item, ...props }: DialogProps<Partial<Animal>>) {
+  const tr = useText();
   const editing = Boolean(item?.id);
   const today = parisToday();
   return (
     <SubmissionForm
       {...props}
-      title={editing ? "Modifier le profil" : "Ajouter un animal"}
+      title={editing ? tr("Modifier le profil") : tr("Ajouter un animal")}
       description={
         editing
-          ? "Modifiez les informations de son profil."
-          : "Créez le profil de votre animal. Vous pourrez le compléter à tout moment."
+          ? tr("Modifiez les informations de son profil.")
+          : tr(
+              "Créez le profil de votre animal. Vous pourrez le compléter à tout moment.",
+            )
       }
-      successMessage={editing ? "Profil modifié." : "Animal ajouté au foyer."}
-      submitLabel={editing ? "Enregistrer" : "Ajouter"}
+      successMessage={
+        editing ? tr("Profil modifié.") : tr("Animal ajouté au foyer.")
+      }
+      submitLabel={editing ? tr("Enregistrer") : tr("Ajouter")}
       onSubmit={async (values, form) => {
         if (!values.name?.trim())
           throw fieldError("name", "Renseignez le nom de votre animal.");
@@ -172,10 +184,10 @@ export function AnimalForm({ item, ...props }: DialogProps<Partial<Animal>>) {
             const type = typeof kind === "string" ? kind : undefined;
             const caption =
               editing || options
-                ? label
+                ? tr(label)
                 : name === "name"
-                  ? `${label} *`
-                  : `${label} (facultatif)`;
+                  ? `${tr(label)} *`
+                  : tr("{0} (facultatif)", [tr(label)]);
             const value = item?.[name as keyof Animal];
             return (
               <Field key={name} name={name} label={caption} error={error}>
@@ -187,7 +199,9 @@ export function AnimalForm({ item, ...props }: DialogProps<Partial<Animal>>) {
                     {...invalid(name)}
                   >
                     {options.map((option) => (
-                      <option key={option}>{option}</option>
+                      <option key={option} value={option}>
+                        {tr(option)}
+                      </option>
                     ))}
                   </select>
                 ) : (
@@ -216,7 +230,9 @@ export function AnimalForm({ item, ...props }: DialogProps<Partial<Animal>>) {
           <Field
             name="photo"
             label={
-              editing ? "Remplacer la photo (facultatif)" : "Photo (facultatif)"
+              editing
+                ? tr("Remplacer la photo (facultatif)")
+                : tr("Photo (facultatif)")
             }
             error={error}
           >
@@ -228,7 +244,7 @@ export function AnimalForm({ item, ...props }: DialogProps<Partial<Animal>>) {
               {...invalid("photo")}
             />
             <p className="field-help">
-              JPEG ou PNG · 2 Mo maximum. Seul le nom est obligatoire.
+              {tr("JPEG ou PNG · 2 Mo maximum. Seul le nom est obligatoire.")}
             </p>
           </Field>
         </div>
@@ -255,16 +271,17 @@ const habitFields: [keyof DialogItem, string][] = [
 
 /** Fenêtres du carnet : événements, habitudes et suppressions. */
 export function RecordAction({ kind, item, ...props }: DialogProps) {
+  const tr = useText();
   const { onClose, onSaved, busy, setBusy } = props;
   const { error, run } = useDialogAction(setBusy);
   if (kind === "view-event")
     return (
       <>
-        <h2 id="action-title">{item.type}</h2>
+        <h2 id="action-title">{tr(item.type)}</h2>
         <p>{fullDate(item.date!)}</p>
-        <p>{item.note || "Aucune précision."}</p>
+        <p>{item.note || tr("Aucune précision.")}</p>
         <button className="button outline close-action" onClick={onClose}>
-          Fermer
+          {tr("Fermer")}
         </button>
       </>
     );
@@ -272,12 +289,17 @@ export function RecordAction({ kind, item, ...props }: DialogProps) {
     const entity = item.entity as keyof typeof deleters;
     return (
       <>
-        <h2 id="action-title">Supprimer {item.name || item.type} ?</h2>
+        <h2 id="action-title">
+          {tr("Supprimer ")}
+          {item.name || item.type} ?
+        </h2>
         <p className="dialog-copy">
           {entity === "animal"
-            ? "Son carnet, ses rappels, ses documents et sa fiche d’urgence seront retirés de votre espace."
-            : "Cet élément sera retiré du carnet."}{" "}
-          Les fichiers sur votre ordinateur sont conservés.
+            ? tr(
+                "Son carnet, ses rappels, ses documents et sa fiche d’urgence seront retirés de votre espace.",
+              )
+            : tr("Cet élément sera retiré du carnet.")}{" "}
+          {tr("Les fichiers sur votre ordinateur sont conservés.")}
         </p>
         <FormAlert message={error} />
         <div className="dialog-actions">
@@ -286,7 +308,7 @@ export function RecordAction({ kind, item, ...props }: DialogProps) {
             disabled={busy}
             onClick={onClose}
           >
-            Annuler
+            {tr("Annuler")}
           </button>
           <button
             className="button danger"
@@ -299,7 +321,7 @@ export function RecordAction({ kind, item, ...props }: DialogProps) {
               })
             }
           >
-            {busy ? "Suppression…" : "Confirmer la suppression"}
+            {busy ? tr("Suppression…") : tr("Confirmer la suppression")}
           </button>
         </div>
       </>
@@ -314,12 +336,14 @@ export function RecordAction({ kind, item, ...props }: DialogProps) {
       {...props}
       title={
         habits
-          ? "Modifier les habitudes"
-          : `${item.id ? "Modifier" : "Ajouter"} un événement`
+          ? tr("Modifier les habitudes")
+          : tr("{0} un événement", [tr(item.id ? "Modifier" : "Ajouter")])
       }
-      description="Informations déclaratives conservées dans votre carnet local."
-      successMessage="Modifications enregistrées."
-      submitLabel="Enregistrer"
+      description={tr(
+        "Informations déclaratives conservées dans votre carnet local.",
+      )}
+      successMessage={tr("Modifications enregistrées.")}
+      submitLabel={tr("Enregistrer")}
       onSubmit={async (values) => {
         if (habits) await api.editAnimal(item.id!, values);
         else await api.saveEvent(item.id, { ...values, animal: item.animal });
@@ -329,7 +353,7 @@ export function RecordAction({ kind, item, ...props }: DialogProps) {
         <>
           {!habits && (
             <>
-              <Field name="type" label="Type" error={error}>
+              <Field name="type" label={tr("Type")} error={error}>
                 <select
                   id="type"
                   name="type"
@@ -337,11 +361,13 @@ export function RecordAction({ kind, item, ...props }: DialogProps) {
                   {...invalid("type")}
                 >
                   {eventTypes.map((type) => (
-                    <option key={type}>{type}</option>
+                    <option key={type} value={type}>
+                      {tr(type)}
+                    </option>
                   ))}
                 </select>
               </Field>
-              <Field name="date" label="Date" error={error}>
+              <Field name="date" label={tr("Date")} error={error}>
                 <input
                   id="date"
                   name="date"
@@ -354,7 +380,7 @@ export function RecordAction({ kind, item, ...props }: DialogProps) {
             </>
           )}
           {textFields.map(([name, label]) => (
-            <Field key={name} name={name} label={label} error={error}>
+            <Field key={name} name={name} label={tr(label)} error={error}>
               <textarea
                 data-resize-none
                 id={name}

@@ -1,3 +1,4 @@
+import { uiLocale } from "../../shared/i18n/locale.ts";
 import type { SocialData, Thread } from "../../../../shared/social.ts";
 
 export type SocialTab = "communautes" | "evenements" | "messagerie";
@@ -38,7 +39,7 @@ export const threadKinds: Record<Thread["kind"], string> = {
 };
 
 export const dateText = (value: string) =>
-  new Date(value).toLocaleString("fr-FR", {
+  new Date(value).toLocaleString(uiLocale(), {
     weekday: "short",
     day: "numeric",
     month: "long",
@@ -67,7 +68,8 @@ export const PAGE_SIZE = 9;
 export const MESSAGE_PAGE = 20;
 
 export type RunResult<T> =
-  { ok: true; value: T } | { ok: false; error: string };
+  | { ok: true; value: T }
+  | { ok: false; error: string };
 export interface Draft {
   text: string;
   photo?: { type: string; content: string };

@@ -1,3 +1,4 @@
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import EmptyState from "../../shared/ui/EmptyState.tsx";
 import type {
   PageProps,
@@ -25,13 +26,14 @@ const rowActions: [DialogKind | "download", string, string][] = [
 ];
 
 export default function DocumentsPage({ data, actions }: PageProps) {
+  const tr = useText();
   return (
     <>
       <PageHeading
-        title="Mes documents"
+        title={tr("Mes documents")}
         hasContent={data.documents.length > 0}
-        description="Les documents de vos animaux, au même endroit."
-        actionLabel="Ajouter un document"
+        description={tr("Les documents de vos animaux, au même endroit.")}
+        actionLabel={tr("Ajouter un document")}
         onAction={() => actions.add("document")}
         secondary={
           <AiImportButton onClick={() => actions.openDialog("ai-import")} />
@@ -63,6 +65,7 @@ export function DocumentsSection({
   onAction: OpenDialog;
   shares?: Share[];
 }) {
+  const tr = useText();
   const [search, setSearch] = useState(""),
     [animal, setAnimal] = useState(""),
     [category, setCategory] = useState("");
@@ -87,11 +90,11 @@ export function DocumentsSection({
     <section className="panel" aria-labelledby="documents-title">
       <div className="section-head">
         <h2 id="documents-title">
-          {overview ? "Documents récents" : "Vos documents"}
+          {overview ? tr("Documents récents") : tr("Vos documents")}
         </h2>
         {overview && documents.length > 0 && (
           <a className="subtle" href="#documents">
-            Voir tous →
+            {tr("Voir tous →")}
           </a>
         )}
       </div>
@@ -104,7 +107,7 @@ export function DocumentsSection({
           animals={animals}
           filter={category}
           onFilter={setCategory}
-          label="Filtrer par catégorie"
+          label={tr("Filtrer par catégorie")}
           options={[
             ["", "Toutes les catégories"],
             ...[...new Set(documents.map((d) => d.category))].map(
@@ -144,13 +147,16 @@ export function DocumentsSection({
                         : selected.filter((id) => id !== document.id),
                     )
                   }
-                  aria-label={`Sélectionner ${document.name}`}
+                  aria-label={tr("Sélectionner {0}", [document.name])}
                 />
               )}
               <button
                 className="row-hit"
                 onClick={() => onAction("document", document)}
-                aria-label={`Ouvrir le document ${document.name} pour ${owner}`}
+                aria-label={tr("Ouvrir le document {0} pour {1}", [
+                  document.name,
+                  owner,
+                ])}
               />
               <span className="doc-icon">
                 <Icon name="file" />
@@ -158,11 +164,16 @@ export function DocumentsSection({
               <div className="doc-text">
                 <strong>{document.name}</strong>
                 <small>
-                  {owner} · {document.category} ·{" "}
-                  {document.example ? "Sans fichier" : "Fichier enregistré"}
+                  {owner} · {tr(document.category)} ·{" "}
+                  {document.example
+                    ? tr("Sans fichier")
+                    : tr("Fichier enregistré")}
                 </small>
                 {activeShares > 0 && (
-                  <small>{activeShares} partage(s) actif(s)</small>
+                  <small>
+                    {activeShares}
+                    {tr(" partage(s) actif(s)")}
+                  </small>
                 )}
               </div>
               <div className="doc-actions">
@@ -175,8 +186,8 @@ export function DocumentsSection({
                         ? download(document)
                         : onAction(kind, document)
                     }
-                    title={label}
-                    aria-label={`${label} ${document.name}`}
+                    title={tr(label)}
+                    aria-label={`${tr(label)} ${document.name}`}
                   >
                     <Icon name={icon} />
                   </button>
@@ -195,7 +206,7 @@ export function DocumentsSection({
       )}
       {filtered.length > 0 && (
         <button className="button outline" onClick={onAdd}>
-          + Ajouter un document
+          {tr("+ Ajouter un document")}
         </button>
       )}
     </section>
@@ -216,6 +227,7 @@ function BatchBar({
     kind: "share-documents" | "download-documents" | "delete-documents",
   ) => void;
 }) {
+  const tr = useText();
   const all = useRef<HTMLInputElement>(null);
   const shown = visible.filter((id) => selected.includes(id)).length;
   useEffect(() => {
@@ -234,7 +246,7 @@ function BatchBar({
       <label
         title={
           hidden
-            ? `${hidden} document(s) sélectionné(s) hors des filtres`
+            ? tr("{0} document(s) sélectionné(s) hors des filtres", [hidden])
             : undefined
         }
       >
@@ -250,12 +262,19 @@ function BatchBar({
                 : selected.filter((id) => !visible.includes(id)),
             )
           }
-          aria-label={`Sélectionner ou désélectionner les ${visible.length} documents affichés`}
+          aria-label={tr(
+            "Sélectionner ou désélectionner les {0} documents affichés",
+            [visible.length],
+          )}
         />
         <span role="status">
           {selected.length
-            ? `${selected.length} élément${plural} sélectionné${plural}`
-            : "Tout sélectionner"}
+            ? tr("{0} élément{1} sélectionné{2}", [
+                selected.length,
+                plural,
+                plural,
+              ])
+            : tr("Tout sélectionner")}
         </span>
       </label>
       <div className="document-batch-actions doc-actions">
@@ -266,8 +285,8 @@ function BatchBar({
             className={icon === "trash" ? "delete-action" : ""}
             disabled={!selected.length}
             onClick={() => onAction(kind)}
-            title={label}
-            aria-label={`${label} les documents sélectionnés`}
+            title={tr(label)}
+            aria-label={tr("{0} les documents sélectionnés", [tr(label)])}
           >
             <Icon name={icon} />
           </button>

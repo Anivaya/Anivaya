@@ -85,9 +85,9 @@
   }
 }
 .profile-page .save-buttons {
-  display: inline-grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
   gap: 12px;
 }
 /* Mobile : deux boutons côte à côte de même largeur, ou empilés à la largeur du plus grand. */
@@ -110,8 +110,20 @@
   }
   .profile-page .save-buttons {
     display: grid;
-    grid-auto-flow: row;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;
+  }
+  .profile-page .save-buttons > .button {
+    height: auto;
+    min-height: 44px;
+    padding: 10px !important;
+    white-space: normal;
+  }
+  .profile-page .save-buttons > .button:first-child {
+    justify-self: start;
+  }
+  .profile-page .save-buttons > .button:last-child {
+    justify-self: end;
   }
   .dialog-actions.dialog-actions:not(:has(> .cancel)):has(> .button + .button) {
     display: grid;

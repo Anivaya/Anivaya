@@ -1,3 +1,4 @@
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import { addDays, fullDate, money } from "../../shared/utils/format.ts";
 import { useEffect, useState } from "react";
 import type { Animal } from "../../../../shared/models.ts";
@@ -29,6 +30,7 @@ export default function BookingDialog({
   onClose: () => void;
   onSaved: () => Promise<void>;
 }) {
+  const tr = useText();
   const eligible = animals.filter((a) => p.species.includes(a.species));
   const [form, setForm] = useState({
     service: booking?.service ?? service,
@@ -104,10 +106,10 @@ export default function BookingDialog({
     <Modal className="directory-dialog" busy={busy} onClose={onClose}>
       <h2 id="action-title">
         {booking
-          ? "Déplacer le rendez-vous"
+          ? tr("Déplacer le rendez-vous")
           : step === 3
-            ? "Votre rendez-vous est confirmé"
-            : "Prendre rendez-vous"}
+            ? tr("Votre rendez-vous est confirmé")
+            : tr("Prendre rendez-vous")}
       </h2>
       <p className="muted">{p.name}</p>
       <ol className="stepper">
@@ -117,7 +119,7 @@ export default function BookingDialog({
           "Confirmation",
         ].map((label, i) => (
           <li key={label} aria-current={step === i + 1 ? "step" : undefined}>
-            {label}
+            {tr(label)}
           </li>
         ))}
       </ol>
@@ -139,7 +141,7 @@ export default function BookingDialog({
         >
           <div className="form-grid">
             <div className="field full">
-              <label htmlFor="service">Prestation</label>
+              <label htmlFor="service">{tr("Prestation")}</label>
               <select
                 id="service"
                 value={form.service}
@@ -154,11 +156,13 @@ export default function BookingDialog({
               </select>
               {/* La durée sort de la liste pour qu’elle reste lisible sur mobile. */}
               <p className="field-help">
-                Durée : {p.services[form.service]?.duration} min
+                {tr("Durée : ")}
+                {p.services[form.service]?.duration}
+                {tr(" min")}
               </p>
             </div>
             <div className="field">
-              <label htmlFor="animal">Pour quel animal ?</label>
+              <label htmlFor="animal">{tr("Pour quel animal ?")}</label>
               <select
                 id="animal"
                 value={form.animal}
@@ -167,25 +171,25 @@ export default function BookingDialog({
                 onChange={(e) => edit("animal", e.target.value)}
               >
                 <option value="" disabled>
-                  Choisir un animal
+                  {tr("Choisir un animal")}
                 </option>
                 {eligible.map((a) => (
                   <option key={a.id} value={a.id}>
-                    {a.name} · {a.species}
+                    {a.name} · {tr(a.species)}
                   </option>
                 ))}
               </select>
               {!eligible.length && (
                 <p className="field-help">
-                  Aucun animal compatible.{" "}
+                  {tr("Aucun animal compatible.")}{" "}
                   <a href="#animaux" onClick={onClose}>
-                    Ajouter un animal
+                    {tr("Ajouter un animal")}
                   </a>
                 </p>
               )}
             </div>
             <div className="field">
-              <label htmlFor="date">Date souhaitée</label>
+              <label htmlFor="date">{tr("Date souhaitée")}</label>
               <input
                 id="date"
                 type="date"
@@ -197,10 +201,10 @@ export default function BookingDialog({
               />
             </div>
             <fieldset className="full">
-              <legend>Choisissez un horaire</legend>
+              <legend>{tr("Choisissez un horaire")}</legend>
               {loading ? (
                 <p role="status" className="slots-loading">
-                  Recherche des disponibilités…
+                  {tr("Recherche des disponibilités…")}
                 </p>
               ) : (
                 <div className="slots">
@@ -220,13 +224,15 @@ export default function BookingDialog({
                 </div>
               )}
               <p className="field-help">
-                Horaires de Paris. Les créneaux grisés ne sont pas disponibles.
+                {tr(
+                  "Horaires de Paris. Les créneaux grisés ne sont pas disponibles.",
+                )}
               </p>
             </fieldset>
             {!booking && (
               <>
                 <div className="field">
-                  <label htmlFor="contactName">Votre nom</label>
+                  <label htmlFor="contactName">{tr("Votre nom")}</label>
                   <input
                     id="contactName"
                     autoComplete="name"
@@ -237,7 +243,7 @@ export default function BookingDialog({
                   />
                 </div>
                 <div className="field">
-                  <label htmlFor="email">Votre e-mail</label>
+                  <label htmlFor="email">{tr("Votre e-mail")}</label>
                   <input
                     id="email"
                     type="email"
@@ -250,7 +256,7 @@ export default function BookingDialog({
                 </div>
                 <div className="field full">
                   <label htmlFor="note">
-                    Un mot pour le professionnel (facultatif)
+                    {tr("Un mot pour le professionnel (facultatif)")}
                   </label>
                   <textarea
                     data-resize-none
@@ -265,7 +271,7 @@ export default function BookingDialog({
           </div>
           {error && (
             <p role="alert" className="error">
-              {error}
+              {tr(error)}
             </p>
           )}
           <div className="dialog-actions">
@@ -274,13 +280,14 @@ export default function BookingDialog({
               className="button outline back cancel"
               onClick={onClose}
             >
-              Annuler
+              {tr("Annuler")}
             </button>
             <button
               className="button"
               disabled={loading || (!booking && !eligible.length)}
             >
-              Continuer <Icon name="arrow" />
+              {tr("Continuer ")}
+              <Icon name="arrow" />
             </button>
           </div>
         </form>
@@ -289,55 +296,57 @@ export default function BookingDialog({
         <>
           <dl className="detail-grid">
             <div>
-              <dt>Prestation</dt>
+              <dt>{tr("Prestation")}</dt>
               <dd>{p.services[form.service].name}</dd>
             </div>
             <div>
-              <dt>Animal</dt>
+              <dt>{tr("Animal")}</dt>
               <dd>
                 {booking?.animalName ||
                   eligible.find((a) => a.id === form.animal)?.name}
               </dd>
             </div>
             <div>
-              <dt>Date</dt>
+              <dt>{tr("Date")}</dt>
               <dd>
-                {fullDate(form.date)} à {form.time}
+                {fullDate(form.date)}
+                {tr(" à ")}
+                {form.time}
               </dd>
             </div>
             <div>
-              <dt>Lieu</dt>
+              <dt>{tr("Lieu")}</dt>
               <dd>
-                {p.mode === "En visio" ? "En visioconférence" : p.address}
+                {p.mode === "En visio" ? tr("En visioconférence") : p.address}
               </dd>
             </div>
           </dl>
           <div className="total">
-            <span>Total</span>
+            <span>{tr("Total")}</span>
             <strong>{money(p.services[form.service].price)}</strong>
           </div>
           {!booking && (
             <div className="payment-card">
               <Icon name="card" />
               <p>
-                Paiement à la confirmation
+                {tr("Paiement à la confirmation")}
                 <small>
-                  Le reçu est envoyé par e-mail à{" "}
-                  {form.email || "votre adresse"}.
+                  {tr("Le reçu est envoyé par e-mail à")}{" "}
+                  {form.email || tr("votre adresse")}.
                 </small>
               </p>
             </div>
           )}
           {error && (
             <p className="error" role="alert">
-              {error}
+              {tr(error)}
             </p>
           )}
           <div className="dialog-actions">
             <button
               className="button outline back icon-back"
               disabled={busy}
-              aria-label="Revenir au choix du créneau"
+              aria-label={tr("Revenir au choix du créneau")}
               onClick={() => {
                 setError("");
                 setStep(1);
@@ -351,10 +360,10 @@ export default function BookingDialog({
               onClick={() => void submit()}
             >
               {busy
-                ? "Enregistrement…"
+                ? tr("Enregistrement…")
                 : booking
-                  ? "Confirmer le déplacement"
-                  : "Confirmer et payer"}
+                  ? tr("Confirmer le déplacement")
+                  : tr("Confirmer et payer")}
             </button>
           </div>
         </>
@@ -363,27 +372,32 @@ export default function BookingDialog({
         <div className="confirmation">
           {error && (
             <p className="error" role="alert">
-              {error}
+              {tr(error)}
             </p>
           )}
           <Icon name="check" />
-          <h3>{booking ? "Rendez-vous déplacé" : "C’est réservé !"}</h3>
+          <h3>{booking ? tr("Rendez-vous déplacé") : tr("C’est réservé !")}</h3>
           <p>
-            {p.services[result.service].name} pour {result.animalName}
+            {p.services[result.service].name}
+            {tr(" pour ")}
+            {result.animalName}
             <br />
-            {fullDate(result.date)} à {result.time}
+            {fullDate(result.date)}
+            {tr(" à ")}
+            {result.time}
           </p>
           <p className="muted">
-            La réservation est enregistrée dans votre espace. Un e-mail de
-            confirmation et le reçu de paiement ont été envoyés à {result.email}
-            .
+            {tr(
+              "La réservation est enregistrée dans votre espace. Un e-mail de confirmation et le reçu de paiement ont été envoyés à ",
+            )}
+            {result.email}.
           </p>
           <div className="dialog-actions">
             <button className="button outline close-action" onClick={onClose}>
-              Fermer
+              {tr("Fermer")}
             </button>
             <a className="button" href="#reservations" onClick={onClose}>
-              Mes réservations
+              {tr("Mes réservations")}
             </a>
           </div>
         </div>

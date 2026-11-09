@@ -1,3 +1,4 @@
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import type { PageProps } from "../../shared/types.ts";
 import PageHeading from "../../shared/layout/PageHeading.tsx";
 import { AnimalsSection } from "../animals/AnimalsPage.tsx";
@@ -6,13 +7,14 @@ import { DocumentsSection } from "../documents/DocumentsPage.tsx";
 import Icon from "../../shared/ui/Icon.tsx";
 
 export default function DashboardPage({ data, actions, pending }: PageProps) {
+  const tr = useText();
   return (
     <>
       <PageHeading
-        title={`Bonjour ${data.household.firstName},`}
+        title={tr("Bonjour {0},", [data.household.firstName])}
         hasContent={data.animals.length > 0}
-        description="Tout pour prendre soin de vos compagnons."
-        actionLabel="Ajouter un animal"
+        description={tr("Tout pour prendre soin de vos compagnons.")}
+        actionLabel={tr("Ajouter un animal")}
         onAction={() => actions.add("animal")}
       />
       <div className="app-grid">
@@ -50,15 +52,17 @@ export default function DashboardPage({ data, actions, pending }: PageProps) {
 }
 
 function PrivacyNote() {
+  const tr = useText();
   return (
     <aside className="privacy-note">
       <div className="lock">
         <Icon name="lock" />
       </div>
-      <h2>Un dossier, vos choix.</h2>
+      <h2>{tr("Un dossier, vos choix.")}</h2>
       <p>
-        Vos documents sont privés. Vous choisissez les documents à partager, les
-        personnes concernées et la date de fin de l’accès.
+        {tr(
+          "Vos documents sont privés. Vous choisissez les documents à partager, les personnes concernées et la date de fin de l’accès.",
+        )}
       </p>
     </aside>
   );

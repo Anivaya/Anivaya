@@ -1,3 +1,4 @@
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import EmptyState from "../../shared/ui/EmptyState.tsx";
 import type { PageProps, Actions, Animal, Person } from "../../shared/types.ts";
 import { useState } from "react";
@@ -16,6 +17,7 @@ export default function SharingPage({
   actions,
   params: [section, animal = ""],
 }: PageProps) {
+  const tr = useText();
   const peopleTab = section === "personnes";
   const receivedTab = section === "recus";
   const hasContent =
@@ -27,19 +29,21 @@ export default function SharingPage({
   return (
     <div className="sharing-page">
       <PageHeading
-        title="Partage"
+        title={tr("Partage")}
         hasContent={hasContent}
-        description="Les bonnes informations, aux personnes que vous choisissez."
-        actionLabel="Partager des documents"
+        description={tr(
+          "Les bonnes informations, aux personnes que vous choisissez.",
+        )}
+        actionLabel={tr("Partager des documents")}
         showPlus={false}
         onAction={() =>
           actions.openDialog("share-documents", { animal: animal || undefined })
         }
       />
-      <nav className="page-tabs" aria-label="Sections du partage">
+      <nav className="page-tabs" aria-label={tr("Sections du partage")}>
         {[
           ["partages", "Documents partagés"],
-          ["recus", "Partage avec moi" + (pending ? ` (${pending})` : "")],
+          ["recus", tr("Partage avec moi") + (pending ? ` (${pending})` : "")],
           ["personnes", "Personnes de confiance"],
         ].map(([key, label]) => (
           <a
@@ -52,7 +56,7 @@ export default function SharingPage({
                 : undefined
             }
           >
-            {label}
+            {tr(label)}
           </a>
         ))}
       </nav>
@@ -60,13 +64,16 @@ export default function SharingPage({
         <>
           {hasContent && (
             <div className="sharing-summary">
-              <span>{pending} invitation(s) en attente</span>
+              <span>
+                {pending}
+                {tr(" invitation(s) en attente")}
+              </span>
               <span>
                 {
                   data.receivedShares.filter((s) => s.state === "accepted")
                     .length
                 }{" "}
-                accès actif(s)
+                {tr("accès actif(s)")}
               </span>
             </div>
           )}
@@ -76,10 +83,13 @@ export default function SharingPage({
         <>
           {hasContent && (
             <div className="sharing-summary">
-              <span>{data.people.length} personne(s)</span>
+              <span>
+                {data.people.length}
+                {tr(" personne(s)")}
+              </span>
               <span>
                 {data.shares.filter((s) => s.status === "active").length}{" "}
-                partage(s) actif(s)
+                {tr("partage(s) actif(s)")}
               </span>
             </div>
           )}
@@ -94,8 +104,9 @@ export default function SharingPage({
       )}
       {hasContent && (
         <p className="share-note">
-          Les documents sont partagés en lecture seule, jusqu’à la date choisie.
-          Vous pouvez retirer un accès à tout moment.
+          {tr(
+            "Les documents sont partagés en lecture seule, jusqu’à la date choisie. Vous pouvez retirer un accès à tout moment.",
+          )}
         </p>
       )}
     </div>
@@ -113,6 +124,7 @@ function SharingContent({
   peopleTab: boolean;
   initialAnimal: string;
 }) {
+  const tr = useText();
   const [search, setSearch] = useState(""),
     [animal, setAnimal] = useState(initialAnimal),
     [status, setStatus] = useState("");
@@ -135,12 +147,14 @@ function SharingContent({
       <EmptyState
         kind={peopleTab ? "people" : "documents"}
         title={
-          peopleTab ? "Aucune personne de confiance" : "Aucun document partagé"
+          peopleTab
+            ? tr("Aucune personne de confiance")
+            : tr("Aucun document partagé")
         }
         description={
           peopleTab
-            ? "Vos proches et professionnels de confiance apparaîtront ici."
-            : "Les documents que vous partagez apparaîtront ici."
+            ? tr("Vos proches et professionnels de confiance apparaîtront ici.")
+            : tr("Les documents que vous partagez apparaîtront ici.")
         }
         className="sharing-panel"
       />
@@ -149,7 +163,9 @@ function SharingContent({
     <section className="sharing-panel">
       <div className="sharing-heading">
         <h2>
-          {peopleTab ? "Vos personnes de confiance" : "Vos documents partagés"}
+          {peopleTab
+            ? tr("Vos personnes de confiance")
+            : tr("Vos documents partagés")}
         </h2>
         {peopleTab && (
           <div className="row-buttons">
@@ -157,30 +173,30 @@ function SharingContent({
               className="button outline"
               onClick={() => actions.openDialog("associate-people", { animal })}
             >
-              Associer aux animaux
+              {tr("Associer aux animaux")}
             </button>
             <button
               className="button"
               onClick={() => actions.openDialog("add-person", { animal })}
             >
-              Ajouter une personne
+              {tr("Ajouter une personne")}
             </button>
           </div>
         )}
       </div>
       <div className="share-filters">
         <input
-          aria-label="Rechercher"
-          placeholder="Personne ou document…"
+          aria-label={tr("Rechercher")}
+          placeholder={tr("Personne ou document…")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
         <select
-          aria-label="Filtrer par animal"
+          aria-label={tr("Filtrer par animal")}
           value={animal}
           onChange={(e) => setAnimal(e.target.value)}
         >
-          <option value="">Tous les animaux</option>
+          <option value="">{tr("Tous les animaux")}</option>
           {data.animals.map((a) => (
             <option value={a.id} key={a.id}>
               {a.name}
@@ -189,14 +205,14 @@ function SharingContent({
         </select>
         {!peopleTab && (
           <select
-            aria-label="Filtrer par statut"
+            aria-label={tr("Filtrer par statut")}
             value={status}
             onChange={(e) => setStatus(e.target.value)}
           >
-            <option value="">Tous les statuts</option>
-            <option value="active">Actifs</option>
-            <option value="expired">Expirés</option>
-            <option value="revoked">Révoqués</option>
+            <option value="">{tr("Tous les statuts")}</option>
+            <option value="active">{tr("Actifs")}</option>
+            <option value="expired">{tr("Expirés")}</option>
+            <option value="revoked">{tr("Révoqués")}</option>
           </select>
         )}
       </div>
@@ -223,16 +239,22 @@ function SharingContent({
                   {animalName(data.animals, doc.animal)} · {s.recipient} ·{" "}
                   {s.email}
                 </p>
-                <p>Lecture seule · Jusqu’au {fullDate(s.until)}</p>
+                <p>
+                  {tr("Lecture seule · Jusqu’au ")}
+                  {fullDate(s.until)}
+                </p>
                 <span
                   className={`access-state ${s.status !== "active" ? "off" : ""}`}
                 >
-                  {shareLabels[s.status]}
+                  {tr(shareLabels[s.status])}
                 </span>
               </div>
               <div className="row-buttons">
                 <button
-                  aria-label={`Voir le partage de ${doc.name} avec ${s.recipient}`}
+                  aria-label={tr("Voir le partage de {0} avec {1}", [
+                    doc.name,
+                    s.recipient,
+                  ])}
                   onClick={() => actions.openDialog("share-details", s)}
                 >
                   <Icon name="eye" />
@@ -240,8 +262,11 @@ function SharingContent({
                 {s.status === "active" && (
                   <button
                     className="red"
-                    aria-label={`Révoquer le partage de ${doc.name} avec ${s.recipient}`}
-                    title="Révoquer"
+                    aria-label={tr("Révoquer le partage de {0} avec {1}", [
+                      doc.name,
+                      s.recipient,
+                    ])}
+                    title={tr("Révoquer")}
                     onClick={() => actions.openDialog("revoke-share", s)}
                   >
                     <Icon name="close" />
@@ -273,13 +298,14 @@ export function PeopleList({
   animal?: string;
   compact?: boolean;
 }) {
+  const tr = useText();
   if (!people.length)
     return (
       <EmptyState
         kind="people"
         compact
-        title="Aucune personne de confiance"
-        description="Les contacts associés à ce carnet apparaîtront ici."
+        title={tr("Aucune personne de confiance")}
+        description={tr("Les contacts associés à ce carnet apparaîtront ici.")}
       />
     );
   return people.map((person) => (
@@ -290,7 +316,7 @@ export function PeopleList({
       <div className="person-info">
         <h3>{person.name}</h3>
         <p>
-          {person.role}
+          {tr(person.role)}
           {!compact && ` · ${person.email || person.phone}`}
         </p>
         {!compact && (
@@ -301,7 +327,7 @@ export function PeopleList({
                 ? person.animals
                     .map((id) => animalName(animals, id))
                     .join(" · ")
-                : "Aucun animal associé"}
+                : tr("Aucun animal associé")}
           </p>
         )}
       </div>
@@ -309,8 +335,8 @@ export function PeopleList({
         <div className="row-buttons">
           {!animal && (
             <button
-              aria-label={`Associer ${person.name} à des animaux`}
-              title="Associer aux animaux"
+              aria-label={tr("Associer {0} à des animaux", [person.name])}
+              title={tr("Associer aux animaux")}
               onClick={() =>
                 actions.openDialog("associate-people", { person: person.id })
               }
@@ -319,8 +345,8 @@ export function PeopleList({
             </button>
           )}
           <button
-            aria-label={`Modifier ${person.name}`}
-            title="Modifier"
+            aria-label={tr("Modifier {0}", [person.name])}
+            title={tr("Modifier")}
             onClick={() => actions.openDialog("edit-person", person)}
           >
             <Icon name="edit" />
@@ -328,7 +354,7 @@ export function PeopleList({
           <button
             className="red"
             aria-label={`${animal ? "Retirer" : "Supprimer"} ${person.name}`}
-            title={animal ? "Retirer du carnet" : "Supprimer"}
+            title={animal ? tr("Retirer du carnet") : tr("Supprimer")}
             onClick={() =>
               actions.openDialog(animal ? "remove-person" : "delete-person", {
                 ...person,

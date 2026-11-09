@@ -69,7 +69,7 @@ test("every lead form exposes translated validation without changing API values"
   }
 });
 
-test("only public home titles switch to English", () => {
+test("home and personal titles switch to English", () => {
   assert.equal(pageTitle("#accueil", undefined, "en"), "Anivaya · Home");
   assert.equal(
     pageTitle("#accueil/pro-inscription", undefined, "en"),
@@ -85,7 +85,7 @@ test("only public home titles switch to English", () => {
   );
   assert.equal(
     pageTitle("#profil", undefined, "en"),
-    "Anivaya · Gestion de profil",
+    "Anivaya · Profile settings",
   );
   assert.equal(pageTitle("#accueil"), "Anivaya · Accueil");
 });

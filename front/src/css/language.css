@@ -134,6 +134,19 @@
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 8px;
   }
+  .landing-v2 .site-header .nav:has(.public-guest-actions) {
+    grid-template-columns: minmax(0, 1fr) auto minmax(124px, 1fr) auto;
+  }
+  .landing-v2 .nav:has(.public-guest-actions) .nav__links {
+    grid-column: 2;
+  }
+  .landing-v2 .public-guest-actions {
+    display: contents;
+  }
+  .landing-v2 .public-guest-actions .language-menu {
+    grid-column: 3;
+    justify-self: center;
+  }
   .landing-v2 .nav > .account-menu {
     width: 224px;
   }

@@ -1,3 +1,4 @@
+import { useText } from "../i18n/HomeLocale.tsx";
 import { useEffect, useId, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import type { Profile } from "../../../../shared/account.ts";
@@ -125,12 +126,13 @@ function SidebarContent({
   profile: Profile;
   onLogout: () => Promise<void>;
 }) {
+  const tr = useText();
   return (
     <>
       <a
         className="app-brand"
         href="#espace"
-        aria-label="Anivaya — Vue d’ensemble"
+        aria-label={tr("Anivaya — Vue d’ensemble")}
       >
         <img
           src="/images/logo-anivaya-wordmark.png"
@@ -139,7 +141,7 @@ function SidebarContent({
           height="1162"
         />
       </a>
-      <nav className="side-nav" aria-label="Navigation principale">
+      <nav className="side-nav" aria-label={tr("Navigation principale")}>
         {navigation.map(([id, icon, label]) => (
           <a
             key={id}
@@ -151,7 +153,7 @@ function SidebarContent({
             }
           >
             <Icon name={icon} />
-            {label}
+            {tr(label)}
           </a>
         ))}
       </nav>

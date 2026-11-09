@@ -1,3 +1,5 @@
+import { uiLocale } from "../../shared/i18n/locale.ts";
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import EmptyState from "../../shared/ui/EmptyState.tsx";
 import type {
   PageProps,
@@ -22,13 +24,14 @@ import CollectionFilters from "../../shared/ui/CollectionFilters.tsx";
 import { useMediaQuery } from "../../shared/hooks.ts";
 
 export default function RemindersPage({ data, actions, pending }: PageProps) {
+  const tr = useText();
   return (
     <>
       <PageHeading
-        title="Mes rappels"
+        title={tr("Mes rappels")}
         hasContent={data.reminders.length > 0}
-        description="Retrouvez les échéances que vous avez choisies."
-        actionLabel="Ajouter un rappel"
+        description={tr("Retrouvez les échéances que vous avez choisies.")}
+        actionLabel={tr("Ajouter un rappel")}
         onAction={() => actions.add("reminder")}
       />
       <div className="app-grid">
@@ -64,6 +67,7 @@ export function RemindersSection({
   pending: string | null;
   today: string;
 }) {
+  const tr = useText();
   const [search, setSearch] = useState(""),
     [animal, setAnimal] = useState(""),
     [status, setStatus] = useState("");
@@ -80,11 +84,11 @@ export function RemindersSection({
     <section className="reminders-panel" aria-labelledby="reminders-title">
       <div className="section-head">
         <h2 id="reminders-title">
-          {overview ? "Prochains rappels" : "Vos rappels"}
+          {overview ? tr("Prochains rappels") : tr("Vos rappels")}
         </h2>
         {overview && reminders.length > 0 && (
           <a className="subtle" href="#rappels">
-            Voir tous →
+            {tr("Voir tous →")}
           </a>
         )}
       </div>
@@ -97,7 +101,7 @@ export function RemindersSection({
           animals={animals}
           filter={status}
           onFilter={setStatus}
-          label="Filtrer par statut"
+          label={tr("Filtrer par statut")}
           options={[
             ["", "Tous les statuts"],
             ["todo", "À faire"],
@@ -121,13 +125,17 @@ export function RemindersSection({
                 checked={r.done}
                 disabled={pending === r.id}
                 onChange={() => onToggle(r)}
-                aria-label={`Marquer ${r.name} pour ${name} comme ${r.done ? "à faire" : "fait"}`}
+                aria-label={tr("Marquer {0} pour {1} comme {2}", [
+                  r.name,
+                  name,
+                  r.done ? tr("à faire") : tr("fait"),
+                ])}
               />
               <div className="date-tile">
                 <strong>{String(date.getDate()).padStart(2, "0")}</strong>
                 <small>
                   {date
-                    .toLocaleDateString("fr-FR", { month: "short" })
+                    .toLocaleDateString(uiLocale(), { month: "short" })
                     .replace(".", "")
                     .toUpperCase()}
                 </small>
@@ -138,21 +146,21 @@ export function RemindersSection({
               >
                 <strong>{r.name}</strong>
                 <small>{name}</small>
-                <small>{reminderLabels[reminderState(r, today)]}</small>
+                <small>{tr(reminderLabels[reminderState(r, today)])}</small>
                 <small>{mobile ? shortDate(r.date) : fullDate(r.date)}</small>
               </button>
               <div className="row-buttons">
                 <button
-                  aria-label={`Modifier ${r.name}`}
-                  title="Modifier"
+                  aria-label={tr("Modifier {0}", [r.name])}
+                  title={tr("Modifier")}
                   onClick={() => onAction("edit-reminder", r)}
                 >
                   <Icon name="edit" />
                 </button>
                 <button
                   className="red"
-                  aria-label={`Supprimer ${r.name}`}
-                  title="Supprimer"
+                  aria-label={tr("Supprimer {0}", [r.name])}
+                  title={tr("Supprimer")}
                   onClick={() =>
                     onAction("delete-record-item", { ...r, entity: "reminder" })
                   }

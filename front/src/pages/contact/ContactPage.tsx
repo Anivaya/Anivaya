@@ -1,3 +1,4 @@
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import type { Profile } from "../../../../shared/account.ts";
@@ -77,6 +78,7 @@ export default function ContactPage({
   profile?: Profile;
   initialTab?: string;
 }) {
+  const tr = useText();
   const { title, intro, label, tabs } = sections[section];
   const dataQuestion = section === "contact" && initialTab === "question";
   const [tab, setTab] = useState<ContactTab>(
@@ -158,7 +160,7 @@ export default function ContactPage({
       id={`contact-${field}-error`}
       role="alert"
     >
-      {errors[field]}
+      {tr(errors[field])}
     </p>
   );
 
@@ -166,11 +168,11 @@ export default function ContactPage({
     <div className="profile-page">
       <div className="welcome">
         <div>
-          <h1>{title}</h1>
-          <p>{intro}</p>
+          <h1>{tr(title)}</h1>
+          <p>{tr(intro)}</p>
         </div>
       </div>
-      <Tabs label={label} tabs={tabs} active={tab} onChange={setTab} />
+      <Tabs label={tr(label)} tabs={tabs} active={tab} onChange={setTab} />
       {section === "contact" ? (
         <>
           <section
@@ -181,44 +183,48 @@ export default function ContactPage({
           >
             <div className="contact-grid">
               <aside className="contact-guidance">
-                <h2>Parlons de votre quotidien.</h2>
+                <h2>{tr("Parlons de votre quotidien.")}</h2>
                 <p>
-                  Précisez la page concernée et ce que vous souhaitez faire :
-                  cela nous aidera à comprendre votre demande.
+                  {tr(
+                    "Précisez la page concernée et ce que vous souhaitez faire : cela nous aidera à comprendre votre demande.",
+                  )}
                 </p>
                 <div className="contact-note">
-                  <strong>Pour la santé de votre animal</strong>
+                  <strong>{tr("Pour la santé de votre animal")}</strong>
                   <p>
-                    Ce formulaire concerne le service Anivaya. Pour une question
-                    médicale ou une urgence, contactez un vétérinaire.
+                    {tr(
+                      "Ce formulaire concerne le service Anivaya. Pour une question médicale ou une urgence, contactez un vétérinaire.",
+                    )}
                   </p>
                 </div>
-                <h3>Avant de nous écrire</h3>
+                <h3>{tr("Avant de nous écrire")}</h3>
                 <details>
                   <summary className="toggle-summary">
-                    Où retrouver mes documents ?
+                    {tr("Où retrouver mes documents ?")}
                   </summary>
                   <p>
-                    Dans votre espace, ouvrez Documents ou le carnet de l’animal
-                    concerné.
+                    {tr(
+                      "Dans votre espace, ouvrez Documents ou le carnet de l’animal concerné.",
+                    )}
                   </p>
                 </details>
                 <details>
                   <summary className="toggle-summary">
-                    Comment gérer un partage ?
+                    {tr("Comment gérer un partage ?")}
                   </summary>
                   <p>
-                    La page Partage regroupe vos partages et vos personnes de
-                    confiance.
+                    {tr(
+                      "La page Partage regroupe vos partages et vos personnes de confiance.",
+                    )}
                   </p>
                 </details>
                 <details>
                   <summary className="toggle-summary">
-                    J’ai oublié mon mot de passe.
+                    {tr("J’ai oublié mon mot de passe.")}
                   </summary>
                   <p>
                     <a href="#reinitialisation">
-                      Demander une réinitialisation
+                      {tr("Demander une réinitialisation")}
                     </a>
                   </p>
                 </details>
@@ -226,12 +232,17 @@ export default function ContactPage({
               <div className="profile-panel">
                 {sent ? (
                   <div id="contact-success" tabIndex={-1} role="status">
-                    <h2>Votre demande est enregistrée.</h2>
+                    <h2>{tr("Votre demande est enregistrée.")}</h2>
                     <p>
-                      Référence : <strong>{sent}</strong>.{" "}
+                      {tr("Référence : ")}
+                      <strong>{tr(sent)}</strong>.{" "}
                       {profile
-                        ? "La réponse de l’équipe apparaîtra dans l’onglet « Vos demandes »."
-                        : "Connectez-vous avec cette adresse pour suivre la réponse dans « Vos demandes »."}
+                        ? tr(
+                            "La réponse de l’équipe apparaîtra dans l’onglet « Vos demandes ».",
+                          )
+                        : tr(
+                            "Connectez-vous avec cette adresse pour suivre la réponse dans « Vos demandes ».",
+                          )}
                     </p>
                     <button
                       className="button outline"
@@ -241,15 +252,15 @@ export default function ContactPage({
                         focusNext.current = "contact-name";
                       }}
                     >
-                      Écrire un autre message
+                      {tr("Écrire un autre message")}
                     </button>
                   </div>
                 ) : (
                   <form noValidate onSubmit={submit}>
-                    <h2>Votre message</h2>
+                    <h2>{tr("Votre message")}</h2>
                     <div className="profile-fields">
                       <div className="field">
-                        <label htmlFor="contact-name">Votre nom</label>
+                        <label htmlFor="contact-name">{tr("Votre nom")}</label>
                         <input
                           id="contact-name"
                           autoComplete="name"
@@ -261,7 +272,9 @@ export default function ContactPage({
                         {error("name")}
                       </div>
                       <div className="field">
-                        <label htmlFor="contact-email">Adresse e-mail</label>
+                        <label htmlFor="contact-email">
+                          {tr("Adresse e-mail")}
+                        </label>
                         <input
                           id="contact-email"
                           type="email"
@@ -276,7 +289,7 @@ export default function ContactPage({
                     </div>
                     <div className="field">
                       <label htmlFor="contact-subject">
-                        Votre demande concerne
+                        {tr("Votre demande concerne")}
                       </label>
                       <select
                         id="contact-subject"
@@ -284,39 +297,46 @@ export default function ContactPage({
                         onChange={(e) => change("subject", e.target.value)}
                         {...invalid("subject")}
                       >
-                        <option value="">Choisir un sujet</option>
+                        <option value="">{tr("Choisir un sujet")}</option>
                         {subjects.map((subject) => (
-                          <option key={subject}>{subject}</option>
+                          <option key={subject} value={subject}>
+                            {tr(subject)}
+                          </option>
                         ))}
                       </select>
                       {error("subject")}
                     </div>
                     <div className="field">
-                      <label htmlFor="contact-message">Votre message</label>
+                      <label htmlFor="contact-message">
+                        {tr("Votre message")}
+                      </label>
                       <textarea
                         data-resize-none
                         id="contact-message"
                         rows={6}
                         maxLength={2000}
-                        placeholder="Décrivez votre question en quelques mots…"
+                        placeholder={tr(
+                          "Décrivez votre question en quelques mots…",
+                        )}
                         value={form.message}
                         onChange={(e) => change("message", e.target.value)}
                         {...invalid("message")}
                       />
                       <p className="field-help" id="message-help">
-                        10 à 2 000 caractères. N’indiquez pas de mot de passe ni
-                        de données bancaires.
+                        {tr(
+                          "10 à 2 000 caractères. N’indiquez pas de mot de passe ni de données bancaires.",
+                        )}
                       </p>
                       {error("message")}
                     </div>
                     <p className="field-help">
-                      Votre demande est transmise à l’équipe Anivaya. Un accusé
-                      de réception vous est envoyé par e-mail, et la réponse
-                      arrive à cette adresse.
+                      {tr(
+                        "Votre demande est transmise à l’équipe Anivaya. Un accusé de réception vous est envoyé par e-mail, et la réponse arrive à cette adresse.",
+                      )}
                     </p>
                     {failure && (
                       <p className="profile-inline-error" role="alert">
-                        {failure}
+                        {tr(failure)}
                       </p>
                     )}
                     <div className="contact-actions">
@@ -325,7 +345,7 @@ export default function ContactPage({
                         type="submit"
                         disabled={sending}
                       >
-                        {sending ? "Envoi…" : "Envoyer le message"}
+                        {sending ? tr("Envoi…") : tr("Envoyer le message")}
                       </button>
                     </div>
                   </form>
@@ -361,47 +381,50 @@ export default function ContactPage({
             hidden={tab !== "service"}
           >
             <div className="profile-panel">
-              <h2>Anivaya, à leurs côtés au quotidien.</h2>
+              <h2>{tr("Anivaya, à leurs côtés au quotidien.")}</h2>
               <p>
-                Un espace pour rassembler les informations de vos animaux,
-                préparer leurs rendez-vous et faciliter le relais avec les
-                personnes qui prennent soin d’eux.
+                {tr(
+                  "Un espace pour rassembler les informations de vos animaux, préparer leurs rendez-vous et faciliter le relais avec les personnes qui prennent soin d’eux.",
+                )}
               </p>
               <div className="service-features">
                 <div>
-                  <h3>Leur dossier</h3>
+                  <h3>{tr("Leur dossier")}</h3>
                   <p>
-                    Carnet, documents et rappels réunis autour de chaque animal.
+                    {tr(
+                      "Carnet, documents et rappels réunis autour de chaque animal.",
+                    )}
                   </p>
                 </div>
                 <div>
-                  <h3>Les bonnes personnes</h3>
+                  <h3>{tr("Les bonnes personnes")}</h3>
                   <p>
-                    Partage des informations choisies, personnes de confiance et
-                    annuaire des professionnels.
+                    {tr(
+                      "Partage des informations choisies, personnes de confiance et annuaire des professionnels.",
+                    )}
                   </p>
                 </div>
                 <div>
-                  <h3>L’essentiel en cas de besoin</h3>
+                  <h3>{tr("L’essentiel en cas de besoin")}</h3>
                   <p>
-                    Une fiche d’urgence et un QR code, avec une consultation
-                    publique facultative.
+                    {tr(
+                      "Une fiche d’urgence et un QR code, avec une consultation publique facultative.",
+                    )}
                   </p>
                 </div>
               </div>
             </div>
             <div className="profile-panel">
-              <h2>À propos de cette version</h2>
+              <h2>{tr("À propos de cette version")}</h2>
               <p>
-                Les comptes, les animaux, les documents, les partages et les
-                réservations sont enregistrés dans votre espace. Les
-                confirmations, les rappels et les invitations sont envoyés par
-                e-mail.
+                {tr(
+                  "Les comptes, les animaux, les documents, les partages et les réservations sont enregistrés dans votre espace. Les confirmations, les rappels et les invitations sont envoyés par e-mail.",
+                )}
               </p>
               <p>
-                Les coordonnées de l’éditeur, les conditions d’utilisation et
-                les modalités du service seront précisées avant son ouverture au
-                public.
+                {tr(
+                  "Les coordonnées de l’éditeur, les conditions d’utilisation et les modalités du service seront précisées avant son ouverture au public.",
+                )}
               </p>
             </div>
           </section>
@@ -412,27 +435,26 @@ export default function ContactPage({
             hidden={tab !== "donnees"}
           >
             <div className="profile-panel">
-              <h2>Vous choisissez ce que vous partagez.</h2>
+              <h2>{tr("Vous choisissez ce que vous partagez.")}</h2>
               <p>
-                La fiche publique présente les informations sélectionnées lors
-                de sa configuration. Vous pouvez modifier son contenu, la
-                désactiver ou la supprimer pour révoquer son lien.
+                {tr(
+                  "La fiche publique présente les informations sélectionnées lors de sa configuration. Vous pouvez modifier son contenu, la désactiver ou la supprimer pour révoquer son lien.",
+                )}
               </p>
-              <h3>Dans cette version</h3>
+              <h3>{tr("Dans cette version")}</h3>
               <p>
-                Chaque compte dispose de sa propre base de données. Les mots de
-                passe sont hachés et la session est conservée dans un cookie
-                sécurisé, valable 24 heures au maximum. Les documents et photos
-                importés restent dans votre espace.
+                {tr(
+                  "Chaque compte dispose de sa propre base de données. Les mots de passe sont hachés et la session est conservée dans un cookie sécurisé, valable 24 heures au maximum. Les documents et photos importés restent dans votre espace.",
+                )}
               </p>
-              <h3>Avant le lancement</h3>
+              <h3>{tr("Avant le lancement")}</h3>
               <p>
-                Une politique de confidentialité complète précisera les données
-                traitées, leurs durées de conservation, leurs destinataires et
-                les moyens d’exercer vos droits.
+                {tr(
+                  "Une politique de confidentialité complète précisera les données traitées, leurs durées de conservation, leurs destinataires et les moyens d’exercer vos droits.",
+                )}
               </p>
               <a className="button outline" href="#contact/question">
-                Poser une question sur mes données
+                {tr("Poser une question sur mes données")}
               </a>
             </div>
           </section>

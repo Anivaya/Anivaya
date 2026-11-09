@@ -1,3 +1,4 @@
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import EmptyState from "../../shared/ui/EmptyState.tsx";
 import type { EmptyKind } from "../../shared/ui/EmptyIllustration.tsx";
 import { useState } from "react";
@@ -46,16 +47,17 @@ export default function AnimalRecordPage({
   actions: Actions;
   pending: string | null;
 }) {
+  const tr = useText();
   const [enlarged, setEnlarged] = useState(false);
   const mobile = useMediaQuery("(max-width: 620px)");
   const pet = data.animals.find((a) => a.id === id);
   if (!pet)
     return (
       <div className="empty">
-        <h1>Animal introuvable</h1>
-        <p>Ce carnet n’est plus disponible.</p>
+        <h1>{tr("Animal introuvable")}</h1>
+        <p>{tr("Ce carnet n’est plus disponible.")}</p>
         <a className="button" href="#animaux">
-          Retour à mes animaux
+          {tr("Retour à mes animaux")}
         </a>
       </div>
     );
@@ -73,11 +75,11 @@ export default function AnimalRecordPage({
     actions.openDialog(kind, { ...item, animal: id });
   const identity = [
     ["Date de naissance", pet.dob ? fullDate(pet.dob) : ""],
-    ["Espèce", pet.species],
+    ["Espèce", tr(pet.species)],
     ["Race", pet.breed],
-    ["Sexe", pet.sex],
+    ["Sexe", tr(pet.sex)],
     ["Poids déclaré", pet.weight ? `${pet.weight} kg` : ""],
-    ["Stérilisation déclarée", pet.neutered],
+    ["Stérilisation déclarée", tr(pet.neutered)],
     ["Robe", pet.coat],
     ["Identification", pet.identifier],
   ];
@@ -109,7 +111,10 @@ export default function AnimalRecordPage({
             checked={item.done}
             disabled={pending === item.id}
             onChange={() => actions.toggleReminder(item as Reminder)}
-            aria-label={`Marquer ${item.name} comme ${item.done ? "à faire" : "fait"}`}
+            aria-label={tr("Marquer {0} comme {1}", [
+              item.name,
+              item.done ? tr("à faire") : tr("fait"),
+            ])}
           />
         ) : (
           <span className="tile">
@@ -119,13 +124,17 @@ export default function AnimalRecordPage({
         <button
           className="row-body row-open"
           onClick={() => open(kind === "event" ? "view-event" : kind, item)}
-          aria-label={`Ouvrir ${kind === "event" ? item.type : item.name}`}
+          aria-label={tr("Ouvrir {0}", [
+            kind === "event" ? tr(item.type) : item.name,
+          ])}
         >
-          <strong>{kind === "event" ? item.type : item.name}</strong>
+          <strong>{kind === "event" ? tr(item.type) : item.name}</strong>
           {kind === "reminder" ? (
             <>
               <small>
-                {reminderLabels[reminderState(item as Reminder, data.today)]}
+                {tr(
+                  reminderLabels[reminderState(item as Reminder, data.today)],
+                )}
               </small>
               <small>
                 {mobile ? shortDate(item.date!) : fullDate(item.date!)}
@@ -134,7 +143,7 @@ export default function AnimalRecordPage({
           ) : (
             <small>
               {kind === "document" ? (
-                `${item.category} · ${item.example ? "Sans fichier" : "Fichier enregistré"}`
+                `${tr(item.category)} · ${tr(item.example ? "Sans fichier" : "Fichier enregistré")}`
               ) : kind === "event" ? (
                 <>
                   {fullDate(item.date!)}
@@ -151,8 +160,8 @@ export default function AnimalRecordPage({
               <button
                 className="icon-btn"
                 onClick={() => open("share-document", item)}
-                aria-label={`Partager ${item.name}`}
-                title="Partager"
+                aria-label={tr("Partager {0}", [item.name])}
+                title={tr("Partager")}
               >
                 <Icon name="share" />
               </button>
@@ -161,8 +170,8 @@ export default function AnimalRecordPage({
               <button
                 className="icon-btn"
                 onClick={() => open("document", item)}
-                aria-label={`Voir ${item.name}`}
-                title="Voir"
+                aria-label={tr("Voir {0}", [item.name])}
+                title={tr("Voir")}
               >
                 <Icon name="eye" />
               </button>
@@ -170,7 +179,9 @@ export default function AnimalRecordPage({
             <button
               className="icon-btn"
               onClick={() => open(`edit-${kind}`, item)}
-              aria-label={`Modifier ${kind === "event" ? item.type : item.name}`}
+              aria-label={tr("Modifier {0}", [
+                kind === "event" ? tr(item.type) : item.name,
+              ])}
             >
               <Icon name="edit" />
             </button>
@@ -184,7 +195,9 @@ export default function AnimalRecordPage({
                   { ...item, entity: kind },
                 )
               }
-              aria-label={`Supprimer ${kind === "event" ? item.type : item.name}`}
+              aria-label={tr("Supprimer {0}", [
+                kind === "event" ? tr(item.type) : item.name,
+              ])}
             >
               <Icon name="trash" />
             </button>
@@ -202,7 +215,7 @@ export default function AnimalRecordPage({
     return (
       <section className="panel">
         <div className="panel-head">
-          <h2>{title}</h2>
+          <h2>{tr(title)}</h2>
           {!empty && cta}
         </div>
         {empty ? <EmptyState kind={empty} compact /> : content}
@@ -213,15 +226,15 @@ export default function AnimalRecordPage({
     <dl className="info-grid">
       {values.map(([label, value]) => (
         <div className="datum" key={label}>
-          <dt>{label}</dt>
-          <dd>{value || "Non renseigné"}</dd>
+          <dt>{tr(label)}</dt>
+          <dd>{value || tr("Non renseigné")}</dd>
         </div>
       ))}
     </dl>
   );
   const addButton = (kind: "event" | "reminder", label: string) => (
     <button className="button" onClick={() => open(`record-${kind}`, {})}>
-      {label}
+      {tr(label)}
     </button>
   );
   return (
@@ -237,21 +250,23 @@ export default function AnimalRecordPage({
             href={svgImage(sheet.snapshot.qrSvg)}
             download={`anivaya-qr-${pet.id}.svg`}
           >
-            Télécharger le QR
+            {tr("Télécharger le QR")}
           </a>
           <a
             className="button"
             href={link("urgence")}
             onClick={() => setEnlarged(false)}
           >
-            Gérer sa fiche
+            {tr("Gérer sa fiche")}
           </a>
         </QrDialog>
       )}
       <a
         className="back"
         href={emergency ? link("apercu") : "#animaux"}
-        aria-label={emergency ? "Retour au carnet" : "Retour à mes animaux"}
+        aria-label={
+          emergency ? tr("Retour au carnet") : tr("Retour à mes animaux")
+        }
       >
         <Icon name="back" />
       </a>
@@ -261,27 +276,28 @@ export default function AnimalRecordPage({
           <div className="pet-summary">
             <h1>{pet.name}</h1>
             <p>
-              {pet.breed || "Race non renseignée"} ·{" "}
-              {pet.sex || "Sexe non renseigné"} · {age(pet.dob)}
+              {pet.breed || tr("Race non renseignée")} ·{" "}
+              {tr(pet.sex) || tr("Sexe non renseigné")} · {age(pet.dob, tr)}
             </p>
             {(!pet.breed || !pet.dob || !pet.identifier) && (
               <p className="muted">
-                Profil incomplet : complétez les informations avec « Modifier le
-                profil ».
+                {tr(
+                  "Profil incomplet : complétez les informations avec « Modifier le profil ».",
+                )}
               </p>
             )}
             {/* Le statut vient en dernier, après l’éventuel message de profil incomplet. */}
-            <span className="badge">Dossier privé</span>
+            <span className="badge">{tr("Dossier privé")}</span>
           </div>
           <div className="actions">
             <a className="button" href={link("urgence")}>
-              Fiche d’urgence et QR
+              {tr("Fiche d’urgence et QR")}
             </a>
             <button
               className="button outline"
               onClick={() => open("edit-animal", pet)}
             >
-              Modifier le profil
+              {tr("Modifier le profil")}
             </button>
             <AiImportButton
               icon={false}
@@ -293,7 +309,7 @@ export default function AnimalRecordPage({
                 open("delete-record-item", { ...pet, entity: "animal" })
               }
             >
-              Supprimer l’animal
+              {tr("Supprimer l’animal")}
             </button>
           </div>
         </div>
@@ -308,14 +324,14 @@ export default function AnimalRecordPage({
         />
       ) : (
         <>
-          <nav className="page-tabs" aria-label="Sections du carnet">
+          <nav className="page-tabs" aria-label={tr("Sections du carnet")}>
             {Object.entries(tabs).map(([key, label]) => (
               <a
                 key={key}
                 href={link(key)}
                 aria-current={active === key ? "page" : undefined}
               >
-                {label}
+                {tr(label)}
               </a>
             ))}
           </nav>
@@ -328,17 +344,17 @@ export default function AnimalRecordPage({
                     identity[0],
                     identity[4],
                     identity[1],
-                    ["Identification", "Conservée dans le dossier privé"],
+                    ["Identification", tr("Conservée dans le dossier privé")],
                   ]),
                   <a className="text-button" href={link("identite")}>
-                    Voir l’identité
+                    {tr("Voir l’identité")}
                   </a>,
                 )}
                 {panel(
                   "Historique récent",
                   rows("event", events, 3),
                   <a className="text-button" href={link("suivi")}>
-                    Tout voir
+                    {tr("Tout voir")}
                   </a>,
                   !events.length ? "events" : undefined,
                 )}
@@ -351,7 +367,7 @@ export default function AnimalRecordPage({
                     compact
                   />,
                   <a className="text-button" href={link("confiance")}>
-                    Gérer les contacts
+                    {tr("Gérer les contacts")}
                   </a>,
                   !people.length ? "people" : undefined,
                 )}
@@ -361,13 +377,13 @@ export default function AnimalRecordPage({
                   "Prochains rappels",
                   rows("reminder", reminders, 2),
                   <a className="text-button" href={link("rappels")}>
-                    Tout voir
+                    {tr("Tout voir")}
                   </a>,
                   !reminders.length ? "reminders" : undefined,
                 )}
                 {sheet ? (
                   <section className="panel emergency-inline">
-                    <h2>Fiche d’urgence et QR</h2>
+                    <h2>{tr("Fiche d’urgence et QR")}</h2>
                     <div className="inline-sheet-heading">
                       {sheet.settings.photo && (
                         <Portrait
@@ -385,8 +401,8 @@ export default function AnimalRecordPage({
                             <a
                               className="icon-btn"
                               href={link("urgence-modifier")}
-                              aria-label="Modifier la fiche d’urgence"
-                              title="Modifier"
+                              aria-label={tr("Modifier la fiche d’urgence")}
+                              title={tr("Modifier")}
                             >
                               <Icon name="edit" />
                             </a>
@@ -399,31 +415,32 @@ export default function AnimalRecordPage({
                                   name: "la fiche et son QR",
                                 })
                               }
-                              aria-label="Supprimer la fiche d’urgence"
-                              title="Supprimer"
+                              aria-label={tr("Supprimer la fiche d’urgence")}
+                              title={tr("Supprimer")}
                             >
                               <Icon name="trash" />
                             </button>
                           </div>
                         </div>
                         <p className="muted">
-                          {sheet.snapshot.details || sheet.snapshot.species}
+                          {sheet.snapshot.details || tr(sheet.snapshot.species)}
                         </p>
                         <p className="muted sheet-identifier">
-                          Identifiant : {pet.identifier || "Non renseigné"}
+                          {tr("Identifiant : ")}
+                          {pet.identifier || tr("Non renseigné")}
                         </p>
                       </div>
                     </div>
                     {sheet.snapshot.notes && (
                       <>
-                        <h3>Consignes</h3>
+                        <h3>{tr("Consignes")}</h3>
                         <p className="muted inline-notes">
                           {sheet.snapshot.notes}
                         </p>
                       </>
                     )}
                     {(sheet.snapshot.contact || sheet.snapshot.vet) && (
-                      <h3>Contacts</h3>
+                      <h3>{tr("Contacts")}</h3>
                     )}
                     {sheet.snapshot.contact && (
                       <p className="muted">{sheet.snapshot.contact}</p>
@@ -436,14 +453,14 @@ export default function AnimalRecordPage({
                         <button
                           className="qr-enlarge"
                           onClick={() => setEnlarged(true)}
-                          aria-label={`Agrandir le QR de ${pet.name}`}
+                          aria-label={tr("Agrandir le QR de {0}", [pet.name])}
                         >
                           <img
                             src={svgImage(sheet.snapshot.qrSvg)}
-                            alt={`QR sauvegardé de ${pet.name}`}
+                            alt={tr("QR sauvegardé de {0}", [pet.name])}
                           />
                         </button>
-                        <p className="muted">QR sauvegardé</p>
+                        <p className="muted">{tr("QR sauvegardé")}</p>
                         {sheet.snapshot.payload?.startsWith("http") && (
                           <a
                             className="text-button"
@@ -451,7 +468,7 @@ export default function AnimalRecordPage({
                             target="_blank"
                             rel="noopener noreferrer"
                           >
-                            Voir la fiche publique
+                            {tr("Voir la fiche publique")}
                           </a>
                         )}
                       </div>
@@ -459,7 +476,7 @@ export default function AnimalRecordPage({
                   </section>
                 ) : (
                   <section className="panel emergency-teaser">
-                    <h2>Fiche d’urgence et QR</h2>
+                    <h2>{tr("Fiche d’urgence et QR")}</h2>
                     <EmptyState kind="documents" compact />
                   </section>
                 )}
@@ -471,13 +488,15 @@ export default function AnimalRecordPage({
               "Son identité",
               <>
                 {datums(identity)}
-                <p className="note">Ces informations sont déclaratives.</p>
+                <p className="note">
+                  {tr("Ces informations sont déclaratives.")}
+                </p>
               </>,
               <button
                 className="button outline"
                 onClick={() => open("edit-animal", pet)}
               >
-                Modifier
+                {tr("Modifier")}
               </button>,
             )}
           {active === "suivi" &&
@@ -485,8 +504,9 @@ export default function AnimalRecordPage({
               "Son suivi",
               <>
                 <p className="muted">
-                  Un historique déclaratif. Les événements ne constituent pas un
-                  dossier médical certifié.
+                  {tr(
+                    "Un historique déclaratif. Les événements ne constituent pas un dossier médical certifié.",
+                  )}
                 </p>
                 {rows("event", events)}
               </>,
@@ -498,12 +518,13 @@ export default function AnimalRecordPage({
               "Ses documents",
               <>
                 <p className="muted">
-                  PDF, JPEG ou PNG · 10 Mo maximum · Enregistrés dans votre base
-                  locale.
+                  {tr(
+                    "PDF, JPEG ou PNG · 10 Mo maximum · Enregistrés dans votre base locale.",
+                  )}
                 </p>
                 {rows("document", documents)}
                 <a className="text-button" href={`#partage/partages/${id}`}>
-                  Partager et gérer les accès →
+                  {tr("Partager et gérer les accès →")}
                 </a>
               </>,
               <div className="heading-actions">
@@ -515,7 +536,7 @@ export default function AnimalRecordPage({
                   className="button"
                   onClick={() => actions.add("document", id)}
                 >
-                  Ajouter un document
+                  {tr("Ajouter un document")}
                 </button>
               </div>,
               !documents.length ? "documents" : undefined,
@@ -525,8 +546,9 @@ export default function AnimalRecordPage({
               "Ses rappels",
               <>
                 <p className="muted">
-                  Vous êtes prévenu par notification et par e-mail, selon le
-                  délai choisi.
+                  {tr(
+                    "Vous êtes prévenu par notification et par e-mail, selon le délai choisi.",
+                  )}
                 </p>
                 {rows("reminder", reminders)}
               </>,
@@ -548,7 +570,7 @@ export default function AnimalRecordPage({
                 className="button outline"
                 onClick={() => open("habits", pet)}
               >
-                Modifier les habitudes
+                {tr("Modifier les habitudes")}
               </button>,
               ![
                 pet.food,
@@ -566,8 +588,9 @@ export default function AnimalRecordPage({
               "Ses personnes de confiance",
               <>
                 <p className="muted">
-                  Des proches et professionnels à retrouver facilement.
-                  L’association à ce carnet ne donne pas accès aux documents.
+                  {tr(
+                    "Des proches et professionnels à retrouver facilement. L’association à ce carnet ne donne pas accès aux documents.",
+                  )}
                 </p>
                 <PeopleList
                   people={people}
@@ -576,7 +599,7 @@ export default function AnimalRecordPage({
                   animal={id}
                 />
                 <a className="text-button" href={`#partage/personnes/${id}`}>
-                  Gérer les personnes et les partages →
+                  {tr("Gérer les personnes et les partages →")}
                 </a>
               </>,
               <div className="row-buttons">
@@ -586,7 +609,7 @@ export default function AnimalRecordPage({
                     actions.openDialog("associate-people", { animal: id })
                   }
                 >
-                  Associer une personne
+                  {tr("Associer une personne")}
                 </button>
                 <button
                   className="button"
@@ -594,7 +617,7 @@ export default function AnimalRecordPage({
                     actions.openDialog("add-person", { animal: id })
                   }
                 >
-                  Ajouter une personne
+                  {tr("Ajouter une personne")}
                 </button>
               </div>,
               !people.length ? "people" : undefined,
@@ -604,8 +627,11 @@ export default function AnimalRecordPage({
     </div>
   );
 }
-function age(dob: string) {
-  if (!dob) return "Âge non renseigné";
+function age(
+  dob: string,
+  tr: import("../../../../shared/translations.ts").Translator,
+) {
+  if (!dob) return tr("Âge non renseigné");
   const now = new Date(),
     birth = new Date(`${dob}T12:00:00`);
   let years = now.getFullYear() - birth.getFullYear();
@@ -614,5 +640,5 @@ function age(dob: string) {
     (now.getMonth() === birth.getMonth() && now.getDate() < birth.getDate())
   )
     years--;
-  return `${Math.max(0, years)} ans`;
+  return tr(years === 1 ? "{0} an" : "{0} ans", [Math.max(0, years)]);
 }

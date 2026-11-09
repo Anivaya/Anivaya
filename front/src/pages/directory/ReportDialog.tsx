@@ -1,3 +1,4 @@
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import { useState } from "react";
 import Modal from "../../shared/ui/Modal.tsx";
 import SubmissionForm, { Field } from "../../shared/forms/SubmissionForm.tsx";
@@ -11,32 +12,37 @@ export default function ReportDialog({
   name: string;
   onClose: () => void;
 }) {
+  const tr = useText();
   const [busy, setBusy] = useState(false),
     [reference, setReference] = useState("");
   return (
     <Modal busy={busy} onClose={onClose}>
       {reference ? (
         <>
-          <h2 id="action-title">Signalement enregistré</h2>
+          <h2 id="action-title">{tr("Signalement enregistré")}</h2>
           <p>
-            Référence : <strong>{reference}</strong>. Retrouvez la réponse dans
-            Contact → Demandes et recours.
+            {tr("Référence : ")}
+            <strong>{reference}</strong>
+            {tr(". Retrouvez la réponse dans Contact → Demandes et recours.")}
           </p>
           <div className="dialog-actions">
             <button className="button" onClick={onClose}>
-              Fermer
+              {tr("Fermer")}
             </button>
           </div>
         </>
       ) : (
         <SubmissionForm
-          title="Signaler une fiche"
-          description={`Fiche concernée : ${name}. Décrivez précisément le problème pour aider la modération.`}
+          title={tr("Signaler une fiche")}
+          description={tr(
+            "Fiche concernée : {0}. Décrivez précisément le problème pour aider la modération.",
+            [name],
+          )}
           busy={busy}
           setBusy={setBusy}
           onClose={onClose}
           onSaved={async () => {}}
-          submitLabel="Envoyer le signalement"
+          submitLabel={tr("Envoyer le signalement")}
           onSubmit={async (values) => {
             const result = await adminApi.report({
               ...values,
@@ -48,7 +54,11 @@ export default function ReportDialog({
           }}
         >
           {({ error, invalid }) => (
-            <Field name="message" label="Motif du signalement" error={error}>
+            <Field
+              name="message"
+              label={tr("Motif du signalement")}
+              error={error}
+            >
               <textarea
                 data-resize-none
                 style={{ resize: "none" }}

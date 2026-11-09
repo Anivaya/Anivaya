@@ -1,16 +1,17 @@
+import { uiLocale } from "../i18n/locale.ts";
 import type { Animal, Reminder, Share } from "../types.ts";
 export const animalName = (animals: Animal[], id: string | undefined) =>
   animals.find((animal) => animal.id === id)?.name || "Animal";
 export const parseDate = (value: string) => new Date(`${value}T12:00:00`);
 export const fullDate = (value: string) =>
-  parseDate(value).toLocaleDateString("fr-FR", {
+  parseDate(value).toLocaleDateString(uiLocale(), {
     day: "numeric",
     month: "long",
     year: "numeric",
   });
 /** Date abrégée JJ/MM/AAAA (rappels sur mobile). */
 export const shortDate = (value: string) =>
-  parseDate(value).toLocaleDateString("fr-FR");
+  parseDate(value).toLocaleDateString(uiLocale());
 /** Jour AAAA-MM-JJ décalé de `days` jours, sans dépendre du fuseau du navigateur. */
 export function addDays(day: string, days: number) {
   const date = new Date(`${day}T12:00:00Z`);
@@ -37,7 +38,7 @@ export const svgImage = (svg: string) =>
   `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 
 export const money = (value: number) =>
-  new Intl.NumberFormat("fr-FR", {
+  new Intl.NumberFormat(uiLocale(), {
     style: "currency",
     currency: "EUR",
     maximumFractionDigits: 0,

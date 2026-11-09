@@ -1,3 +1,4 @@
+import { useText } from "../i18n/HomeLocale.tsx";
 import type { ReactNode } from "react";
 import { useEffect, useRef } from "react";
 import Icon from "./Icon.tsx";
@@ -16,6 +17,7 @@ export default function Modal({
   className?: string;
   labelledBy?: string;
 }) {
+  const tr = useText();
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const element = ref.current!;
@@ -55,7 +57,7 @@ export default function Modal({
             className="close"
             disabled={busy}
             onClick={onClose}
-            aria-label="Fermer la fenêtre"
+            aria-label={tr("Fermer la fenêtre")}
           >
             <Icon name="close" />
           </button>
@@ -67,10 +69,11 @@ export default function Modal({
 }
 
 export function CloseDialogButton({ onClose }: { onClose: () => void }) {
+  const tr = useText();
   return (
     <div className="dialog-actions">
       <button className="button outline close-action" onClick={onClose}>
-        Fermer
+        {tr("Fermer")}
       </button>
     </div>
   );

@@ -1,3 +1,5 @@
+import { uiLocale } from "../../shared/i18n/locale.ts";
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type {
   Community,
@@ -32,6 +34,7 @@ const REFRESH_MS = 5000;
 
 /** Communautés, événements et messagerie, partagés entre les comptes. */
 export default function CommunitiesPage({ params }: { params: string[] }) {
+  const tr = useText();
   const tab = (socialTabs.find(([key]) => key === params[0])?.[0] ??
     "communautes") as SocialTab;
   const id = params[1] ? decodeURIComponent(params[1]) : "";
@@ -115,37 +118,39 @@ export default function CommunitiesPage({ params }: { params: string[] }) {
   return (
     <div className="social-page">
       <PageHeading
-        title="Communautés"
-        description="Rejoignez des groupes près de chez vous, participez à des sorties et échangez avec d’autres propriétaires."
+        title={tr("Communautés")}
+        description={tr(
+          "Rejoignez des groupes près de chez vous, participez à des sorties et échangez avec d’autres propriétaires.",
+        )}
       />
-      <nav className="page-tabs" aria-label="Sections des communautés">
+      <nav className="page-tabs" aria-label={tr("Sections des communautés")}>
         {socialTabs.map(([key, label]) => (
           <a
             key={key}
             href={socialHref(key)}
             aria-current={tab === key ? "page" : undefined}
           >
-            {label}
+            {tr(label)}
             {key === "messagerie" && unread > 0 && ` (${unread})`}
           </a>
         ))}
       </nav>
       {feedback && (
         <p className="social-error social-feedback" role="alert">
-          {feedback}
+          {tr(feedback)}
         </p>
       )}
       {!ctx ? (
         loadError ? (
           <div className="empty error-panel" role="alert">
-            <p>{loadError}</p>
+            <p>{tr(loadError)}</p>
             <button className="button outline" onClick={() => void reload()}>
-              Réessayer
+              {tr("Réessayer")}
             </button>
           </div>
         ) : (
           <p className="empty" role="status">
-            Chargement des communautés…
+            {tr("Chargement des communautés…")}
           </p>
         )
       ) : detail ? (
@@ -159,7 +164,7 @@ export default function CommunitiesPage({ params }: { params: string[] }) {
       )}
 
       <div className="toast" role="status" hidden={!toast}>
-        {toast}
+        {tr(toast)}
       </div>
       {ctx && dialog && (
         <SocialDialogView
@@ -213,6 +218,7 @@ function SocialList({
   tab: SocialTab;
   id: string;
 }) {
+  const tr = useText();
   const { data } = ctx;
   const [search, setSearch] = useState("");
   // Événements : « Mes participations » d’abord ; les autres onglets montrent tout.
@@ -267,13 +273,13 @@ function SocialList({
     <>
       <div className="social-toolbar">
         <div className="social-search">
-          <label htmlFor="social-search">Rechercher</label>
+          <label htmlFor="social-search">{tr("Rechercher")}</label>
           <div>
             <input
               id="social-search"
               type="search"
               autoComplete="off"
-              placeholder={placeholders[tab]}
+              placeholder={tr(placeholders[tab])}
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
@@ -284,7 +290,7 @@ function SocialList({
               <button
                 type="button"
                 className="social-icon"
-                aria-label="Effacer la recherche"
+                aria-label={tr("Effacer la recherche")}
                 onClick={() => {
                   setSearch("");
                   setLimit(PAGE_SIZE);
@@ -298,7 +304,7 @@ function SocialList({
         </div>
         {filters[tab].length > 0 && (
           <div className="social-filter-field">
-            <label htmlFor="social-filter">Afficher</label>
+            <label htmlFor="social-filter">{tr("Afficher")}</label>
             <select
               id="social-filter"
               value={filter}
@@ -309,7 +315,7 @@ function SocialList({
             >
               {filters[tab].map(([value, label]) => (
                 <option key={value} value={value}>
-                  {label}
+                  {tr(label)}
                 </option>
               ))}
             </select>
@@ -318,12 +324,12 @@ function SocialList({
         <button
           type="button"
           className="button social-primary"
-          aria-label={primary[tab][0]}
-          title={primary[tab][0]}
+          aria-label={tr(primary[tab][0])}
+          title={tr(primary[tab][0])}
           onClick={() => ctx.open(primary[tab][2])}
         >
           <Icon name="plus" />
-          <span aria-hidden="true">{primary[tab][1]}</span>
+          <span aria-hidden="true">{tr(primary[tab][1])}</span>
         </button>
       </div>
       {tab === "messagerie" ? (
@@ -337,8 +343,16 @@ function SocialList({
       ) : (
         <>
           <p className="results-label" role="status">
-            {list.length}{" "}
-            {tab === "communautes" ? "communauté(s)" : "événement(s)"}
+            {tr(
+              tab === "communautes"
+                ? list.length === 1
+                  ? "{0} communauté"
+                  : "{0} communautés"
+                : list.length === 1
+                  ? "{0} événement"
+                  : "{0} événements",
+              [list.length],
+            )}
           </p>
           <div className="social-grid">
             {tab === "communautes"
@@ -354,19 +368,21 @@ function SocialList({
               kind={tab === "communautes" ? "communities" : "events"}
               title={
                 search
-                  ? "Aucun résultat"
+                  ? tr("Aucun résultat")
                   : tab === "communautes"
-                    ? "Aucune communauté à afficher"
-                    : "Aucun événement à afficher"
+                    ? tr("Aucune communauté à afficher")
+                    : tr("Aucun événement à afficher")
               }
             >
               {search
-                ? "Essayez un autre nom ou une autre ville."
+                ? tr("Essayez un autre nom ou une autre ville.")
                 : tab === "communautes"
-                  ? "Explorez les communautés ou créez la vôtre."
+                  ? tr("Explorez les communautés ou créez la vôtre.")
                   : filter === "mine"
-                    ? "Rejoignez un événement ou proposez une rencontre."
-                    : "Changez de filtre ou proposez une rencontre entre compagnons."}
+                    ? tr("Rejoignez un événement ou proposez une rencontre.")
+                    : tr(
+                        "Changez de filtre ou proposez une rencontre entre compagnons.",
+                      )}
             </Empty>
           )}
           {list.length > limit && (
@@ -376,7 +392,7 @@ function SocialList({
                 className="button outline"
                 onClick={() => setLimit(limit + PAGE_SIZE)}
               >
-                Afficher plus
+                {tr("Afficher plus")}
               </button>
             </div>
           )}
@@ -393,6 +409,7 @@ function CommunityCard({
   ctx: SocialContext;
   group: Community;
 }) {
+  const tr = useText();
   const joined = group.members.includes(ctx.data.me);
   const href = socialHref("communautes", group.id);
   return (
@@ -400,26 +417,30 @@ function CommunityCard({
       <a
         className={`community-cover ${group.tone}`}
         href={href}
-        aria-label={
-          (joined ? "Ouvrir la discussion de " : "Découvrir ") + group.name
-        }
+        aria-label={tr(
+          joined ? "Ouvrir la discussion de {0}" : "Découvrir {0}",
+          [group.name],
+        )}
       >
         <Icon name={group.topic === "Balades" ? "pin" : "people"} />
         <span>{group.city}</span>
       </a>
       <div className="social-card-body">
         <div className="social-tags">
-          <span>{group.topic}</span>
-          {joined && <span className="joined">Membre</span>}
+          <span>{tr(group.topic)}</span>
+          {joined && <span className="joined">{tr("Membre")}</span>}
         </div>
         <h2>
           <a href={href}>{group.name}</a>
         </h2>
         <p>{group.description}</p>
         <div className="social-card-foot">
-          <span>{group.members.length} membre(s)</span>
+          <span>
+            {group.members.length}
+            {tr(" membre(s)")}
+          </span>
           <a className="button outline" href={href}>
-            {joined ? "Discussion" : "Découvrir"}
+            {joined ? tr("Discussion") : tr("Découvrir")}
           </a>
         </div>
       </div>
@@ -428,6 +449,7 @@ function CommunityCard({
 }
 
 function EventCard({ ctx, event }: { ctx: SocialContext; event: SocialEvent }) {
+  const tr = useText();
   const date = new Date(event.date);
   const href = socialHref("evenements", event.id);
   const status = event.cancelled
@@ -444,14 +466,16 @@ function EventCard({ ctx, event }: { ctx: SocialContext; event: SocialEvent }) {
       <a
         className="event-date"
         href={href}
-        aria-label={`Voir l’événement : ${event.name}`}
+        aria-label={tr("Voir l’événement : {0}", [event.name])}
       >
         <strong>{date.getDate()}</strong>
-        <span>{date.toLocaleDateString("fr-FR", { month: "short" })}</span>
+        <span>{date.toLocaleDateString(uiLocale(), { month: "short" })}</span>
       </a>
       <div className="social-card-body">
         <div className="social-tags">
-          <span className={event.cancelled ? "cancelled" : ""}>{status}</span>
+          <span className={event.cancelled ? "cancelled" : ""}>
+            {tr(status)}
+          </span>
         </div>
         <h2>
           <a href={href}>{event.name}</a>
@@ -463,10 +487,11 @@ function EventCard({ ctx, event }: { ctx: SocialContext; event: SocialEvent }) {
         </p>
         <div className="social-card-foot">
           <span>
-            {event.participants.length} / {event.capacity} participants
+            {event.participants.length} / {event.capacity}
+            {tr(" participants")}
           </span>
           <a className="button outline" href={href}>
-            Voir l’événement
+            {tr("Voir l’événement")}
           </a>
         </div>
       </div>

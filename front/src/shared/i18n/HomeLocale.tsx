@@ -1,10 +1,12 @@
 import { createContext, useContext } from "react";
+import type { Translator } from "../../../../shared/translations.ts";
+import { translateMessage } from "../../../../shared/translations.ts";
 
-// Shared menus and footer stay in French outside the home pages for now.
-// The English catalogue is loaded with HomePage, not with the account screens.
-export const HomeLocale = createContext<(text: string) => string>(
-  (text) => text,
+// Root provider selects the API catalogue for home or personal-account pages.
+export const HomeLocale = createContext<Translator>((text, values) =>
+  translateMessage({}, text, values),
 );
 export function useHomeText() {
   return useContext(HomeLocale);
 }
+export const useText = useHomeText;

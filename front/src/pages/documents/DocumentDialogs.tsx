@@ -1,3 +1,4 @@
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import EmptyState from "../../shared/ui/EmptyState.tsx";
 import type { Document, DialogProps } from "../../shared/types.ts";
 import { errorMessage } from "../../shared/types.ts";
@@ -17,27 +18,28 @@ export function DocumentDetails({
   onClose,
   onOpenDialog,
 }: DialogProps<Document>) {
+  const tr = useText();
   return (
     <>
       <h2 id="action-title" className="dialog-title">
         {item.name}
       </h2>
       <p className="dialog-copy">
-        {animalName(data.animals, item.animal)} · {item.category}
+        {animalName(data.animals, item.animal)} · {tr(item.category)}
       </p>
       {item.hasFile ? (
         <>
           {item.type === "application/pdf" ? (
             <iframe
               className="doc-preview pdf-preview"
-              title={`Aperçu de ${item.name}`}
+              title={tr("Aperçu de {0}", [item.name])}
               src={`${item.url}?preview=1`}
             />
           ) : (
             <img
               className="doc-preview"
               src={`${item.url}?preview=1`}
-              alt={`Aperçu de ${item.name}`}
+              alt={tr("Aperçu de {0}", [item.name])}
             />
           )}
           <a
@@ -45,7 +47,7 @@ export function DocumentDetails({
             href={item.url || undefined}
             download={item.name}
           >
-            Télécharger le document
+            {tr("Télécharger le document")}
           </a>
         </>
       ) : (
@@ -53,8 +55,10 @@ export function DocumentDetails({
           kind="documents"
           className="empty"
           compact
-          title="Aucun fichier joint"
-          description="Ce document ne contient pas encore de fichier à prévisualiser."
+          title={tr("Aucun fichier joint")}
+          description={tr(
+            "Ce document ne contient pas encore de fichier à prévisualiser.",
+          )}
         />
       )}
       <div className="dialog-actions">
@@ -62,10 +66,10 @@ export function DocumentDetails({
           className="button"
           onClick={() => onOpenDialog("share-document", item)}
         >
-          Partager ce document
+          {tr("Partager ce document")}
         </button>
         <button className="button outline close-action" onClick={onClose}>
-          Fermer
+          {tr("Fermer")}
         </button>
       </div>
     </>
@@ -77,18 +81,21 @@ export function DocumentForm({
   item,
   ...props
 }: DialogProps<Partial<Document>>) {
+  const tr = useText();
   const editing = Boolean(item?.id);
   return (
     <SubmissionForm
       {...props}
-      title={editing ? "Modifier le document" : "Ajouter un document"}
+      title={editing ? tr("Modifier le document") : tr("Ajouter un document")}
       description={
         editing
-          ? "Modifiez son nom ou l’animal auquel il est associé."
-          : "Le fichier est enregistré dans votre espace privé."
+          ? tr("Modifiez son nom ou l’animal auquel il est associé.")
+          : tr("Le fichier est enregistré dans votre espace privé.")
       }
-      successMessage={editing ? "Document modifié." : "Document enregistré."}
-      submitLabel={editing ? "Enregistrer" : "Ajouter"}
+      successMessage={
+        editing ? tr("Document modifié.") : tr("Document enregistré.")
+      }
+      submitLabel={editing ? tr("Enregistrer") : tr("Ajouter")}
       disabled={!data.animals.length}
       onSubmit={async (values, form) => {
         if (!values.name?.trim())
@@ -124,7 +131,7 @@ export function DocumentForm({
     >
       {({ error, invalid }) => (
         <>
-          <Field name="name" label="Nom du document" error={error}>
+          <Field name="name" label={tr("Nom du document")} error={error}>
             <input
               id="name"
               name="name"
@@ -140,20 +147,24 @@ export function DocumentForm({
             error={error}
             invalid={invalid}
           />
-          <Field name="category" label="Catégorie">
+          <Field name="category" label={tr("Catégorie")}>
             <select
               id="category"
               name="category"
               defaultValue={item?.category || "Santé"}
             >
               {["Santé", "Identité", "Assurance", "Autre"].map((value) => (
-                <option key={value}>{value}</option>
+                <option key={value} value={value}>
+                  {tr(value)}
+                </option>
               ))}
             </select>
           </Field>
           <Field
             name="file"
-            label={editing ? "Remplacer le fichier (facultatif)" : "Fichier"}
+            label={
+              editing ? tr("Remplacer le fichier (facultatif)") : tr("Fichier")
+            }
             error={error}
           >
             <input
@@ -164,7 +175,9 @@ export function DocumentForm({
               required={!editing}
               {...invalid("file")}
             />
-            <p className="field-help">PDF, JPEG ou PNG · 10 Mo maximum</p>
+            <p className="field-help">
+              {tr("PDF, JPEG ou PNG · 10 Mo maximum")}
+            </p>
           </Field>
         </>
       )}
@@ -180,16 +193,20 @@ export function DeleteDocument({
   busy,
   setBusy,
 }: DialogProps<Document>) {
+  const tr = useText();
   const { error, run } = useDialogAction(setBusy);
   return (
     <>
       <h2 id="action-title" className="dialog-title">
-        Supprimer ce document ?
+        {tr("Supprimer ce document ?")}
       </h2>
       <p className="dialog-copy">
-        « {item.name} » sera retiré du carnet de{" "}
-        {animalName(data.animals, item.animal)}. Le fichier d’origine sur votre
-        ordinateur sera conservé. Les partages de ce document seront révoqués.
+        « {item.name}
+        {tr(" » sera retiré du carnet de")}{" "}
+        {animalName(data.animals, item.animal)}
+        {tr(
+          ". Le fichier d’origine sur votre ordinateur sera conservé. Les partages de ce document seront révoqués.",
+        )}
       </p>
       <FormAlert message={error} />
       <div className="dialog-actions">
@@ -198,7 +215,7 @@ export function DeleteDocument({
           onClick={onClose}
           disabled={busy}
         >
-          Annuler
+          {tr("Annuler")}
         </button>
         <button
           className="button danger"
@@ -210,7 +227,7 @@ export function DeleteDocument({
             })
           }
         >
-          {busy ? "Suppression…" : "Supprimer le document"}
+          {busy ? tr("Suppression…") : tr("Supprimer le document")}
         </button>
       </div>
     </>
@@ -244,6 +261,7 @@ export function DownloadDocuments({
   busy,
   setBusy,
 }: DialogProps) {
+  const tr = useText();
   const { error, run } = useDialogAction(setBusy);
   const documents = selectedDocuments(item, data);
   const available = documents.filter((d) => d.hasFile);
@@ -251,30 +269,36 @@ export function DownloadDocuments({
   return (
     <>
       <h2 id="action-title" className="dialog-title">
-        Télécharger les documents
+        {tr("Télécharger les documents")}
       </h2>
       {available.length > 0 && (
         <>
           <p className="dialog-copy">
-            {available.length} fichier(s) disponible(s)
-            {available.length > 1 ? " réunis dans une archive ZIP" : ""}.
+            {available.length}
+            {tr(" fichier(s) disponible(s)")}
+            {available.length > 1 ? tr(" réunis dans une archive ZIP") : ""}.
           </p>
           <BatchList documents={available} data={data} />
         </>
       )}
       {missing.length > 0 && (
         <div className="batch-unavailable">
-          <strong>{missing.length} fichier(s) non disponible(s)</strong>
+          <strong>
+            {missing.length}
+            {tr(" fichier(s) non disponible(s)")}
+          </strong>
           <ul>
             {missing.map((d) => (
               <li key={d.id}>
-                {d.name} — {d.example ? "sans fichier" : "fichier à associer"}
+                {d.name} —{" "}
+                {d.example ? tr("sans fichier") : tr("fichier à associer")}
               </li>
             ))}
           </ul>
           <p>
-            Fermez cette fenêtre et utilisez « Modifier » pour associer un
-            fichier à ces documents.
+            {tr(
+              "Fermez cette fenêtre et utilisez « Modifier » pour associer un fichier à ces documents.",
+            )}
           </p>
         </div>
       )}
@@ -285,7 +309,7 @@ export function DownloadDocuments({
           onClick={onClose}
           disabled={busy}
         >
-          Fermer
+          {tr("Fermer")}
         </button>
         {available.length > 0 && (
           <button
@@ -299,8 +323,15 @@ export function DownloadDocuments({
             }
           >
             {busy
-              ? "Préparation…"
-              : `Télécharger ${missing.length ? "les fichiers disponibles" : "les fichiers"} (${available.length})`}
+              ? tr("Préparation…")
+              : tr("Télécharger {0} ({1})", [
+                  tr(
+                    missing.length
+                      ? "les fichiers disponibles"
+                      : "les fichiers",
+                  ),
+                  available.length,
+                ])}
           </button>
         )}
       </div>
@@ -316,18 +347,21 @@ export function DeleteDocuments({
   busy,
   setBusy,
 }: DialogProps) {
+  const tr = useText();
   const { error, run } = useDialogAction(setBusy);
   const documents = selectedDocuments(item, data);
   return (
     <>
       <h2 id="action-title" className="dialog-title">
-        Supprimer {documents.length} document(s) ?
+        {tr("Supprimer ")}
+        {documents.length}
+        {tr(" document(s) ?")}
       </h2>
       <BatchList documents={documents} data={data} />
       <p className="dialog-copy">
-        Ils seront retirés de Documents et des carnets associés. Les partages de
-        ces documents seront révoqués. Les fichiers d’origine sur votre appareil
-        sont conservés.
+        {tr(
+          "Ils seront retirés de Documents et des carnets associés. Les partages de ces documents seront révoqués. Les fichiers d’origine sur votre appareil sont conservés.",
+        )}
       </p>
       <FormAlert message={error} />
       <div className="dialog-actions">
@@ -336,7 +370,7 @@ export function DeleteDocuments({
           onClick={onClose}
           disabled={busy}
         >
-          Annuler
+          {tr("Annuler")}
         </button>
         <button
           className="button danger"
@@ -353,15 +387,17 @@ export function DeleteDocuments({
                 if (!deleted) throw failure;
                 // Suppression partielle : l’espace est rechargé et l’échec signalé.
                 await onSaved(
-                  `${deleted} document(s) supprimé(s). ${errorMessage(failure)}`,
+                  `${tr("{0} document(s) supprimé(s).", [deleted])} ${tr(errorMessage(failure))}`,
                 );
                 return;
               }
-              await onSaved(`${deleted} document(s) supprimé(s).`);
+              await onSaved(tr("{0} document(s) supprimé(s).", [deleted]));
             })
           }
         >
-          {busy ? "Suppression…" : "Supprimer les documents sélectionnés"}
+          {busy
+            ? tr("Suppression…")
+            : tr("Supprimer les documents sélectionnés")}
         </button>
       </div>
     </>

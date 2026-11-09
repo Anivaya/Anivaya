@@ -1,3 +1,4 @@
+import { useText } from "../i18n/HomeLocale.tsx";
 import type { ReactNode, FormEvent } from "react";
 import type {
   Animal,
@@ -36,6 +37,7 @@ export default function SubmissionForm({
   danger?: boolean;
   headerAction?: ReactNode;
 }) {
+  const tr = useText();
   const [error, setError] = useState<FormError | null>(null);
   const ref = useRef<HTMLFormElement>(null);
   const invalid: ValidationState["invalid"] = (name) => ({
@@ -92,14 +94,14 @@ export default function SubmissionForm({
             disabled={busy}
             onClick={onClose}
           >
-            Annuler
+            {tr("Annuler")}
           </button>
           <button
             className={`button${danger ? " danger" : ""}`}
             type="submit"
             disabled={busy || disabled}
           >
-            {busy ? "Enregistrement…" : submitLabel}
+            {busy ? tr("Enregistrement…") : tr(submitLabel)}
           </button>
         </div>
       </form>
@@ -108,9 +110,10 @@ export default function SubmissionForm({
 }
 
 export function FormAlert({ message }: { message?: string }) {
+  const tr = useText();
   return message ? (
     <p className="form-error" role="alert">
-      {message}
+      {tr(message)}
     </p>
   ) : null;
 }
@@ -126,13 +129,16 @@ export function Field({
   error?: FormError | null;
   children: ReactNode;
 }) {
+  const tr = useText();
   return (
     <div className="field">
-      <label htmlFor={name}>{label}</label>
+      <label htmlFor={name}>
+        {typeof label === "string" ? tr(label) : label}
+      </label>
       {children}
       {error?.field === name && (
         <p className="field-help form-error" id={`${name}-error`}>
-          {error.message}
+          {tr(error.message)}
         </p>
       )}
     </div>
@@ -145,15 +151,16 @@ export function AnimalSelectField({
   error,
   invalid,
 }: ValidationState & { animals: Animal[]; defaultValue?: string }) {
+  const tr = useText();
   return (
-    <Field name="animal" label="Animal" error={error}>
+    <Field name="animal" label={tr("Animal")} error={error}>
       <select
         id="animal"
         name="animal"
         defaultValue={defaultValue || animals[0]?.id || ""}
         {...invalid("animal")}
       >
-        {!animals.length && <option value="">Aucun animal</option>}
+        {!animals.length && <option value="">{tr("Aucun animal")}</option>}
         {animals.map((animal) => (
           <option key={animal.id} value={animal.id}>
             {animal.name}

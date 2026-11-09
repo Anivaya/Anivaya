@@ -1,4 +1,8 @@
+import { useText } from "./shared/i18n/HomeLocale.tsx";
 import type { ComponentType, Dispatch, SetStateAction } from "react";
+import { HomeLocale } from "./shared/i18n/HomeLocale.tsx";
+import { useTranslations } from "./shared/i18n/useTranslations.ts";
+import { translationScope } from "../../shared/translations.ts";
 import { AdminViewContext } from "./shared/layout/AdminViewContext.ts";
 import PublicFooter from "./shared/layout/PublicFooter.tsx";
 import {
@@ -92,24 +96,33 @@ const informationTabs = new Set(["ressources", "service", "donnees"]);
 export default function App() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [hash, setHash] = useState(location.hash);
+  const translate = useTranslations(
+    translationScope(
+      hash,
+      (!!user && !user.adminRole) || hash.startsWith("#urgence/"),
+    ),
+  );
+  const tr = translate;
   useEffect(() => {
     const update = () => setHash(location.hash);
     window.addEventListener("hashchange", update);
     return () => window.removeEventListener("hashchange", update);
   }, []);
   return (
-    <AdminViewContext.Provider value={!!user?.adminRole}>
-      <Suspense
-        fallback={
-          <div className="session-screen" role="status">
-            Chargement de la page…
-          </div>
-        }
-      >
-        <AppContent user={user} setUser={setUser} />
-      </Suspense>
-      {hash !== "" && !hash.startsWith("#accueil") && <PublicFooter />}
-    </AdminViewContext.Provider>
+    <HomeLocale.Provider value={translate}>
+      <AdminViewContext.Provider value={!!user?.adminRole}>
+        <Suspense
+          fallback={
+            <div className="session-screen" role="status">
+              {tr("Chargement de la page…")}
+            </div>
+          }
+        >
+          <AppContent user={user} setUser={setUser} />
+        </Suspense>
+        {hash !== "" && !hash.startsWith("#accueil") && <PublicFooter />}
+      </AdminViewContext.Provider>
+    </HomeLocale.Provider>
   );
 }
 function AppContent({
@@ -119,6 +132,7 @@ function AppContent({
   user: AuthUser | null;
   setUser: Dispatch<SetStateAction<AuthUser | null>>;
 }) {
+  const tr = useText();
   const sessionVersion = useRef(0);
   const [route, setRoute] = useState(
     () => window.location.hash.slice(1) || "accueil",
@@ -227,15 +241,15 @@ function AppContent({
   if (loading)
     return (
       <div className="session-screen" role="status">
-        Chargement de votre espace…
+        {tr("Chargement de votre espace…")}
       </div>
     );
   if (error)
     return (
       <div className="session-screen" role="alert">
-        <p>{error}</p>
+        <p>{tr(error)}</p>
         <button className="button" onClick={() => window.location.reload()}>
-          Réessayer
+          {tr("Réessayer")}
         </button>
       </div>
     );
@@ -284,6 +298,7 @@ function Workspace({
   onProfileChanged: (profile: Profile) => Promise<void>;
   onAccountDeleted: () => void;
 }) {
+  const tr = useText();
   const [modal, setModal] = useState<DialogState | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = useCallback(() => setMenuOpen(false), []);
@@ -351,7 +366,7 @@ function Workspace({
           document.getElementById("dashboard-content")?.focus();
         }}
       >
-        Aller au contenu
+        {tr("Aller au contenu")}
       </a>
       <div
         className={`workspace ${page !== "espace" ? "section-mode" : ""} ${page === "documents" ? "documents-mode" : ""}`}
@@ -369,21 +384,23 @@ function Workspace({
             <button
               type="button"
               className="menu-toggle"
-              aria-label="Ouvrir le menu de navigation"
+              aria-label={tr("Ouvrir le menu de navigation")}
               aria-expanded={menuOpen}
               aria-controls={SIDEBAR_ID}
               onClick={() => setMenuOpen(true)}
             >
               <Icon name="menu" />
             </button>
-            <strong className="top-title">Mon espace</strong>
-            <small>/ {title}</small>
+            <strong className="top-title">{tr("Mon espace")}</strong>
+            <small>/ {tr(title)}</small>
             <a
               href="#notifications"
               className="notification-bell"
-              title="Centre de notifications"
+              title={tr("Centre de notifications")}
               aria-label={
-                "Notifications" + (unread ? `, ${unread} non lues` : "")
+                unread
+                  ? tr("Notifications, {0} non lues", [unread])
+                  : tr("Notifications")
               }
               aria-current={page === "notifications" ? "page" : undefined}
             >
@@ -407,17 +424,17 @@ function Workspace({
           >
             {loading && !data && (
               <p className="empty" role="status">
-                Chargement de votre espace…
+                {tr("Chargement de votre espace…")}
               </p>
             )}
             {error && (
               <div className="empty error-panel" role="alert">
-                <p>{error}</p>
+                <p>{tr(error)}</p>
                 <button
                   className="button outline"
                   onClick={() => reload().catch(() => {})}
                 >
-                  Réessayer
+                  {tr("Réessayer")}
                 </button>
               </div>
             )}
@@ -472,7 +489,7 @@ function Workspace({
         />
       )}
       <div className="toast" role="status" hidden={!notice}>
-        {notice}
+        {tr(notice)}
       </div>
     </>
   );

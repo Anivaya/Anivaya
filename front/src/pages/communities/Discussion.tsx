@@ -1,3 +1,5 @@
+import { uiLocale } from "../../shared/i18n/locale.ts";
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import type { Thread } from "../../../../shared/social.ts";
@@ -24,10 +26,11 @@ export default function Discussion({
   /** Message à afficher et encadrer (résultat de recherche) ; nonce relance l’effet. */
   focus?: { id: string; nonce: number };
 }) {
+  const tr = useText();
   if (!thread)
     return (
-      <Empty kind={null} title="Discussion inaccessible">
-        Vous n’avez pas accès à cette conversation.
+      <Empty kind={null} title={tr("Discussion inaccessible")}>
+        {tr("Vous n’avez pas accès à cette conversation.")}
       </Empty>
     );
   return <ThreadView key={thread.id} ctx={ctx} thread={thread} focus={focus} />;
@@ -42,6 +45,7 @@ function ThreadView({
   thread: Thread;
   focus?: { id: string; nonce: number };
 }) {
+  const tr = useText();
   const { data } = ctx;
   const [limit, setLimit] = useState(MESSAGE_PAGE);
   const [draft, setDraft] = useState<Draft>(
@@ -218,7 +222,7 @@ function ThreadView({
           if (hasOlder && element.scrollTop < 8) loadOlder();
         }}
         tabIndex={0}
-        aria-label="Historique de la discussion"
+        aria-label={tr("Historique de la discussion")}
       >
         {hasOlder && (
           <div className="older-messages">
@@ -227,7 +231,7 @@ function ThreadView({
               className="button outline"
               onClick={loadOlder}
             >
-              Voir les messages précédents
+              {tr("Voir les messages précédents")}
             </button>
           </div>
         )}
@@ -250,18 +254,22 @@ function ThreadView({
                     <button
                       type="button"
                       className="message-photo"
-                      aria-label="Agrandir la photo"
+                      aria-label={tr("Agrandir la photo")}
                       onClick={() =>
                         ctx.open({
                           kind: "photo",
                           src: m.photo!,
-                          alt: `Photo partagée par ${personName(data, m.sender)}`,
+                          alt: tr("Photo partagée par {0}", [
+                            personName(data, m.sender),
+                          ]),
                         })
                       }
                     >
                       <img
                         src={m.photo}
-                        alt={`Photo partagée par ${personName(data, m.sender)}`}
+                        alt={tr("Photo partagée par {0}", [
+                          personName(data, m.sender),
+                        ])}
                         width="240"
                         height="180"
                         onLoad={stickToBottom}
@@ -271,7 +279,7 @@ function ThreadView({
                 </div>
                 <div className="message-meta">
                   <time dateTime={m.at}>
-                    {new Date(m.at).toLocaleString("fr-FR", {
+                    {new Date(m.at).toLocaleString(uiLocale(), {
                       day: "numeric",
                       month: "short",
                       hour: "2-digit",
@@ -282,19 +290,19 @@ function ThreadView({
                     (read ? (
                       <span className="read-receipt">
                         <Icon name="check-double" />
-                        Lu
+                        {tr("Lu")}
                       </span>
                     ) : (
                       mine && (
                         <span>
                           <Icon name="check" />
-                          Envoyé
+                          {tr("Envoyé")}
                         </span>
                       )
                     ))}
                   {mine && (
                     <IconButton
-                      label="Supprimer mon message"
+                      label={tr("Supprimer mon message")}
                       icon="trash"
                       danger
                       onClick={() =>
@@ -312,7 +320,7 @@ function ThreadView({
                   {/* Signaler : en bas à droite, après le statut de lecture. */}
                   {!mine && (
                     <IconButton
-                      label="Signaler le message"
+                      label={tr("Signaler le message")}
                       icon="flag"
                       danger
                       onClick={() =>
@@ -330,10 +338,10 @@ function ThreadView({
           })}
         </ol>
         {!messages.length && (
-          <Empty title="La conversation commence ici">
+          <Empty title={tr("La conversation commence ici")}>
             {thread.canSend
-              ? "Envoyez un premier bonjour aux participants."
-              : "Les premiers messages apparaîtront ici."}
+              ? tr("Envoyez un premier bonjour aux participants.")
+              : tr("Les premiers messages apparaîtront ici.")}
           </Empty>
         )}
         <div ref={sentinel} aria-hidden="true" />
@@ -341,14 +349,14 @@ function ThreadView({
       {thread.canSend ? (
         <form className="message-compose" noValidate onSubmit={submit}>
           <label className="sr-only" htmlFor="message-text">
-            Votre message
+            {tr("Votre message")}
           </label>
           <textarea
             data-resize-none
             id="message-text"
             rows={2}
             maxLength={3000}
-            placeholder="Écrivez un message…"
+            placeholder={tr("Écrivez un message…")}
             value={draft.text}
             onChange={(e) => {
               update({ ...draft, text: e.target.value });
@@ -369,13 +377,13 @@ function ThreadView({
           />
           {draft.photo && (
             <div className="attachment-preview">
-              <span>Photo prête à envoyer</span>
+              <span>{tr("Photo prête à envoyer")}</span>
               <button
                 type="button"
                 className="button outline"
                 onClick={() => update({ text: draft.text })}
               >
-                Retirer
+                {tr("Retirer")}
               </button>
             </div>
           )}
@@ -385,7 +393,7 @@ function ThreadView({
               <input
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
-                aria-label="Joindre une photo (1 Mo maximum)"
+                aria-label={tr("Joindre une photo (1 Mo maximum)")}
                 onChange={(e) => {
                   void attach(e.target.files?.[0]);
                   e.target.value = "";
@@ -393,25 +401,27 @@ function ThreadView({
               />
             </label>
             <small>
-              <span>JPG, PNG ou WebP</span>
-              <span>1 Mo max.</span>
+              <span>{tr("JPG, PNG ou WebP")}</span>
+              <span>{tr("1 Mo max.")}</span>
             </small>
             <small id="compose-hint" className="compose-hint">
-              <span>Entrée pour envoyer</span>
-              <span>Maj + Entrée pour aller à la ligne</span>
+              <span>{tr("Entrée pour envoyer")}</span>
+              <span>{tr("Maj + Entrée pour aller à la ligne")}</span>
             </small>
             <button type="submit" className="button" disabled={busy}>
               <Icon name="send" />
-              Envoyer
+              {tr("Envoyer")}
             </button>
           </div>
           <p className="social-error" role="alert">
-            {error}
+            {tr(error)}
           </p>
         </form>
       ) : (
         <p className="chat-start">
-          La discussion reste consultable. Les nouveaux messages sont fermés.
+          {tr(
+            "La discussion reste consultable. Les nouveaux messages sont fermés.",
+          )}
         </p>
       )}
     </>

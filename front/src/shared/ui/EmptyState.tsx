@@ -1,3 +1,4 @@
+import { useText } from "../i18n/HomeLocale.tsx";
 import EmptyIllustration, { type EmptyKind } from "./EmptyIllustration.tsx";
 import type { ReactNode } from "react";
 
@@ -60,6 +61,7 @@ export default function EmptyState({
   description?: ReactNode;
   filtered?: boolean;
 }) {
+  const tr = useText();
   const density = size ?? (compact ? "compact" : "standard");
   const heading = filtered ? "Aucun résultat" : (title ?? messages[kind].title);
   const copy = filtered
@@ -69,8 +71,12 @@ export default function EmptyState({
     <div className={`empty-state empty-state-${density} ${className}`}>
       <EmptyIllustration kind={kind} />
       <div className="empty-state-copy">
-        <p className="empty-state-title">{heading}</p>
-        {copy && <p className="empty-state-description">{copy}</p>}
+        <p className="empty-state-title">{tr(heading)}</p>
+        {copy && (
+          <p className="empty-state-description">
+            {typeof copy === "string" ? tr(copy) : copy}
+          </p>
+        )}
       </div>
     </div>
   );

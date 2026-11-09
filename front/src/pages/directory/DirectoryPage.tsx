@@ -1,3 +1,5 @@
+import { uiLocale } from "../../shared/i18n/locale.ts";
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import EmptyState from "../../shared/ui/EmptyState.tsx";
 import { useEffect, useState } from "react";
 import type { Animal } from "../../../../shared/models.ts";
@@ -44,6 +46,7 @@ export default function DirectoryPage({
   profile: Profile;
   reservations: boolean;
 }) {
+  const tr = useText();
   const [data, setData] = useState<DirectoryData | null>(null),
     [error, setError] = useState(""),
     [retry, setRetry] = useState(0),
@@ -120,7 +123,10 @@ export default function DirectoryPage({
   const list =
     data?.professionals.filter(
       (p) =>
-        matches(p.name + " " + p.intro + " " + p.category, filters.q) &&
+        matches(
+          p.name + " " + p.intro + " " + p.category + " " + tr(p.category),
+          filters.q,
+        ) &&
         (!filters.category || p.category === filters.category) &&
         (!filters.city || p.city === filters.city) &&
         (!filters.species || p.species.includes(filters.species)) &&
@@ -144,22 +150,23 @@ export default function DirectoryPage({
     <section className="directory-page">
       <div className="welcome">
         <div>
-          <h1>Les bonnes personnes, pour eux.</h1>
+          <h1>{tr("Les bonnes personnes, pour eux.")}</h1>
           <p>
-            Trouvez un professionnel pour les petits et les grands besoins de
-            votre compagnon.
+            {tr(
+              "Trouvez un professionnel pour les petits et les grands besoins de votre compagnon.",
+            )}
           </p>
         </div>
       </div>
-      <nav className="page-tabs" aria-label="Sections des professionnels">
+      <nav className="page-tabs" aria-label={tr("Sections des professionnels")}>
         <a href="#annuaire" aria-current={!reservations ? "page" : undefined}>
-          Annuaire des professionnels
+          {tr("Annuaire des professionnels")}
         </a>
         <a
           href="#reservations"
           aria-current={reservations ? "page" : undefined}
         >
-          Mes réservations (
+          {tr("Mes réservations (")}
           {data?.bookings.filter((b) => b.status === "confirmed" && !isPast(b))
             .length ?? 0}
           )
@@ -168,7 +175,7 @@ export default function DirectoryPage({
 
       {error && (
         <div className="empty" role="alert">
-          <p>{error}</p>
+          <p>{tr(error)}</p>
           <button
             className="button outline"
             onClick={() => {
@@ -176,22 +183,24 @@ export default function DirectoryPage({
               setRetry((v) => v + 1);
             }}
           >
-            Réessayer
+            {tr("Réessayer")}
           </button>
         </div>
       )}
-      {!data && !error && <p role="status">Chargement des professionnels…</p>}
+      {!data && !error && (
+        <p role="status">{tr("Chargement des professionnels…")}</p>
+      )}
       {data && !reservations && (
         <>
           {data.professionals.length > 0 && (
             <div className="filters">
               <div className="field">
-                <label htmlFor="pro-search">Un nom, un service…</label>
+                <label htmlFor="pro-search">{tr("Un nom, un service…")}</label>
                 <div className="search-box">
                   <input
                     id="pro-search"
                     type="search"
-                    placeholder="Nom, spécialité…"
+                    placeholder={tr("Nom, spécialité…")}
                     value={filters.q}
                     onChange={(e) =>
                       setFilters({ ...filters, q: e.target.value })
@@ -202,7 +211,7 @@ export default function DirectoryPage({
               {(["category", "city", "species"] as const).map((key, i) => (
                 <div className="field" key={key}>
                   <label htmlFor={"filter-" + key}>
-                    {["Métier", "Ville", "Pour mon animal"][i]}
+                    {tr(["Métier", "Ville", "Pour mon animal"][i])}
                   </label>
                   <select
                     id={"filter-" + key}
@@ -212,13 +221,13 @@ export default function DirectoryPage({
                     }
                   >
                     <option value="">
-                      {
+                      {tr(
                         [
                           "Tous les métiers",
                           "Toutes les villes",
                           "Chien ou chat",
-                        ][i]
-                      }
+                        ][i],
+                      )}
                     </option>
                     {[
                       ...new Set(
@@ -227,7 +236,9 @@ export default function DirectoryPage({
                         ),
                       ),
                     ].map((value) => (
-                      <option key={value}>{value}</option>
+                      <option key={value} value={value}>
+                        {tr(value)}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -237,7 +248,9 @@ export default function DirectoryPage({
           {data.professionals.length > 0 && (
             <div className="results-head">
               <p aria-live="polite">
-                {list.length} professionnel{list.length !== 1 ? "s" : ""}
+                {list.length}
+                {tr(" professionnel")}
+                {list.length !== 1 ? tr("s") : ""}
               </p>
               <label className="favorite-filter">
                 <input
@@ -247,7 +260,7 @@ export default function DirectoryPage({
                     setFilters({ ...filters, favorite: e.target.checked })
                   }
                 />
-                Mes favoris
+                {tr("Mes favoris")}
               </label>
             </div>
           )}
@@ -274,7 +287,7 @@ export default function DirectoryPage({
                       </button>
                     </h3>
                     <p className="category pro-open" onClick={() => setView(p)}>
-                      {p.category}
+                      {tr(p.category)}
                     </p>
                   </div>
                   <button
@@ -287,11 +300,12 @@ export default function DirectoryPage({
                         : "")
                     }
                     onAnimationEnd={() => setPulse(null)}
-                    aria-label={
-                      (data.favorites.includes(p.id)
-                        ? "Retirer des favoris : "
-                        : "Ajouter aux favoris : ") + p.name
-                    }
+                    aria-label={tr(
+                      data.favorites.includes(p.id)
+                        ? "Retirer des favoris : {0}"
+                        : "Ajouter aux favoris : {0}",
+                      [p.name],
+                    )}
                     aria-pressed={data.favorites.includes(p.id)}
                     disabled={busy === p.id}
                     onClick={() => void favorite(p)}
@@ -308,16 +322,16 @@ export default function DirectoryPage({
                   <div className="tags">
                     {p.species.map((s) => (
                       <span key={s} className="tag">
-                        {s}
+                        {tr(s)}
                       </span>
                     ))}
-                    <span className="tag">{p.mode}</span>
+                    <span className="tag">{tr(p.mode)}</span>
                   </div>
                   <div className="availability">
-                    Créneaux disponibles à partir de demain
+                    {tr("Créneaux disponibles à partir de demain")}
                   </div>
                   <div className="price-line">
-                    <span>À partir de</span>
+                    <span>{tr("À partir de")}</span>
                     <strong>
                       {money(Math.min(...p.services.map((s) => s.price)))}
                     </strong>
@@ -327,13 +341,13 @@ export default function DirectoryPage({
                       className="button outline"
                       onClick={() => setView(p)}
                     >
-                      Voir la fiche
+                      {tr("Voir la fiche")}
                     </button>
                     <button
                       className="button"
                       onClick={() => setBook({ professional: p })}
                     >
-                      Réserver
+                      {tr("Réserver")}
                     </button>
                   </div>
                 </div>
@@ -343,8 +357,10 @@ export default function DirectoryPage({
               <EmptyState
                 kind="people"
                 className="empty"
-                title="Aucun professionnel à afficher"
-                description="Les professionnels disponibles apparaîtront ici."
+                title={tr("Aucun professionnel à afficher")}
+                description={tr(
+                  "Les professionnels disponibles apparaîtront ici.",
+                )}
                 filtered={data.professionals.length > 0}
               />
             )}
@@ -356,7 +372,7 @@ export default function DirectoryPage({
           {data.bookings.length > 0 && (
             <div className="filters booking-filters">
               <div className="field">
-                <label htmlFor="period">Période</label>
+                <label htmlFor="period">{tr("Période")}</label>
                 <select
                   id="period"
                   value={bookingFilters.period}
@@ -367,13 +383,13 @@ export default function DirectoryPage({
                     })
                   }
                 >
-                  <option value="upcoming">À venir</option>
-                  <option value="past">Passées</option>
-                  <option value="all">Toutes les réservations</option>
+                  <option value="upcoming">{tr("À venir")}</option>
+                  <option value="past">{tr("Passées")}</option>
+                  <option value="all">{tr("Toutes les réservations")}</option>
                 </select>
               </div>
               <div className="field">
-                <label htmlFor="booking-animal">Animal</label>
+                <label htmlFor="booking-animal">{tr("Animal")}</label>
                 <select
                   id="booking-animal"
                   value={bookingFilters.animal}
@@ -384,7 +400,7 @@ export default function DirectoryPage({
                     })
                   }
                 >
-                  <option value="">Tous les animaux</option>
+                  <option value="">{tr("Tous les animaux")}</option>
                   {[
                     ...new Map([
                       ...animals.map((a) => [a.id, a.name] as const),
@@ -400,7 +416,7 @@ export default function DirectoryPage({
                 </select>
               </div>
               <div className="field">
-                <label htmlFor="status">Statut</label>
+                <label htmlFor="status">{tr("Statut")}</label>
                 <select
                   id="status"
                   value={bookingFilters.status}
@@ -411,9 +427,9 @@ export default function DirectoryPage({
                     })
                   }
                 >
-                  <option value="">Tous les statuts</option>
-                  <option value="confirmed">Confirmées</option>
-                  <option value="cancelled">Annulées</option>
+                  <option value="">{tr("Tous les statuts")}</option>
+                  <option value="confirmed">{tr("Confirmées")}</option>
+                  <option value="cancelled">{tr("Annulées")}</option>
                 </select>
               </div>
             </div>
@@ -427,7 +443,7 @@ export default function DirectoryPage({
                     <strong>{Number(b.date.slice(-2))}</strong>
                     <small>
                       {new Date(b.date + "T12:00:00").toLocaleDateString(
-                        "fr-FR",
+                        uiLocale(),
                         { month: "short" },
                       )}
                     </small>
@@ -438,16 +454,18 @@ export default function DirectoryPage({
                       {p.name} · {b.animalName}
                     </p>
                     <small>
-                      {fullDate(b.date)} à {b.time} · {money(b.price)}
+                      {fullDate(b.date)}
+                      {tr(" à ")}
+                      {b.time} · {money(b.price)}
                     </small>
                   </div>
                   <div className="booking-tail">
                     <span className={"badge " + b.status}>
                       {b.status === "cancelled"
-                        ? "Annulée"
+                        ? tr("Annulée")
                         : isPast(b)
-                          ? "Passée"
-                          : "Confirmée"}
+                          ? tr("Passée")
+                          : tr("Confirmée")}
                     </span>
                     <div>
                       <button
@@ -458,7 +476,7 @@ export default function DirectoryPage({
                           setCancel(false);
                         }}
                       >
-                        Voir le détail
+                        {tr("Voir le détail")}
                       </button>
                     </div>
                   </div>
@@ -469,8 +487,10 @@ export default function DirectoryPage({
               <EmptyState
                 kind="events"
                 className="empty"
-                title="Aucune réservation à afficher"
-                description="Vos rendez-vous apparaîtront ici après confirmation."
+                title={tr("Aucune réservation à afficher")}
+                description={tr(
+                  "Vos rendez-vous apparaîtront ici après confirmation.",
+                )}
                 filtered={data.bookings.length > 0}
               />
             )}
@@ -489,7 +509,7 @@ export default function DirectoryPage({
             </span>
             <div>
               <h2 id="action-title">{view.name}</h2>
-              <p className="category">{view.category}</p>
+              <p className="category">{tr(view.category)}</p>
               <p className="location">
                 <Icon name="pin" />
                 {view.city} · {view.district}
@@ -501,14 +521,14 @@ export default function DirectoryPage({
           <div className="status-line">
             <span className="admin-badge">
               {view.verification === "Validé"
-                ? "Dossier vérifié"
-                : "Vérification en cours"}
+                ? tr("Dossier vérifié")
+                : tr("Vérification en cours")}
             </span>
             <button
               type="button"
               className="admin-icon-button is-danger report-icon"
-              aria-label="Signaler cette fiche"
-              title="Signaler cette fiche"
+              aria-label={tr("Signaler cette fiche")}
+              title={tr("Signaler cette fiche")}
               onClick={() => {
                 setReport(view);
                 setView(null);
@@ -519,21 +539,23 @@ export default function DirectoryPage({
           </div>
           <dl className="detail-grid">
             <div>
-              <dt>Adresse</dt>
+              <dt>{tr("Adresse")}</dt>
               <dd>{view.address}</dd>
             </div>
             <div>
-              <dt>Horaires</dt>
+              <dt>{tr("Horaires")}</dt>
               <dd>{view.hours}</dd>
             </div>
           </dl>
-          <h3>Prestations et tarifs</h3>
+          <h3>{tr("Prestations et tarifs")}</h3>
           {view.services.map((s, i) => (
             <div className="service-row" key={s.name}>
               <div>
                 <strong>{s.name}</strong>
                 <small>
-                  {s.duration} min · {money(s.price)}
+                  {s.duration}
+                  {tr(" min · ")}
+                  {money(s.price)}
                 </small>
               </div>
               <button
@@ -543,7 +565,7 @@ export default function DirectoryPage({
                   setView(null);
                 }}
               >
-                Choisir
+                {tr("Choisir")}
               </button>
             </div>
           ))}
@@ -573,30 +595,34 @@ export default function DirectoryPage({
           onClose={() => setDetail(null)}
         >
           <h2 id="action-title">
-            {cancel ? "Annuler le rendez-vous ?" : "Votre réservation"}
+            {cancel ? tr("Annuler le rendez-vous ?") : tr("Votre réservation")}
           </h2>
           <p>{professional(detail.professional)?.name}</p>
           <dl className="detail-grid">
             <div>
-              <dt>Animal</dt>
+              <dt>{tr("Animal")}</dt>
               <dd>{detail.animalName}</dd>
             </div>
             <div>
-              <dt>Rendez-vous</dt>
+              <dt>{tr("Rendez-vous")}</dt>
               <dd>
-                {fullDate(detail.date)} à {detail.time}
+                {fullDate(detail.date)}
+                {tr(" à ")}
+                {detail.time}
               </dd>
             </div>
             <div>
-              <dt>Statut</dt>
-              <dd>{detail.status === "cancelled" ? "Annulé" : "Confirmé"}</dd>
+              <dt>{tr("Statut")}</dt>
+              <dd>
+                {detail.status === "cancelled" ? tr("Annulé") : tr("Confirmé")}
+              </dd>
             </div>
             <div>
-              <dt>Montant réglé</dt>
+              <dt>{tr("Montant réglé")}</dt>
               <dd>{money(detail.price)}</dd>
             </div>
             <div>
-              <dt>Contact</dt>
+              <dt>{tr("Contact")}</dt>
               <dd>
                 {detail.contactName}
                 <br />
@@ -605,26 +631,29 @@ export default function DirectoryPage({
             </div>
             {detail.note && (
               <div>
-                <dt>Votre message</dt>
+                <dt>{tr("Votre message")}</dt>
                 <dd>{detail.note}</dd>
               </div>
             )}
           </dl>
           {detail.status === "cancelled" && (
             <p className="muted">
-              Remboursement de {money(detail.price)} : un e-mail de confirmation
-              a été envoyé à {detail.email}.
+              {tr("Remboursement de ")}
+              {money(detail.price)}
+              {tr(" : un e-mail de confirmation a été envoyé à ")}
+              {detail.email}.
             </p>
           )}
           {cancel && (
             <p>
-              Le créneau sera libéré et le montant de {money(detail.price)}{" "}
-              remboursé. Cette action ne peut pas être annulée.
+              {tr("Le créneau sera libéré et le montant de ")}
+              {money(detail.price)}{" "}
+              {tr("remboursé. Cette action ne peut pas être annulée.")}
             </p>
           )}
           {error && (
             <p className="error" role="alert">
-              {error}
+              {tr(error)}
             </p>
           )}
           <div className="dialog-actions">
@@ -635,14 +664,14 @@ export default function DirectoryPage({
                   disabled={!!busy}
                   onClick={() => setCancel(false)}
                 >
-                  Conserver
+                  {tr("Conserver")}
                 </button>
                 <button
                   className="button danger"
                   disabled={!!busy}
                   onClick={() => void cancelBooking()}
                 >
-                  {busy ? "Annulation…" : "Confirmer l’annulation"}
+                  {busy ? tr("Annulation…") : tr("Confirmer l’annulation")}
                 </button>
               </>
             ) : (
@@ -651,7 +680,7 @@ export default function DirectoryPage({
                   className="button outline back close-action"
                   onClick={() => setDetail(null)}
                 >
-                  Fermer
+                  {tr("Fermer")}
                 </button>
                 {detail.status === "confirmed" && !isPast(detail) && (
                   <>
@@ -659,7 +688,7 @@ export default function DirectoryPage({
                       className="button outline"
                       onClick={() => setCancel(true)}
                     >
-                      Annuler le rendez-vous
+                      {tr("Annuler le rendez-vous")}
                     </button>
                     <button
                       className="button"
@@ -671,7 +700,7 @@ export default function DirectoryPage({
                         setDetail(null);
                       }}
                     >
-                      Déplacer
+                      {tr("Déplacer")}
                     </button>
                   </>
                 )}

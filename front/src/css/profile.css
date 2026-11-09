@@ -275,6 +275,7 @@
 }
 .profile-page {
   max-width: 940px;
+  margin-inline: auto;
 }
 .profile-page .profile-panel {
   border: 1px solid var(--border);
@@ -327,13 +328,13 @@
 }
 .profile-page .profile-save {
   display: flex;
+  flex-direction: column;
   gap: 12px;
-  justify-content: flex-end;
+  justify-content: center;
   align-items: center;
   flex-wrap: wrap;
 }
 .profile-page .profile-save .save-note {
-  margin-right: auto;
   font-size: 12px;
   color: var(--muted);
 }
@@ -579,7 +580,7 @@
 .profile-page .export-actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 16px;
   margin-bottom: 30px;
 }
@@ -588,8 +589,8 @@
   max-width: 48%;
   white-space: normal;
 }
-.profile-page .export-actions #export-all {
-  margin-left: auto;
+.profile-page .export-actions:has(> .button + .button) {
+  justify-content: space-between;
 }
 @media (max-width: 500px) {
   .profile-page .export-actions {

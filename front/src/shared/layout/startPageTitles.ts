@@ -1,5 +1,4 @@
 import { pageTitle } from "./pageTitle.ts";
-import { getLanguage } from "../language.ts";
 
 /** Un propriétaire unique du titre, indépendant du chargement des pages. */
 export function startPageTitles() {
@@ -7,16 +6,12 @@ export function startPageTitles() {
     const target = document.getElementById(
       location.hash.replace(/^#accueil\/?/, ""),
     );
-    const language = getLanguage();
+    const language = document.documentElement.lang;
     document.title = pageTitle(
       location.hash,
       target?.closest(".view")?.id,
       language,
     );
-    document.documentElement.lang =
-      !location.hash || /^#accueil(?:\/|$)/.test(location.hash)
-        ? language
-        : "fr";
   };
   update();
   window.addEventListener("hashchange", update);

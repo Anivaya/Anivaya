@@ -4,7 +4,7 @@ API locale : http://127.0.0.1:3001. React utilise le proxy `/api` de Vite, puis 
 
 ## Comptes et sessions
 
-Toutes les routes métier nécessitent une session, sauf la santé du serveur, l’authentification et la lecture des fiches publiques. L’accès anonyme retourne 401. Les écritures utilisent JSON et vérifient l’origine du navigateur.
+Toutes les routes métier nécessitent une session, sauf la santé du serveur, l’authentification, les catalogues de traduction et la lecture des fiches publiques. L’accès anonyme retourne 401. Les écritures utilisent JSON et vérifient l’origine du navigateur.
 
 | Méthode     | Route                                        | Usage                                                                                |
 | ----------- | -------------------------------------------- | ------------------------------------------------------------------------------------ |
@@ -173,3 +173,9 @@ Les demandes publiques alimentent `/api/admin/tickets` et utilisent les droits d
 - `POST /api/public/unsubscribe` : `token` aléatoire de 64 caractères hexadécimaux, transmis depuis `#desinscription/<token>`. Un GET ne retire jamais le consentement. Le POST est idempotent, met à jour `public_waitlist_subscriptions.withdrawn_at` et indique le retrait dans les tickets associés. Le jeton est stocké uniquement sous forme de SHA-256 ; les liens personnels ne sont jamais renvoyés par l’API publique.
 - Une nouvelle inscription explicite peut réactiver le consentement ; rejouer une ancienne requête ne le réactive pas. Toute future campagne doit sélectionner uniquement les souscriptions dont `withdrawn_at IS NULL`. Les demandes historiques restent distinctes de ce consentement courant.
 - Ces routes partagent la limite de 20 tentatives / 15 minutes / adresse réseau. La migration centrale `016_public_unsubscribe.sql` conserve les demandes existantes.
+
+## Traductions de l’interface
+
+`GET /api/translations?scope=particular&lang=en` est public et renvoie `{ language, scope, version, messages }`. `scope` accepte `home` ou `particular` (défaut `home`) ; `lang` accepte `fr` ou `en` (défaut `fr`). Une valeur non reconnue renvoie 400. `messages` associe chaque texte source français à sa traduction ; le catalogue particulier inclut les menus et le pied de page communs. Les paramètres `{0}`, `{1}`, etc. sont remplacés côté React après traduction, sans traduire leurs valeurs.
+
+Les catalogues statiques versionnés de `shared/translations/` sont la source commune de l’API et du secours local chargé à la demande. La route ne nécessite ni clé de fournisseur externe, ni migration SQLite, ni contenu personnel. La préférence FR/EN reste mémorisée dans le navigateur. Les enregistrements métier, noms et fichiers en base ne sont pas modifiés. Les tests `translations.test.ts` couvrent la route, les paramètres, les clés de l’interface et la conservation des noms.

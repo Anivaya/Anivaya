@@ -1,3 +1,5 @@
+import { uiLocale } from "../../shared/i18n/locale.ts";
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import type { Dashboard } from "../../shared/types.ts";
@@ -61,6 +63,7 @@ export function AiImportButton({
   onClick: () => void;
   icon?: boolean;
 }) {
+  const tr = useText();
   return (
     <button
       type="button"
@@ -68,7 +71,7 @@ export function AiImportButton({
       onClick={onClick}
     >
       {icon && <Icon name="file" />}
-      Importer avec l’IA
+      {tr("Importer avec l’IA")}
     </button>
   );
 }
@@ -95,6 +98,7 @@ export default function AiImport({
   /** Après enregistrement : recharge l’espace, ferme et confirme. */
   onSaved: (message: string) => Promise<void>;
 }) {
+  const tr = useText();
   const [step, setStep] = useState(0);
   const [target, setTarget] = useState(animal ?? "");
   const [source, setSource] = useState<Source | null>(null);
@@ -347,7 +351,7 @@ export default function AiImport({
     return (
       <div className="field" key={name}>
         <label htmlFor={props.id}>
-          {label}
+          {tr(label)}
           {name === "title" || (name === "name" && options.identity)
             ? " *"
             : ""}
@@ -355,7 +359,9 @@ export default function AiImport({
         {Array.isArray(kind) ? (
           <select {...props} onChange={(e) => change(name, e.target.value)}>
             {kind.map((choice) => (
-              <option key={choice}>{choice}</option>
+              <option key={choice} value={choice}>
+                {tr(choice)}
+              </option>
             ))}
           </select>
         ) : (
@@ -376,14 +382,14 @@ export default function AiImport({
       <div className="ai-heading">
         <div>
           <h2 id="action-title" tabIndex={-1}>
-            {TITLES[step]}
+            {tr(TITLES[step])}
           </h2>
         </div>
         <button
           type="button"
           className="close"
           onClick={askClose}
-          aria-label="Fermer l’import"
+          aria-label={tr("Fermer l’import")}
         >
           <Icon name="close" />
         </button>
@@ -393,14 +399,16 @@ export default function AiImport({
       {step === 0 && (
         <>
           <p className="ai-muted">
-            Une photo ou un PDF pour préparer les informations du carnet, puis
-            les vérifier ensemble.
+            {tr(
+              "Une photo ou un PDF pour préparer les informations du carnet, puis les vérifier ensemble.",
+            )}
           </p>
           <div className="ai-notice">
-            <strong>Lecture par l’IA</strong>
+            <strong>{tr("Lecture par l’IA")}</strong>
             <p>
-              Le document est analysé par l’IA pour préremplir les champs. Rien
-              n’est enregistré avant votre vérification.
+              {tr(
+                "Le document est analysé par l’IA pour préremplir les champs. Rien n’est enregistré avant votre vérification.",
+              )}
             </p>
           </div>
           <div
@@ -417,9 +425,9 @@ export default function AiImport({
             }}
           >
             <Icon name="file" />
-            <strong>Choisissez votre document</strong>
+            <strong>{tr("Choisissez votre document")}</strong>
             <label className="ai-file-label" htmlFor="ai-file">
-              Sélectionner un fichier ou le déposer ici
+              {tr("Sélectionner un fichier ou le déposer ici")}
             </label>
             <input
               id="ai-file"
@@ -433,16 +441,21 @@ export default function AiImport({
               }}
             />
             <p id="ai-file-help" className="ai-muted">
-              PDF, JPEG ou PNG · 10 Mo maximum · Un fichier à la fois
+              {tr("PDF, JPEG ou PNG · 10 Mo maximum · Un fichier à la fois")}
             </p>
             <p role="status">
               {source?.file
-                ? `${source.name} · ${(source.file.size / 1048576).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} Mo`
-                : "Aucun fichier sélectionné"}
+                ? tr("{0} · {1} Mo", [
+                    source.name,
+                    (source.file.size / 1048576).toLocaleString(uiLocale(), {
+                      maximumFractionDigits: 2,
+                    }),
+                  ])
+                : tr("Aucun fichier sélectionné")}
             </p>
           </div>
           <div className="field">
-            <label htmlFor="ai-target">Associer à un animal *</label>
+            <label htmlFor="ai-target">{tr("Associer à un animal *")}</label>
             <select
               id="ai-target"
               value={target}
@@ -454,20 +467,22 @@ export default function AiImport({
                 setDirty(true);
               }}
             >
-              <option value="">Choisir un animal</option>
+              <option value="">{tr("Choisir un animal")}</option>
               {data.animals.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.name}
                 </option>
               ))}
-              {!animal && <option value="new">Créer un nouvel animal</option>}
+              {!animal && (
+                <option value="new">{tr("Créer un nouvel animal")}</option>
+              )}
             </select>
           </div>
           <p id="ai-error" className="ai-error" role="alert">
-            {error?.text}
+            {tr(error?.text)}
           </p>
           <p className="ai-muted" role="status">
-            {progress}
+            {tr(progress)}
           </p>
           <div className="ai-actions">
             <button
@@ -475,7 +490,7 @@ export default function AiImport({
               className="button outline cancel"
               onClick={askClose}
             >
-              Annuler
+              {tr("Annuler")}
             </button>
             <button
               type="button"
@@ -483,7 +498,7 @@ export default function AiImport({
               disabled={busy}
               onClick={() => void extract()}
             >
-              {busy ? "Analyse…" : "Analyser le document"}
+              {busy ? tr("Analyse…") : tr("Analyser le document")}
             </button>
           </div>
         </>
@@ -492,36 +507,45 @@ export default function AiImport({
       {step === 1 && values && source && (
         <>
           <p className="ai-muted">
-            Vérifiez le document à gauche et choisissez ce que vous souhaitez
-            enregistrer.
+            {tr(
+              "Vérifiez le document à gauche et choisissez ce que vous souhaitez enregistrer.",
+            )}
           </p>
           <div className="ai-review-grid">
             <aside className="ai-source-panel">
-              <h3>Document source</h3>
+              <h3>{tr("Document source")}</h3>
               <p className="ai-filename">{source.name}</p>
               <SourcePreview source={source} />
               <p className="ai-muted">
-                Le document sera enregistré dans le carnet après validation.
+                {tr(
+                  "Le document sera enregistré dans le carnet après validation.",
+                )}
               </p>
             </aside>
             <form noValidate onSubmit={submit}>
               <div className="ai-notice">
                 <strong>
                   {readable
-                    ? "Informations proposées par l’IA"
-                    : "Aucune information lisible"}
+                    ? tr("Informations proposées par l’IA")
+                    : tr("Aucune information lisible")}
                 </strong>
                 <p>
                   {readable
-                    ? "Comparez chaque champ au document et corrigez-le si besoin avant de valider."
-                    : "L’IA n’a rien pu lire de fiable. Complétez les champs vous-même ou choisissez une photo plus nette."}
+                    ? tr(
+                        "Comparez chaque champ au document et corrigez-le si besoin avant de valider.",
+                      )
+                    : tr(
+                        "L’IA n’a rien pu lire de fiable. Complétez les champs vous-même ou choisissez une photo plus nette.",
+                      )}
                 </p>
               </div>
-              <h3>Le document</h3>
+              <h3>{tr("Le document")}</h3>
               <p className="ai-muted">
                 {creating
-                  ? "Un nouveau carnet sera créé."
-                  : `Carnet destinataire : ${targetAnimal?.name ?? "Animal"}`}
+                  ? tr("Un nouveau carnet sera créé.")
+                  : tr("Carnet destinataire : {0}", [
+                      targetAnimal?.name ?? "Animal",
+                    ])}
               </p>
               {field("title", "Nom du document", "text")}
               {field("category", "Catégorie", [
@@ -536,8 +560,8 @@ export default function AiImport({
                 disabled={creating}
                 label={
                   creating
-                    ? "Créer le profil de l’animal"
-                    : "Mettre à jour son identité"
+                    ? tr("Créer le profil de l’animal")
+                    : tr("Mettre à jour son identité")
                 }
                 hint={
                   creating
@@ -554,7 +578,7 @@ export default function AiImport({
               </OptionBlock>
               <OptionBlock
                 checked={options.event}
-                label="Ajouter un événement à son suivi"
+                label={tr("Ajouter un événement à son suivi")}
                 onChange={(on) => setOptions({ ...options, event: on })}
               >
                 {field("eventType", "Type d’événement", [
@@ -564,7 +588,9 @@ export default function AiImport({
                   "Autre",
                 ])}
                 <div className="field">
-                  <label htmlFor="ai-note">Informations à conserver *</label>
+                  <label htmlFor="ai-note">
+                    {tr("Informations à conserver *")}
+                  </label>
                   <textarea
                     data-resize-none
                     id="ai-note"
@@ -576,12 +602,12 @@ export default function AiImport({
                   />
                 </div>
                 <p className="ai-muted">
-                  L’événement utilisera la date du document.
+                  {tr("L’événement utilisera la date du document.")}
                 </p>
               </OptionBlock>
               <OptionBlock
                 checked={options.reminder}
-                label="Créer un rappel"
+                label={tr("Créer un rappel")}
                 hint="Aucune échéance n’est ajoutée automatiquement."
                 onChange={(on) => setOptions({ ...options, reminder: on })}
               >
@@ -598,17 +624,19 @@ export default function AiImport({
                   onChange={(e) => setVerified(e.target.checked)}
                 />
                 <span>
-                  J’ai vérifié les informations et les éléments à enregistrer.
+                  {tr(
+                    "J’ai vérifié les informations et les éléments à enregistrer.",
+                  )}
                 </span>
               </label>
               <p id="ai-error" className="ai-error" role="alert">
-                {error?.text}
+                {tr(error?.text)}
               </p>
               <div className="ai-actions">
                 <button
                   type="button"
                   className="button outline icon-back"
-                  aria-label="Revenir au choix du document"
+                  aria-label={tr("Revenir au choix du document")}
                   onClick={() => {
                     setError(null);
                     setStep(0);
@@ -617,7 +645,7 @@ export default function AiImport({
                   <Icon name="back" />
                 </button>
                 <button type="submit" className="button" disabled={busy}>
-                  {busy ? "Enregistrement…" : "Valider et enregistrer"}
+                  {busy ? tr("Enregistrement…") : tr("Valider et enregistrer")}
                 </button>
               </div>
             </form>
@@ -633,29 +661,38 @@ export default function AiImport({
               <path d="m7 12 3 3 7-7" />
             </svg>
             <h3>
-              Import enregistré pour{" "}
+              {tr("Import enregistré pour")}{" "}
               {creating || options.identity ? values.name : targetAnimal?.name}
             </h3>
             <ul>
-              <li>Document « {values.title.trim()} » ajouté au carnet.</li>
+              <li>
+                {tr("Document « ")}
+                {values.title.trim()}
+                {tr(" » ajouté au carnet.")}
+              </li>
               {options.identity && (
                 <li>
-                  {creating ? "Profil créé" : "Identité mise à jour"} avec les
-                  informations validées.
+                  {creating ? tr("Profil créé") : tr("Identité mise à jour")}
+                  {tr(" avec les informations validées.")}
                 </li>
               )}
-              {options.event && <li>Événement ajouté au suivi.</li>}
-              {options.reminder && <li>Rappel ajouté aux échéances.</li>}
+              {options.event && <li>{tr("Événement ajouté au suivi.")}</li>}
+              {options.reminder && (
+                <li>{tr("Rappel ajouté aux échéances.")}</li>
+              )}
             </ul>
             {tracking.error ? (
               <p className="ai-muted" role="status">
-                Le suivi de cet import n’a pas pu être enregistré pour
-                l’assistance : {tracking.error}
+                {tr(
+                  "Le suivi de cet import n’a pas pu être enregistré pour l’assistance : ",
+                )}
+                {tr(tracking.error)}
               </p>
             ) : (
               <p className="ai-muted">
-                Cet import est suivi par l’assistance Anivaya. Vous pouvez lui
-                laisser un retour.
+                {tr(
+                  "Cet import est suivi par l’assistance Anivaya. Vous pouvez lui laisser un retour.",
+                )}
               </p>
             )}
             <ImportFeedback importId={tracking.id} />
@@ -669,7 +706,7 @@ export default function AiImport({
                   void onSaved("Import enregistré dans le carnet.")
                 }
               >
-                Voir le carnet
+                {tr("Voir le carnet")}
               </a>
             )}
             <button
@@ -677,7 +714,7 @@ export default function AiImport({
               className="button"
               onClick={() => void onSaved("Import enregistré dans le carnet.")}
             >
-              Terminer
+              {tr("Terminer")}
             </button>
           </div>
         </>
@@ -687,11 +724,12 @@ export default function AiImport({
         <div
           className="ai-warning"
           role="alertdialog"
-          aria-label="Abandonner l’import"
+          aria-label={tr("Abandonner l’import")}
         >
           <p>
-            Abandonner cet import ? Les informations non enregistrées seront
-            perdues.
+            {tr(
+              "Abandonner cet import ? Les informations non enregistrées seront perdues.",
+            )}
           </p>
           <div className="ai-actions">
             <button
@@ -700,10 +738,10 @@ export default function AiImport({
               autoFocus
               onClick={() => setDiscard(false)}
             >
-              Continuer l’import
+              {tr("Continuer l’import")}
             </button>
             <button type="button" className="button danger" onClick={onClose}>
-              Abandonner
+              {tr("Abandonner")}
             </button>
           </div>
         </div>
@@ -714,6 +752,7 @@ export default function AiImport({
 
 /** Étapes, avec un trait doré qui glisse sous l’étape en cours. */
 function Stepper({ step }: { step: number }) {
+  const tr = useText();
   const track = useRef<HTMLDivElement>(null);
   const bar = useRef<HTMLSpanElement>(null);
   useLayoutEffect(() => {
@@ -734,11 +773,11 @@ function Stepper({ step }: { step: number }) {
   }, [step]);
   return (
     <div className="ai-stepper" ref={track}>
-      <ol className="ai-steps" aria-label="Étapes de l’import">
+      <ol className="ai-steps" aria-label={tr("Étapes de l’import")}>
         {STEPS.map((label, i) => (
           <li key={label} aria-current={i === step ? "step" : undefined}>
             <span className="ai-step-label">
-              {i + 1}. {label}
+              {i + 1}. {tr(label)}
             </span>
           </li>
         ))}
@@ -763,6 +802,7 @@ function OptionBlock({
   onChange: (checked: boolean) => void;
   children: ReactNode;
 }) {
+  const tr = useText();
   return (
     <section className="ai-option">
       <label className="ai-check">
@@ -773,8 +813,8 @@ function OptionBlock({
           onChange={(e) => onChange(e.target.checked)}
         />
         <span>
-          {label}
-          {hint && <small>{hint}</small>}
+          {tr(label)}
+          {hint && <small>{tr(hint)}</small>}
         </span>
       </label>
       {checked && children}
@@ -784,22 +824,23 @@ function OptionBlock({
 
 /** Aperçu du fichier choisi, visible uniquement dans cette fenêtre. */
 function SourcePreview({ source }: { source: Source }) {
+  const tr = useText();
   if (source.file && source.url)
     return source.file.type.startsWith("image/") ? (
       <img
         className="ai-preview"
         src={source.url}
-        alt="Aperçu du document à vérifier"
+        alt={tr("Aperçu du document à vérifier")}
       />
     ) : (
       <>
         <iframe
           className="ai-preview ai-pdf"
           src={source.url}
-          title="Aperçu du PDF importé"
+          title={tr("Aperçu du PDF importé")}
         />
         <a href={source.url} download={source.name}>
-          Télécharger le fichier pour le consulter
+          {tr("Télécharger le fichier pour le consulter")}
         </a>
       </>
     );

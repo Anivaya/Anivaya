@@ -1,3 +1,4 @@
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import EmptyState from "../../shared/ui/EmptyState.tsx";
 import type { Animal, PageProps } from "../../shared/types.ts";
 import AnimalRecordPage from "./AnimalRecordPage.tsx";
@@ -19,6 +20,7 @@ export default function AnimalsPage({
   params: [id, tab],
   pending,
 }: PageProps) {
+  const tr = useText();
   if (id)
     return (
       <AnimalRecordPage
@@ -32,10 +34,10 @@ export default function AnimalsPage({
   return (
     <>
       <PageHeading
-        title="Mes animaux"
+        title={tr("Mes animaux")}
         hasContent={data.animals.length > 0}
-        description="Un carnet pour chacun de vos compagnons."
-        actionLabel="Ajouter un animal"
+        description={tr("Un carnet pour chacun de vos compagnons.")}
+        actionLabel={tr("Ajouter un animal")}
         onAction={() => actions.add("animal")}
         secondary={
           <AiImportButton onClick={() => actions.openDialog("ai-import")} />
@@ -64,6 +66,7 @@ export function AnimalsSection({
   onOpen: (animal: Animal) => void;
   onAdd: () => void;
 }) {
+  const tr = useText();
   // Sur mobile, la vue d’ensemble montre une seule fiche à la fois.
   const mobile = useMediaQuery("(max-width: 620px)");
   const perView = overview ? (mobile ? 1 : OVERVIEW_SIZE) : 1;
@@ -76,16 +79,16 @@ export function AnimalsSection({
       {/* Sur la page Mes animaux, le titre de la page suffit : celui-ci reste pour les lecteurs d’écran. */}
       {overview ? (
         <div className="section-head">
-          <h2 id="animals-title">Mes animaux</h2>
+          <h2 id="animals-title">{tr("Mes animaux")}</h2>
           {animals.length > 0 && (
             <a className="subtle" href="#animaux">
-              Voir mes animaux →
+              {tr("Voir mes animaux →")}
             </a>
           )}
         </div>
       ) : (
         <h2 id="animals-title" className="sr-only">
-          Mes animaux
+          {tr("Mes animaux")}
         </h2>
       )}
       {!animals.length ? (
@@ -148,6 +151,7 @@ function AnimalCarousel({
   perView: number;
   onOpen: (animal: Animal) => void;
 }) {
+  const tr = useText();
   const [position, setPosition] = useState(0);
   // Pendant un glissement, le rail contient aussi l’élément qui sort.
   const [slide, setSlide] = useState<{
@@ -179,14 +183,14 @@ function AnimalCarousel({
     { length: perView + (slide ? 1 : 0) },
     (_, offset) => (first + offset) % units,
   );
-  const unit = overview ? "Fiche" : "Page";
+  const unit = tr(overview ? "Fiche" : "Page");
   return (
     <div className="animal-carousel">
       <button
         type="button"
         className="carousel-arrow previous"
         onClick={() => move(-1)}
-        aria-label={`${unit} précédente`}
+        aria-label={tr("{0} précédente", [unit])}
       >
         <Icon name="chevron-left" />
       </button>
@@ -229,7 +233,7 @@ function AnimalCarousel({
         type="button"
         className="carousel-arrow next"
         onClick={() => move(1)}
-        aria-label={`${unit} suivante`}
+        aria-label={tr("{0} suivante", [unit])}
       >
         <Icon name="chevron-right" />
       </button>
@@ -249,6 +253,7 @@ function AnimalCard({
   onOpen: (animal: Animal) => void;
   overview?: boolean;
 }) {
+  const tr = useText();
   const label = overview ? "Ouvrir la fiche" : "Ouvrir le carnet";
   return (
     <article className={"animal-card" + (rank % 2 ? " accent-blue" : "")}>
@@ -256,7 +261,7 @@ function AnimalCard({
         type="button"
         className={`pet-picture animal-picture-button ${animal.style}`}
         onClick={() => onOpen(animal)}
-        aria-label={`Ouvrir la fiche de ${animal.name} depuis sa photo`}
+        aria-label={tr("Ouvrir la fiche de {0} depuis sa photo", [animal.name])}
       >
         {animal.photo ? (
           <img className="animal-uploaded-photo" src={animal.photo} alt="" />
@@ -267,14 +272,17 @@ function AnimalCard({
       <div className="pet-card-body">
         <h3>{animal.name}</h3>
         <p>
-          {animal.species} · {animal.description}
+          {tr(animal.species)} ·{" "}
+          {animal.description === "Profil à compléter"
+            ? tr("Profil à compléter")
+            : animal.description}
         </p>
         <button
           className="button"
           onClick={() => onOpen(animal)}
-          aria-label={`${label} de ${animal.name}`}
+          aria-label={tr("{0} de {1}", [tr(label), animal.name])}
         >
-          {label}
+          {tr(label)}
         </button>
       </div>
     </article>
