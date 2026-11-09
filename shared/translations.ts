@@ -1,5 +1,5 @@
 export type Language = "fr" | "en";
-export type TranslationScope = "home" | "particular";
+export type TranslationScope = "home" | "particular" | "admin";
 export type Translator = (
   text: string | null | undefined,
   values?: readonly (string | number | null | undefined)[],
@@ -55,6 +55,20 @@ const personalPages = new Set([
   "informations",
   "urgence",
 ]);
+/**
+ * Pages ouvertes sans session : compte (connexion, inscription, mot de passe,
+ * désinscription) et versions publiques de Contact et Informations. Elles partagent
+ * le catalogue de l’espace personnel, déjà en mémoire après la connexion.
+ */
+const publicPages = new Set([
+  "connexion",
+  "inscription",
+  "reinitialisation",
+  "mot-de-passe",
+  "desinscription",
+  "contact",
+  "informations",
+]);
 export function translationScope(
   hash: string,
   personalSession = true,
@@ -62,7 +76,9 @@ export function translationScope(
   const page = hash.replace(/^#/, "").split(/[/?]/)[0] || "accueil";
   return page === "accueil"
     ? "home"
-    : personalSession && personalPages.has(page)
-      ? "particular"
-      : null;
+    : page === "admin"
+      ? "admin"
+      : publicPages.has(page) || (personalSession && personalPages.has(page))
+        ? "particular"
+        : null;
 }

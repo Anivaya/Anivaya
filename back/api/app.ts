@@ -1,4 +1,6 @@
 import { createServer } from "node:http";
+import { createHash } from "node:crypto";
+import { gzipSync } from "node:zlib";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Database, Input } from "../database/types.ts";
 import type { Account, Authentication } from "./auth.ts";
@@ -75,6 +77,22 @@ class FileReply {
   }
 }
 
+/** Réponse déjà encodée, avec son statut et ses en-têtes (catalogue de traduction). */
+class RawReply {
+  status: number;
+  headers: Record<string, string>;
+  content?: Uint8Array;
+  constructor(
+    status: number,
+    headers: Record<string, string>,
+    content?: Uint8Array,
+  ) {
+    this.status = status;
+    this.headers = headers;
+    this.content = content;
+  }
+}
+
 /** Table de routes ; `:nom` capture un segment, transmis dans `params`. */
 function router<C>() {
   const routes: Route<C>[] = [];
@@ -115,14 +133,53 @@ function requireAdmin(admin: AdminService | null) {
 // Routes accessibles sans session.
 const open = router<RequestContext>();
 open.get("/api/health", () => ({ status: "ok" }));
-open.get("/api/translations", ({ query }) => {
+/** Catalogues sérialisés une seule fois : ils ne changent qu’avec le code. */
+const catalogues = new Map<
+  string,
+  { etag: string; json: Buffer; gzip: Buffer }
+>();
+open.get("/api/translations", ({ query, request }) => {
   const scope = query.get("scope") || "home";
   const language = query.get("lang") || "fr";
-  if (scope !== "home" && scope !== "particular")
+  if (scope !== "home" && scope !== "particular" && scope !== "admin")
     throw new ApiError(400, "Périmètre de traduction invalide.");
   if (language !== "fr" && language !== "en")
     throw new ApiError(400, "Langue non prise en charge.");
-  return translationCatalogue(scope, language);
+  const key = `${scope}/${language}`;
+  let entry = catalogues.get(key);
+  if (!entry) {
+    const json = Buffer.from(
+      JSON.stringify(translationCatalogue(scope, language)),
+    );
+    entry = {
+      etag: `W/"${createHash("sha256").update(json).digest("hex").slice(0, 16)}"`,
+      json,
+      gzip: gzipSync(json),
+    };
+    catalogues.set(key, entry);
+  }
+  // Le navigateur conserve le catalogue et le revalide : 304 tant qu’il n’a pas changé.
+  const headers = {
+    "Cache-Control": "no-cache",
+    ETag: entry.etag,
+    Vary: "Accept-Encoding",
+  };
+  const known = String(request.headers["if-none-match"] || "")
+    .split(",")
+    .map((value) => value.trim());
+  if (known.includes(entry.etag)) return new RawReply(304, headers);
+  const compressed = /\bgzip\b/.test(
+    String(request.headers["accept-encoding"] || ""),
+  );
+  return new RawReply(
+    200,
+    {
+      ...headers,
+      "Content-Type": "application/json; charset=utf-8",
+      ...(compressed ? { "Content-Encoding": "gzip" } : {}),
+    },
+    compressed ? entry.gzip : entry.json,
+  );
 });
 open.post(
   "/api/public/leads",
@@ -755,6 +812,9 @@ function send(response: ServerResponse, status: number, result: unknown) {
   if (result === undefined) {
     response.writeHead(204);
     response.end();
+  } else if (result instanceof RawReply) {
+    response.writeHead(result.status, result.headers);
+    response.end(result.content && Buffer.from(result.content));
   } else if (result instanceof FileReply) {
     response.writeHead(200, { "Content-Type": result.type, ...result.headers });
     response.end(Buffer.from(result.content));

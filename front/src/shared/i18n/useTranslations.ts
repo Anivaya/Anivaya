@@ -43,9 +43,8 @@ async function load(scope: TranslationScope, language: Language) {
         throw new Error("Invalid translation catalogue");
     } catch {
       // Same versioned catalogue as the API, loaded only if the service is unavailable.
-      const { translationCatalogue } = await import(
-        "../../../../shared/translations/catalogue.ts"
-      );
+      const { translationCatalogue } =
+        await import("../../../../shared/translations/catalogue.ts");
       catalogue = translationCatalogue(scope, language);
     }
     cache.set(key, catalogue);
@@ -69,7 +68,8 @@ export function useTranslations(scope: TranslationScope | null): Translator {
     () => undefined,
   );
   useEffect(() => {
-    if (scope) void load(scope, language);
+    // Le français est la langue source : sans catalogue, chaque texte s’affiche tel quel.
+    if (scope && language !== "fr") void load(scope, language);
   }, [scope, language]);
   useEffect(() => {
     document.documentElement.lang = scope ? language : "fr";

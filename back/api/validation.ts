@@ -1,4 +1,20 @@
+import type { IncomingMessage } from "node:http";
 import type { Input } from "../database/types.ts";
+
+/**
+ * Adresse du client, pour les limites de tentatives. Derrière un proxy de confiance
+ * (TRUST_PROXY=1), c’est la dernière adresse de X-Forwarded-For, celle que ce proxy a
+ * ajoutée ; sans ce réglage l’en-tête, que le client peut falsifier, est ignoré.
+ */
+export function clientAddress(request: IncomingMessage) {
+  const direct = request.socket.remoteAddress || "unknown";
+  if (process.env.TRUST_PROXY !== "1") return direct;
+  const forwarded = String(request.headers["x-forwarded-for"] || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  return forwarded.at(-1) || direct;
+}
 
 export class ApiError extends Error {
   status: number;

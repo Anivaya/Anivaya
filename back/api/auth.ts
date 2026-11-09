@@ -23,7 +23,7 @@ import { profileRepository } from "./profile.ts";
 import { postalCode } from "./validation.ts";
 import { mfaService } from "./mfa.ts";
 import type { SocialNotice } from "./social.ts";
-import { ApiError, text, emailAddress } from "./validation.ts";
+import { ApiError, clientAddress, text, emailAddress } from "./validation.ts";
 import { appUrl, excludeFromMail, sendMail } from "./mail.ts";
 import { emptyStateMode } from "../database/empty-state.ts";
 
@@ -369,7 +369,7 @@ export function authentication(
     });
   }
   function rate(req: IncomingMessage) {
-    const key = req.socket.remoteAddress || "local",
+    const key = clientAddress(req),
       now = Date.now();
     for (const [k, v] of attempts) if (v.until <= now) attempts.delete(k);
     const a = attempts.get(key) || { count: 0, until: now + 15 * 60 * 1000 };

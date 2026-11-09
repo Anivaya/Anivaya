@@ -52,7 +52,21 @@ const adminTitles: Record<string, string> = {
   reservations: "Professionnels",
 };
 const englishPublicTitles: Record<string, string> = {
+  "Tableau de bord": "Dashboard",
+  Utilisateurs: "Users",
+  Modération: "Moderation",
+  Assistance: "Support",
+  Publications: "Publications",
+  Équipe: "Team",
+  Historique: "History",
+  Pilotage: "Analytics",
+  "Page introuvable": "Page not found",
   Accueil: "Home",
+  Connexion: "Sign in",
+  Inscription: "Sign up",
+  "Réinitialisation du mot de passe": "Password reset",
+  "Nouveau mot de passe": "New password",
+  Désinscription: "Unsubscribe",
   "Mon espace": "My space",
   "Mes animaux": "My animals",
   "Mes documents": "My documents",
@@ -86,5 +100,5 @@ export function pageTitle(hash: string, homeView?: string, language = "fr") {
             ["ressources", "service", "donnees"].includes(section)
           ? titles.informations
           : titles[page] || "Mon espace";
-  return `Anivaya · ${page !== "admin" && language === "en" ? englishPublicTitles[label] || label : label}`;
+  return `Anivaya · ${language === "en" ? englishPublicTitles[label] || label : label}`;
 }

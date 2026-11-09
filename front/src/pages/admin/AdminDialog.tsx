@@ -1,3 +1,10 @@
+import {
+  adminHistoryAction,
+  adminRecordTitle,
+  adminAssignee,
+} from "../../../../shared/translations/admin.ts";
+import { uiLocale } from "../../shared/i18n/locale.ts";
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import { useEffect, useState } from "react";
 import type {
   AdminRecord,
@@ -12,6 +19,7 @@ import { adminApi } from "../../shared/services/admin.ts";
 import { readFile } from "../../shared/services/api.ts";
 import {
   actionIcon,
+  actionLabel,
   actionsFor,
   adminLink,
   isDangerAction,
@@ -28,17 +36,18 @@ export function RecordBody({
   row: AdminRecord;
   onProof?: (id: string) => void;
 }) {
+  const tr = useText();
   return (
     <div className="admin-record-body">
       <p>
         <span className={`admin-badge ${statusTone(row.status)}`}>
-          {row.status}
+          {tr(row.status)}
         </span>
         {row.level && (
           <span
             className={`admin-badge ${row.level === "Dossier vérifié" ? "success" : ""}`}
           >
-            {row.level}
+            {tr(row.level)}
           </span>
         )}
         {row.reference && <strong> · {row.reference}</strong>}
@@ -46,42 +55,42 @@ export function RecordBody({
       <dl>
         {[
           ["E-mail", row.email],
-          ["Type de compte", row.accountType],
-          ["Rôle", row.role],
-          ["Catégorie", row.category],
+          ["Type de compte", tr(row.accountType)],
+          ["Rôle", tr(row.role)],
+          ["Catégorie", tr(row.category)],
           ["Ville", row.city],
-          ["Priorité", row.priority],
-          ["Audience", row.audience],
+          ["Priorité", tr(row.priority)],
+          ["Audience", tr(row.audience)],
           [
             "Destinataires à la diffusion",
             row.recipients !== undefined ? String(row.recipients) : "",
           ],
-          ["Attribué à", row.assignee],
+          ["Attribué à", adminAssignee(row.assignee, tr)],
           ["SIRET", row.siret],
-          ["Nature", row.kind],
-          ["Constat", row.issue],
+          ["Nature", tr(row.kind)],
+          ["Constat", tr(row.issue)],
           ["Cible", row.targetName],
-          ["État de la cible", row.targetStatus],
-          ["Sanction appliquée", row.accountAction],
-          ["Fiches publiques", row.visibility],
+          ["État de la cible", tr(row.targetStatus)],
+          ["Sanction appliquée", tr(row.accountAction)],
+          ["Fiches publiques", tr(row.visibility)],
           [
             "Invitation valable jusqu’au",
             row.expiresAt
-              ? new Date(row.expiresAt).toLocaleString("fr-FR")
+              ? new Date(row.expiresAt).toLocaleString(uiLocale())
               : "",
           ],
-          ["Origine", row.source],
+          ["Origine", tr(row.source)],
           [
             "Reçu le",
             row.createdAt
-              ? new Date(row.createdAt).toLocaleString("fr-FR")
+              ? new Date(row.createdAt).toLocaleString(uiLocale())
               : "",
           ],
         ]
           .filter(([, v]) => v)
           .map(([label, value]) => (
             <div key={label}>
-              <dt>{label}</dt>
+              <dt>{tr(label)}</dt>
               <dd>{value}</dd>
             </div>
           ))}
@@ -89,8 +98,15 @@ export function RecordBody({
       {row.priority && (
         <p className="admin-note">
           {row.firstResponseAt
-            ? `Première réponse le ${new Date(row.firstResponseAt).toLocaleString("fr-FR")}`
-            : `Objectif de première réponse : ${new Date(Date.parse(row.createdAt) + 86400000).toLocaleString("fr-FR")}${row.responseLate ? " · Délai de 24 h dépassé" : ""}`}
+            ? tr("Première réponse le {0}", [
+                new Date(row.firstResponseAt).toLocaleString(uiLocale()),
+              ])
+            : tr("Objectif de première réponse : {0}{1}", [
+                new Date(Date.parse(row.createdAt) + 86400000).toLocaleString(
+                  uiLocale(),
+                ),
+                row.responseLate ? tr(" · Délai de 24 h dépassé") : "",
+              ])}
         </p>
       )}
       {row.resource && row.target && (
@@ -99,7 +115,7 @@ export function RecordBody({
             className="button outline"
             href={`${adminLink(row.resource)}?record=${encodeURIComponent(row.target)}`}
           >
-            Ouvrir le dossier concerné →
+            {tr("Ouvrir le dossier concerné →")}
           </a>
         </p>
       )}
@@ -109,7 +125,7 @@ export function RecordBody({
             className="button outline"
             href={`${adminLink("tickets")}?record=${encodeURIComponent(row.ticketId)}`}
           >
-            Ouvrir le ticket de support →
+            {tr("Ouvrir le ticket de support →")}
           </a>
         </p>
       )}
@@ -119,7 +135,7 @@ export function RecordBody({
             className="admin-text-button"
             href={`${adminLink("feedback")}?record=${encodeURIComponent(row.feedbackId)}`}
           >
-            Consulter le retour utilisateur
+            {tr("Consulter le retour utilisateur")}
           </a>
         </p>
       )}
@@ -129,7 +145,7 @@ export function RecordBody({
             className="admin-text-button"
             href={`${adminLink("imports")}?record=${encodeURIComponent(row.importId)}`}
           >
-            Consulter l’import concerné
+            {tr("Consulter l’import concerné")}
           </a>
         </p>
       )}
@@ -139,7 +155,7 @@ export function RecordBody({
             className="button outline"
             href={`${adminLink("reports")}?record=${encodeURIComponent(row.target)}`}
           >
-            Consulter la décision initiale
+            {tr("Consulter la décision initiale")}
           </a>
         </p>
       )}
@@ -150,14 +166,20 @@ export function RecordBody({
         <article className="admin-proof" key={d.id}>
           <strong>{d.name}</strong>
           <span>
-            {d.status} · {d.applicable ? "Applicable" : "Non applicable"}
-            {d.file ? " · pièce reçue" : ""}
+            {tr(d.status)} ·{" "}
+            {d.applicable ? tr("Applicable") : tr("Non applicable")}
+            {d.file ? tr(" · pièce reçue") : ""}
           </span>
-          {d.expires && <small>Valable jusqu’au {d.expires}</small>}
+          {d.expires && (
+            <small>
+              {tr("Valable jusqu’au ")}
+              {d.expires}
+            </small>
+          )}
           <p>{d.note}</p>
           {onProof && (
             <button className="button outline" onClick={() => onProof(d.id)}>
-              Consulter le justificatif
+              {tr("Consulter le justificatif")}
             </button>
           )}
         </article>
@@ -168,29 +190,32 @@ export function RecordBody({
         .map((v) => (
           <article key={v.number} className="admin-proof">
             <span className="admin-badge">
-              Version {v.number} · {v.status}
+              {tr("Version ")}
+              {v.number} · {tr(v.status)}
             </span>
             <h3>{v.title}</h3>
             <p>{v.summary}</p>
             <p className="admin-preserve">{v.body}</p>
             {v.review && (
               <p className="admin-note">
-                Relu par {v.review.reviewer} : {v.review.note}
+                {tr("Relu par ")}
+                {v.review.reviewer} : {v.review.note}
               </p>
             )}
           </article>
         ))}
       {!!row.history?.length && (
         <section className="admin-timeline">
-          <h3>Historique du dossier</h3>
+          <h3>{tr("Historique du dossier")}</h3>
           {row.history
             .slice()
             .reverse()
             .map((entry, i) => (
               <article key={i}>
-                <strong>{entry.action}</strong>
+                <strong>{adminHistoryAction(entry.action, tr)}</strong>
                 <small>
-                  {new Date(entry.date).toLocaleString("fr-FR")} · {entry.actor}
+                  {new Date(entry.date).toLocaleString(uiLocale())} ·{" "}
+                  {entry.actor}
                 </small>
                 <p className="admin-preserve">{entry.note}</p>
               </article>
@@ -208,14 +233,15 @@ function ProofPreview({
   record: string;
   proof: { id: string; fileName?: string };
 }) {
+  const tr = useText();
   const url = adminApi.proofFileUrl(record, proof.id);
   const image = /\.(png|jpe?g)$/i.test(proof.fileName || "");
   return (
     <div className="admin-proof-preview">
       {image ? (
-        <img src={url} alt={`Pièce reçue : ${proof.fileName}`} />
+        <img src={url} alt={tr("Pièce reçue : {0}", [proof.fileName])} />
       ) : (
-        <iframe src={url} title={`Pièce reçue : ${proof.fileName}`} />
+        <iframe src={url} title={tr("Pièce reçue : {0}", [proof.fileName])} />
       )}
       <a
         className="admin-text-button"
@@ -223,7 +249,9 @@ function ProofPreview({
         target="_blank"
         rel="noreferrer"
       >
-        Ouvrir {proof.fileName || "la pièce"} dans un nouvel onglet
+        {tr("Ouvrir ")}
+        {proof.fileName || tr("la pièce")}
+        {tr(" dans un nouvel onglet")}
       </a>
     </div>
   );
@@ -246,6 +274,7 @@ export default function AdminDialog({
   initialAction?: string;
   returnLabel?: string;
 }) {
+  const tr = useText();
   const [busy, setBusy] = useState(false),
     [action, setAction] = useState(row ? initialAction : "new"),
     [dirty, setDirty] = useState(false),
@@ -264,17 +293,21 @@ export default function AdminDialog({
   };
   const title =
     action === "new"
-      ? {
-          team: "Ajouter un membre",
-          library: "Créer un guide",
-          announcements: "Créer une annonce",
-          tickets: "Créer une demande",
-        }[resource as "team"] || "Créer"
+      ? tr(
+          {
+            team: "Ajouter un membre",
+            library: "Créer un guide",
+            announcements: "Créer une annonce",
+            tickets: "Créer une demande",
+          }[resource as "team"] || "Créer",
+        )
       : action === "edit"
-        ? `Modifier ${row?.name}`
+        ? tr("Modifier {0}", [row?.name])
         : action.startsWith("proof-file:")
-          ? "Joindre la pièce reçue"
-          : chosen?.label || row?.name || "Dossier";
+          ? tr("Joindre la pièce reçue")
+          : chosen
+            ? actionLabel(chosen, tr)
+            : row?.name || tr("Dossier");
   const proof = row?.documents?.find((d) => action === "proof:" + d.id);
   const proofUpload = row?.documents?.find(
     (d) => action === "proof-file:" + d.id,
@@ -292,7 +325,7 @@ export default function AdminDialog({
       options?: readonly string[],
       multiline = false,
     ) => (
-      <Field key={name} name={name} label={label} error={state.error}>
+      <Field key={name} name={name} label={tr(label)} error={state.error}>
         {options ? (
           <select
             id={name}
@@ -301,7 +334,9 @@ export default function AdminDialog({
             {...state.invalid(name)}
           >
             {options.map((o) => (
-              <option key={o}>{o}</option>
+              <option key={o} value={o}>
+                {name === "assignee" ? adminAssignee(o, tr) : tr(o)}
+              </option>
             ))}
           </select>
         ) : multiline ? (
@@ -342,8 +377,9 @@ export default function AdminDialog({
                 "Professionnel",
               ])}
             <p className="admin-note">
-              L’adresse sert à la connexion. Les droits d’administration se
-              gèrent dans Équipe.
+              {tr(
+                "L’adresse sert à la connexion. Les droits d’administration se gèrent dans Équipe.",
+              )}
             </p>
           </>
         )}
@@ -365,47 +401,57 @@ export default function AdminDialog({
         {action === "delete" && (
           <p className="admin-note">
             {resource === "library"
-              ? "Ce guide et ses versions seront supprimés, y compris sa publication éventuelle."
+              ? tr(
+                  "Ce guide et ses versions seront supprimés, y compris sa publication éventuelle.",
+                )
               : resource === "deletions"
-                ? "Le compte, son espace, ses fiches publiques et ses sessions seront effacés définitivement. La demande ne conservera aucune donnée personnelle."
-                : "Ce brouillon sera supprimé."}{" "}
-            L’action restera dans l’historique.
+                ? tr(
+                    "Le compte, son espace, ses fiches publiques et ses sessions seront effacés définitivement. La demande ne conservera aucune donnée personnelle.",
+                  )
+                : tr("Ce brouillon sera supprimé.")}{" "}
+            {tr("L’action restera dans l’historique.")}
           </p>
         )}
         {action === "decline" && (
           <p className="admin-note">
-            Le compte reste actif. Indiquez la raison communiquée à la personne.
+            {tr(
+              "Le compte reste actif. Indiquez la raison communiquée à la personne.",
+            )}
           </p>
         )}
         {action === "reset" && (
           <p className="admin-note">
-            Un lien de réinitialisation, valable une heure, est envoyé à
-            l’adresse du compte. La demande est tracée dans l’historique.
+            {tr(
+              "Un lien de réinitialisation, valable une heure, est envoyé à l’adresse du compte. La demande est tracée dans l’historique.",
+            )}
           </p>
         )}
         {action === "retry" && (
           <p className="admin-note">
-            La personne reçoit un e-mail l’invitant à importer de nouveau son
-            document. L’échec et son motif restent consignés pour le suivi.
+            {tr(
+              "La personne reçoit un e-mail l’invitant à importer de nouveau son document. L’échec et son motif restent consignés pour le suivi.",
+            )}
           </p>
         )}
         {action === "renew" && (
           <p className="admin-note">
-            L’invitation sera valable 14 jours de plus et un nouvel e-mail
-            d’invitation sera envoyé.
+            {tr(
+              "L’invitation sera valable 14 jours de plus et un nouvel e-mail d’invitation sera envoyé.",
+            )}
           </p>
         )}
         {action === "cancel" && (
           <p className="admin-note">
-            La personne ne recevra aucun accès à sa première connexion.
+            {tr("La personne ne recevra aucun accès à sa première connexion.")}
           </p>
         )}
         {action === "incident" &&
           field("name", "Objet du ticket", "Incident : " + row?.name)}
         {action === "ticket" && (
           <p className="admin-note">
-            Le ticket reprendra ce retour et permettra de répondre à
-            l’utilisateur dans son suivi privé.
+            {tr(
+              "Le ticket reprendra ce retour et permettra de répondre à l’utilisateur dans son suivi privé.",
+            )}
           </p>
         )}
         {editing &&
@@ -480,7 +526,7 @@ export default function AdminDialog({
             </p>
             <Field
               name="file"
-              label="Pièce reçue (PDF, JPEG ou PNG, 10 Mo)"
+              label={tr("Pièce reçue (PDF, JPEG ou PNG, 10 Mo)")}
               error={state.error}
             >
               <input
@@ -492,8 +538,9 @@ export default function AdminDialog({
               />
             </Field>
             <p className="admin-note">
-              La pièce est conservée avec le dossier et consultable depuis sa
-              fiche. Une pièce manquante passe « À examiner ».
+              {tr(
+                "La pièce est conservée avec le dossier et consultable depuis sa fiche. Une pièce manquante passe « À examiner ».",
+              )}
             </p>
           </>
         )}
@@ -514,8 +561,9 @@ export default function AdminDialog({
             )}
             {field("expires", "Valable jusqu’au (facultatif)", proof.expires)}
             <p className="admin-note">
-              Contrôle manuel du dossier. Aucune vérification automatique dans
-              un registre officiel.
+              {tr(
+                "Contrôle manuel du dossier. Aucune vérification automatique dans un registre officiel.",
+              )}
             </p>
           </>
         )}
@@ -547,9 +595,9 @@ export default function AdminDialog({
               ["Aucune sanction", "Avertir le compte", "Suspendre le compte"],
             )}
             <p className="admin-note">
-              Une sanction n’est possible qu’avec une décision qui ne classe pas
-              le dossier. La suspension ferme immédiatement les sessions du
-              compte.
+              {tr(
+                "Une sanction n’est possible qu’avec une décision qui ne classe pas le dossier. La suspension ferme immédiatement les sessions du compte.",
+              )}
             </p>
           </>
         )}
@@ -590,9 +638,9 @@ export default function AdminDialog({
           field("note", "Commentaire de réception", "", undefined, true)}
         {action === "new" && resource === "team" && (
           <p className="admin-note">
-            Si la personne possède déjà un compte, l’accès est accordé
-            immédiatement. Sinon, elle reçoit par e-mail une invitation valable
-            14 jours, appliquée à sa première connexion.
+            {tr(
+              "Si la personne possède déjà un compte, l’accès est accordé immédiatement. Sinon, elle reçoit par e-mail une invitation valable 14 jours, appliquée à sa première connexion.",
+            )}
           </p>
         )}
       </div>
@@ -608,18 +656,18 @@ export default function AdminDialog({
     >
       {discard && (
         <div className="admin-discard">
-          <h2 id="discard-title">Abandonner les modifications ?</h2>
-          <p>Votre saisie n’a pas été enregistrée.</p>
+          <h2 id="discard-title">{tr("Abandonner les modifications ?")}</h2>
+          <p>{tr("Votre saisie n’a pas été enregistrée.")}</p>
           <div className="dialog-actions">
             <button
               className="button outline"
               autoFocus
               onClick={() => setDiscard(false)}
             >
-              Continuer la saisie
+              {tr("Continuer la saisie")}
             </button>
             <button className="button danger" onClick={onClose}>
-              Abandonner
+              {tr("Abandonner")}
             </button>
           </div>
         </div>
@@ -632,12 +680,12 @@ export default function AdminDialog({
               <div className="admin-row-actions">
                 <AdminIconButton
                   icon="back"
-                  label="Retour au dossier"
+                  label={tr("Retour au dossier")}
                   onClick={() => setAction("view")}
                 />
                 <AdminIconButton
                   icon="close"
-                  label="Fermer le dossier"
+                  label={tr("Fermer le dossier")}
                   danger
                   className="admin-close"
                   onClick={close}
@@ -646,39 +694,45 @@ export default function AdminDialog({
             </div>
             <p>{row?.name}</p>
             <span className={`admin-badge ${statusTone(viewedProof.status)}`}>
-              {viewedProof.status}
+              {tr(viewedProof.status)}
             </span>
             {viewedProof.file ? (
               <ProofPreview record={row!.id} proof={viewedProof} />
             ) : (
               <p className="admin-note">
                 {viewedProof.status === "Manquant"
-                  ? "Pièce non transmise. Demandez ce justificatif au professionnel avant de valider son dossier."
-                  : "Le suivi de vérification est enregistré. Aucun fichier justificatif n’est joint à ce dossier."}
+                  ? tr(
+                      "Pièce non transmise. Demandez ce justificatif au professionnel avant de valider son dossier.",
+                    )
+                  : tr(
+                      "Le suivi de vérification est enregistré. Aucun fichier justificatif n’est joint à ce dossier.",
+                    )}
               </p>
             )}
             <dl className="admin-record-facts">
-              <dt>Applicabilité</dt>
+              <dt>{tr("Applicabilité")}</dt>
               <dd>
-                {viewedProof.applicable ? "Applicable" : "Non applicable"}
+                {viewedProof.applicable
+                  ? tr("Applicable")
+                  : tr("Non applicable")}
               </dd>
-              <dt>Validité</dt>
-              <dd>{viewedProof.expires || "Non renseignée"}</dd>
+              <dt>{tr("Validité")}</dt>
+              <dd>{viewedProof.expires || tr("Non renseignée")}</dd>
             </dl>
             <p>{viewedProof.note}</p>
-            <h3>Historique de vérification</h3>
+            <h3>{tr("Historique de vérification")}</h3>
             <div className="admin-timeline">
               {viewedProof.history?.map((h, i) => (
                 <article key={i}>
-                  <strong>{h.action}</strong>
+                  <strong>{adminHistoryAction(h.action, tr)}</strong>
                   <small>
-                    {new Date(h.date).toLocaleString("fr-FR")} · {h.actor}
+                    {new Date(h.date).toLocaleString(uiLocale())} · {h.actor}
                   </small>
                   <p>{h.note}</p>
                 </article>
               ))}
               {!viewedProof.history?.length && (
-                <p>Aucun contrôle enregistré.</p>
+                <p>{tr("Aucun contrôle enregistré.")}</p>
               )}
             </div>
             {resource === "pros" && role === "Administrateur" && (
@@ -688,14 +742,14 @@ export default function AdminDialog({
                   onClick={() => setAction("proof-file:" + viewedProof.id)}
                 >
                   {viewedProof.file
-                    ? "Remplacer la pièce reçue"
-                    : "Joindre la pièce reçue"}
+                    ? tr("Remplacer la pièce reçue")
+                    : tr("Joindre la pièce reçue")}
                 </button>
                 <button
                   className="button"
                   onClick={() => setAction("proof:" + viewedProof.id)}
                 >
-                  Modifier les critères et le contrôle
+                  {tr("Modifier les critères et le contrôle")}
                 </button>
               </div>
             )}
@@ -703,7 +757,7 @@ export default function AdminDialog({
         ) : action === "view" && row ? (
           <>
             <div className="admin-dialog-heading">
-              <h2 id="action-title">{row.name}</h2>
+              <h2 id="action-title">{adminRecordTitle(resource, row, tr)}</h2>
               <AdminIconButton
                 icon={returnLabel === "Fermer" ? "close" : "back"}
                 label={returnLabel}
@@ -718,8 +772,9 @@ export default function AdminDialog({
             />
             {resource === "users" && (
               <p className="admin-note">
-                Les carnets, documents privés et mots de passe ne sont pas
-                accessibles depuis cet écran.
+                {tr(
+                  "Les carnets, documents privés et mots de passe ne sont pas accessibles depuis cet écran.",
+                )}
               </p>
             )}
             {/* Actions en icônes sur une ligne : les autres à gauche, les risquées à droite. */}
@@ -731,7 +786,7 @@ export default function AdminDialog({
                 <AdminIconButton
                   key={a.id}
                   icon={actionIcon(a.id, resource, a.label)}
-                  label={a.label}
+                  label={actionLabel(a, tr)}
                   danger={isDangerAction(a.id)}
                   onClick={() => setAction(a.id)}
                 />
@@ -744,7 +799,7 @@ export default function AdminDialog({
             headerAction={
               <AdminIconButton
                 icon="close"
-                label="Fermer le formulaire"
+                label={tr("Fermer le formulaire")}
                 danger
                 className="admin-close"
                 disabled={busy}
@@ -753,7 +808,10 @@ export default function AdminDialog({
             }
             description={
               row && action !== "edit"
-                ? `Dossier : ${row.name}. L’action sera enregistrée dans l’historique.`
+                ? tr(
+                    "Dossier : {0}. L’action sera enregistrée dans l’historique.",
+                    [row.name],
+                  )
                 : undefined
             }
             key={action}
@@ -764,7 +822,9 @@ export default function AdminDialog({
                   ? "Enregistrer"
                   : proofUpload
                     ? "Enregistrer la pièce"
-                    : chosen?.label || "Enregistrer"
+                    : chosen
+                      ? actionLabel(chosen, tr)
+                      : "Enregistrer"
             }
             busy={busy}
             setBusy={setBusy}

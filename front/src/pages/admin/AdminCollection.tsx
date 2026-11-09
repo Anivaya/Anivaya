@@ -1,3 +1,9 @@
+import {
+  adminRecordTitle,
+  adminAssignee,
+} from "../../../../shared/translations/admin.ts";
+import { uiLocale } from "../../shared/i18n/locale.ts";
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import EmptyState from "../../shared/ui/EmptyState.tsx";
 import { useEffect, useRef, useState } from "react";
 import type {
@@ -48,6 +54,7 @@ export default function AdminCollection({
   onQuery: (q: string) => void;
   onChanged: () => void;
 }) {
+  const tr = useText();
   const params = new URLSearchParams(query),
     committed = params.get("q") || "";
   const [draft, setDraft] = useState({ query, value: committed }),
@@ -178,9 +185,9 @@ export default function AdminCollection({
     (role === "Support" && resource === "tickets");
   const hasFilters = Boolean(
     committed ||
-    params.get("status") ||
-    params.get("category") ||
-    params.get("scope"),
+      params.get("status") ||
+      params.get("category") ||
+      params.get("scope"),
   );
   const emptyContent = !loading && !error && data?.items.length === 0;
   const titleColumn =
@@ -220,10 +227,10 @@ export default function AdminCollection({
         }
       >
         <span className="admin-sort-heading">
-          {label}
+          {tr(label)}
           <AdminIconButton
             icon={state === "asc" ? "up" : state === "desc" ? "down" : "sort"}
-            label={`${label} : ${state === "none" ? "trier par ordre croissant" : state === "asc" ? "trier par ordre décroissant" : "rétablir l’ordre normal"}`}
+            label={`${tr(label)}: ${tr(state === "none" ? "trier par ordre croissant" : state === "asc" ? "trier par ordre décroissant" : "rétablir l’ordre normal")}`}
             onClick={() => {
               const next = new URLSearchParams(query);
               next.delete("page");
@@ -246,15 +253,15 @@ export default function AdminCollection({
       {resource === "library" && (
         <section className="admin-panel">
           <div className="admin-section-title">
-            <h2>Bibliothèque éditoriale</h2>
+            <h2>{tr("Bibliothèque éditoriale")}</h2>
             <a className="admin-text-button" href="#informations/ressources">
-              Voir la bibliothèque publique →
+              {tr("Voir la bibliothèque publique →")}
             </a>
           </div>
           <p>
-            Rédaction → relecture vétérinaire → validation → publication. Une
-            nouvelle version conserve la dernière version publiée jusqu’à sa
-            validation.
+            {tr(
+              "Rédaction → relecture vétérinaire → validation → publication. Une nouvelle version conserve la dernière version publiée jusqu’à sa validation.",
+            )}
           </p>
         </section>
       )}
@@ -263,14 +270,14 @@ export default function AdminCollection({
           <div className="admin-toolbar">
             <div className="admin-search">
               <label className="sr-only" htmlFor="admin-search">
-                Rechercher
+                {tr("Rechercher")}
               </label>
               <div>
                 <input
                   ref={input}
                   id="admin-search"
                   type="search"
-                  placeholder="Rechercher…"
+                  placeholder={tr("Rechercher…")}
                   value={search}
                   onCompositionStart={() => {
                     setComposing(true);
@@ -288,28 +295,28 @@ export default function AdminCollection({
                 {search && (
                   <button
                     type="button"
-                    aria-label="Effacer la recherche"
+                    aria-label={tr("Effacer la recherche")}
                     onClick={() => {
                       setSearch("");
                       change("q", "");
                       input.current?.focus();
                     }}
                   >
-                    ×
+                    {tr("×")}
                   </button>
                 )}
               </div>
             </div>
             <div className="field">
               <label className="sr-only" htmlFor="admin-status">
-                État
+                {tr("État")}
               </label>
               <select
                 id="admin-status"
                 value={params.get("status") || ""}
                 onChange={(e) => change("status", e.target.value)}
               >
-                <option value="">Tous les statuts</option>
+                <option value="">{tr("Tous les statuts")}</option>
                 {[
                   ...new Set([
                     ...(data?.statuses || []),
@@ -318,21 +325,23 @@ export default function AdminCollection({
                 ]
                   .filter(Boolean)
                   .map((s) => (
-                    <option key={s}>{s}</option>
+                    <option key={s} value={s}>
+                      {tr(s)}
+                    </option>
                   ))}
               </select>
             </div>
             {resource === "alerts" && (
               <div className="field">
                 <label className="sr-only" htmlFor="admin-category">
-                  Catégorie
+                  {tr("Catégorie")}
                 </label>
                 <select
                   id="admin-category"
                   value={params.get("category") || ""}
                   onChange={(e) => change("category", e.target.value)}
                 >
-                  <option value="">Toutes les catégories</option>
+                  <option value="">{tr("Toutes les catégories")}</option>
                   {[
                     ["pros", "Professionnels"],
                     ["reports", "Signalements"],
@@ -344,7 +353,7 @@ export default function AdminCollection({
                     ["deletions", "Suppressions"],
                   ].map(([value, label]) => (
                     <option key={value} value={value}>
-                      {label}
+                      {tr(label)}
                     </option>
                   ))}
                 </select>
@@ -357,12 +366,12 @@ export default function AdminCollection({
                     icon="plus"
                     label={
                       resource === "team"
-                        ? "Inviter un membre"
+                        ? tr("Inviter un membre")
                         : resource === "library"
-                          ? "Créer un guide"
+                          ? tr("Créer un guide")
                           : resource === "tickets"
-                            ? "Créer une demande"
-                            : "Créer une annonce"
+                            ? tr("Créer une demande")
+                            : tr("Créer une annonce")
                     }
                     onClick={() => setDialog({ row: null })}
                   />
@@ -371,7 +380,9 @@ export default function AdminCollection({
                   <AdminIconButton
                     icon="download"
                     label={
-                      exporting ? "Export en cours…" : "Exporter le journal"
+                      exporting
+                        ? tr("Export en cours…")
+                        : tr("Exporter le journal")
                     }
                     disabled={exporting}
                     onClick={() => void download()}
@@ -380,7 +391,7 @@ export default function AdminCollection({
                 {resource === "alerts" && (
                   <AdminIconButton
                     icon="check"
-                    label="Tout marquer comme lu"
+                    label={tr("Tout marquer comme lu")}
                     onClick={async () => {
                       try {
                         await adminApi.act("alerts", "all", {
@@ -399,7 +410,7 @@ export default function AdminCollection({
                 )}
                 <AdminIconButton
                   icon="refresh"
-                  label="Actualiser"
+                  label={tr("Actualiser")}
                   disabled={loading}
                   onClick={() => setRetry((n) => n + 1)}
                 />
@@ -413,11 +424,11 @@ export default function AdminCollection({
           ref={resultNotice}
           tabIndex={-1}
         >
-          {notice}
+          {tr(notice)}
         </div>
         {error && (
           <div className="admin-error" role="alert">
-            <p>{error}</p>
+            <p>{tr(error)}</p>
             <button
               className="button outline"
               onClick={() => {
@@ -425,7 +436,7 @@ export default function AdminCollection({
                 setRetry((n) => n + 1);
               }}
             >
-              Réessayer
+              {tr("Réessayer")}
             </button>
           </div>
         )}
@@ -436,34 +447,36 @@ export default function AdminCollection({
             <header className="admin-table-heading">
               <strong>
                 {loading
-                  ? "Chargement…"
-                  : `${data?.total ?? 0} résultat${data?.total === 1 ? "" : "s"}`}
+                  ? tr("Chargement…")
+                  : tr(data?.total === 1 ? "{0} résultat" : "{0} résultats", [
+                      data?.total ?? 0,
+                    ])}
               </strong>
             </header>
             <div
               className="admin-table-scroll"
               tabIndex={0}
               role="region"
-              aria-label="Liste des dossiers"
+              aria-label={tr("Liste des dossiers")}
             >
               <table className={`admin-table-${resource}`}>
                 <thead>
                   <tr>
                     {sortHeading(titleColumn, "name")}
-                    <th scope="col">{detailLabel}</th>
+                    <th scope="col">{tr(detailLabel)}</th>
                     {resource === "reports" && (
                       <>
-                        <th scope="col">Auteur</th>
-                        <th scope="col">Délai</th>
+                        <th scope="col">{tr("Auteur")}</th>
+                        <th scope="col">{tr("Délai")}</th>
                       </>
                     )}
-                    <th scope="col">État</th>
+                    <th scope="col">{tr("État")}</th>
                     {resource === "library" ? (
-                      <th scope="col">Publication</th>
+                      <th scope="col">{tr("Publication")}</th>
                     ) : (
                       sortHeading("Dernière activité", "date")
                     )}
-                    <th>Actions</th>
+                    <th>{tr("Actions")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -473,10 +486,10 @@ export default function AdminCollection({
                         <td>
                           <button
                             className="admin-record-link"
-                            title={row.name}
+                            title={adminRecordTitle(resource, row, tr)}
                             onClick={() => void openRecord(row)}
                           >
-                            {row.name}
+                            {adminRecordTitle(resource, row, tr)}
                           </button>
                           {row.email &&
                             resource !== "reports" &&
@@ -488,97 +501,111 @@ export default function AdminCollection({
                             <small>{row.versions?.at(-1)?.summary}</small>
                           )}
                         </td>
-                        <td data-label={detailLabel}>
+                        <td data-label={tr(detailLabel)}>
                           <span className="admin-cell-text">
                             {resource === "history"
                               ? row.email
                               : resource === "tickets"
-                                ? row.assignee
+                                ? adminAssignee(row.assignee, tr)
                                 : resource === "reports"
                                   ? row.targetType === "pros"
-                                    ? "Fiche professionnelle"
-                                    : "Profil public"
+                                    ? tr("Fiche professionnelle")
+                                    : tr("Profil public")
                                   : resource === "library"
                                     ? `Version ${row.versions?.at(-1)?.number || 1}`
                                     : resource === "deletions" ||
                                         resource === "imports"
-                                      ? row.email || "Compte supprimé"
+                                      ? row.email || tr("Compte supprimé")
                                       : resource === "security"
-                                        ? row.kind
+                                        ? tr(row.kind)
                                         : resource === "users"
-                                          ? row.accountType
-                                          : row.role ||
-                                            row.category ||
-                                            row.audience ||
+                                          ? tr(row.accountType)
+                                          : tr(row.role) ||
+                                            tr(row.category) ||
+                                            tr(row.audience) ||
                                             row.reference ||
-                                            row.priority ||
+                                            tr(row.priority) ||
                                             "—"}
                           </span>
                           {row.city && <small>{row.city}</small>}
                           {resource === "tickets" && (
-                            <small>{row.category}</small>
+                            <small>{tr(row.category)}</small>
                           )}
-                          {resource === "imports" && <small>{row.kind}</small>}
+                          {resource === "imports" && (
+                            <small>{tr(row.kind)}</small>
+                          )}
                           {resource === "users" &&
                             row.role &&
                             row.role !== "Particulier" && (
-                              <small>Équipe : {row.role}</small>
+                              <small>
+                                {tr("Équipe : ")}
+                                {tr(row.role)}
+                              </small>
                             )}
                           {resource === "alerts" && row.issue && (
-                            <small>État du dossier : {row.issue}</small>
+                            <small>
+                              {tr("État du dossier : ")}
+                              {tr(row.issue)}
+                            </small>
                           )}
                           {resource === "pros" && row.level && (
-                            <small>{row.level}</small>
+                            <small>{tr(row.level)}</small>
                           )}
                           {resource === "team" && row.invitation && (
                             <small>
-                              Jusqu’au{" "}
+                              {tr("Jusqu’au")}{" "}
                               {new Date(row.expiresAt!).toLocaleDateString(
-                                "fr-FR",
+                                uiLocale(),
                               )}
                             </small>
                           )}
                         </td>
                         {resource === "reports" && (
                           <>
-                            <td data-label="Auteur">{row.email || "—"}</td>
-                            <td data-label="Délai">
+                            <td data-label={tr("Auteur")}>
+                              {row.email || "—"}
+                            </td>
+                            <td data-label={tr("Délai")}>
                               <span
                                 className={`admin-badge ${row.priority === "Risque grave" ? "danger" : ""}`}
                               >
-                                {row.priority}
+                                {tr(row.priority)}
                               </span>
                               <small>
                                 {row.firstResponseAt
-                                  ? "Première réponse enregistrée"
+                                  ? tr("Première réponse enregistrée")
                                   : row.responseLate
-                                    ? "Délai de 24 h dépassé"
-                                    : "Réponse attendue sous 24 h"}
+                                    ? tr("Délai de 24 h dépassé")
+                                    : tr("Réponse attendue sous 24 h")}
                               </small>
                             </td>
                           </>
                         )}
-                        <td data-label="État">
+                        <td data-label={tr("État")}>
                           <span
                             className={`admin-badge ${statusTone(row.status)}`}
                           >
-                            {row.status}
+                            {tr(row.status)}
                           </span>
                         </td>
                         <td
                           data-label={
                             resource === "library"
-                              ? "Publication"
-                              : "Dernière activité"
+                              ? tr("Publication")
+                              : tr("Dernière activité")
                           }
                         >
                           {resource === "library"
                             ? row.versions?.some((v) => v.status === "Publié")
-                              ? `v${row.versions.find((v) => v.status === "Publié")!.number} en ligne`
-                              : "Non publié"
+                              ? tr("v{0} en ligne", [
+                                  row.versions.find(
+                                    (v) => v.status === "Publié",
+                                  )!.number,
+                                ])
+                              : tr("Non publié")
                             : row.updatedAt
                               ? new Date(row.updatedAt).toLocaleDateString(
-                                  "fr-FR",
+                                  uiLocale(),
                                 )
                               : "—"}
                         </td>
@@ -586,7 +613,9 @@ export default function AdminCollection({
                           <div className="admin-row-actions">
                             <AdminIconButton
                               icon="eye"
-                              label={`Consulter ${row.name}`}
+                              label={tr("Consulter {0}", [
+                                adminRecordTitle(resource, row, tr),
+                              ])}
                               onClick={() => void openRecord(row)}
                             />
                             {actionsFor(resource, row, role)
@@ -599,7 +628,7 @@ export default function AdminCollection({
                                     resource,
                                     action.label,
                                   )}
-                                  label={`${action.label} — ${row.name}`}
+                                  label={`${tr(action.label)} — ${adminRecordTitle(resource, row, tr)}`}
                                   danger={isDangerAction(action.id)}
                                   onClick={() =>
                                     void openRecord(row, action.id)
@@ -614,7 +643,7 @@ export default function AdminCollection({
               </table>
               {loading ? (
                 <div className="admin-empty" role="status">
-                  Chargement des dossiers…
+                  {tr("Chargement des dossiers…")}
                 </div>
               ) : !error && !data?.items.length ? (
                 <EmptyState
@@ -626,7 +655,7 @@ export default function AdminCollection({
             </div>
             <footer className="admin-pagination">
               <label>
-                Par page{" "}
+                {tr("Par page")}{" "}
                 <select
                   value={params.get("pageSize") || "10"}
                   onChange={(e) => change("pageSize", e.target.value)}
@@ -638,12 +667,14 @@ export default function AdminCollection({
               </label>
               <AdminIconButton
                 icon="back"
-                label="Page précédente"
+                label={tr("Page précédente")}
                 disabled={loading || !data || data.page <= 1}
                 onClick={() => change("page", String(data!.page - 1))}
               />
               <span className="admin-page-count">
-                Page {data?.page || 1} sur{" "}
+                {tr("Page ")}
+                {data?.page || 1}
+                {tr(" sur")}{" "}
                 {Math.max(
                   1,
                   Math.ceil((data?.total || 0) / (data?.pageSize || 10)),
@@ -651,7 +682,7 @@ export default function AdminCollection({
               </span>
               <AdminIconButton
                 icon="arrow"
-                label="Page suivante"
+                label={tr("Page suivante")}
                 disabled={
                   loading || !data || data.page * data.pageSize >= data.total
                 }

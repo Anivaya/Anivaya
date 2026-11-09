@@ -2,8 +2,10 @@ import { useState } from "react";
 import { AuthLayout } from "./AuthPage.tsx";
 import { api } from "../../shared/services/api.ts";
 import { errorMessage } from "../../shared/types.ts";
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 
 export default function UnsubscribePage({ token }: { token?: string }) {
+  const tr = useText();
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
@@ -11,20 +13,24 @@ export default function UnsubscribePage({ token }: { token?: string }) {
   return (
     <AuthLayout menuLogin>
       <h1 id="auth-title">
-        {done && token ? "Vous êtes désinscrit." : "Liste d’attente"}
+        {tr(done && token ? "Vous êtes désinscrit." : "Liste d’attente")}
       </h1>
       {done ? (
         <p role="status">
-          {token
-            ? "Votre consentement est retiré. Vous ne recevrez plus les e-mails de lancement d’Anivaya. Votre compte et vos autres demandes restent inchangés."
-            : "Si cette adresse est inscrite, un lien personnel de désinscription lui sera envoyé."}
+          {tr(
+            token
+              ? "Votre consentement est retiré. Vous ne recevrez plus les e-mails de lancement d’Anivaya. Votre compte et vos autres demandes restent inchangés."
+              : "Si cette adresse est inscrite, un lien personnel de désinscription lui sera envoyé.",
+          )}
         </p>
       ) : (
         <>
           <p className="intro">
-            {token
-              ? "Un clic suffit pour vous désinscrire des e-mails de lancement d’Anivaya."
-              : "Recevez un lien personnel pour gérer votre inscription."}
+            {tr(
+              token
+                ? "Un clic suffit pour vous désinscrire des e-mails de lancement d’Anivaya."
+                : "Recevez un lien personnel pour gérer votre inscription.",
+            )}
           </p>
           <form
             aria-busy={busy}
@@ -46,7 +52,9 @@ export default function UnsubscribePage({ token }: { token?: string }) {
           >
             {!token && (
               <div className="field">
-                <label htmlFor="unsubscribe-email">Adresse e-mail</label>
+                <label htmlFor="unsubscribe-email">
+                  {tr("Adresse e-mail")}
+                </label>
                 <input
                   id="unsubscribe-email"
                   type="email"
@@ -61,20 +69,22 @@ export default function UnsubscribePage({ token }: { token?: string }) {
             )}
             {error && (
               <p role="alert" className="form-message error">
-                {error}
+                {tr(error)}
               </p>
             )}
             <button className="button submit" disabled={busy}>
-              {busy
-                ? "Traitement…"
-                : token
-                  ? "Me désinscrire"
-                  : "Recevoir mon lien"}
+              {tr(
+                busy
+                  ? "Traitement…"
+                  : token
+                    ? "Me désinscrire"
+                    : "Recevoir mon lien",
+              )}
             </button>
           </form>
           {token && error && (
             <p>
-              <a href="#desinscription">Recevoir un nouveau lien</a>
+              <a href="#desinscription">{tr("Recevoir un nouveau lien")}</a>
             </p>
           )}
         </>

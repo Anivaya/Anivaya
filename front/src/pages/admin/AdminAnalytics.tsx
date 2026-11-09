@@ -1,3 +1,5 @@
+import { uiLocale } from "../../shared/i18n/locale.ts";
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import EmptyState from "../../shared/ui/EmptyState.tsx";
 import { useEffect, useRef, useState } from "react";
 import type {
@@ -11,6 +13,7 @@ import { errorMessage } from "../../shared/types.ts";
 import { indicatorColumns } from "./config.ts";
 
 export default function AdminAnalytics() {
+  const tr = useText();
   const [cohortSort, setCohortSort] = useState<"none" | "asc" | "desc">("none");
   const [zone, setZone] = useState(""),
     [channel, setChannel] = useState("");
@@ -56,47 +59,53 @@ export default function AdminAnalytics() {
         aria-busy={updating}
       >
         <div className="admin-section-title">
-          <h2>Activation et fidélisation</h2>
+          <h2>{tr("Activation et fidélisation")}</h2>
         </div>
         {!updating && result?.error ? (
           <div role="alert" className="admin-error">
-            {result.error}
+            {tr(result.error)}
             <button
               className="button outline"
               onClick={() => setRetry((n) => n + 1)}
             >
-              Réessayer
+              {tr("Réessayer")}
             </button>
           </div>
         ) : !data ? (
-          <p role="status">Chargement des indicateurs…</p>
+          <p role="status">{tr("Chargement des indicateurs…")}</p>
         ) : (
           <p className="admin-analytics-description">
             {!data.available
-              ? "Aucun foyer n’est encore inscrit."
-              : `Indicateurs au ${new Date(data.asOf).toLocaleDateString("fr-FR")} pour les comptes de cet espace.`}
+              ? tr("Aucun foyer n’est encore inscrit.")
+              : tr("Indicateurs au {0} pour les comptes de cet espace.", [
+                  new Date(data.asOf).toLocaleDateString(uiLocale()),
+                ])}
           </p>
         )}
         {(!!data?.cohorts.length || zone || channel) && (
           <div className="admin-toolbar admin-metric-filters">
             <label>
-              Zone
+              {tr("Zone")}
               <select value={zone} onChange={(e) => setZone(e.target.value)}>
-                <option value="">Toutes les zones</option>
+                <option value="">{tr("Toutes les zones")}</option>
                 {data?.zones.map((v) => (
-                  <option key={v}>{v}</option>
+                  <option key={v} value={v}>
+                    {tr(v)}
+                  </option>
                 ))}
               </select>
             </label>
             <label>
-              Origine
+              {tr("Origine")}
               <select
                 value={channel}
                 onChange={(e) => setChannel(e.target.value)}
               >
-                <option value="">Toutes les origines</option>
+                <option value="">{tr("Toutes les origines")}</option>
                 {data?.channels.map((v) => (
-                  <option key={v}>{v}</option>
+                  <option key={v} value={v}>
+                    {tr(v)}
+                  </option>
                 ))}
               </select>
             </label>
@@ -121,7 +130,7 @@ export default function AdminAnalytics() {
                 "Rétention M6",
               ].map((label, i) => (
                 <article className="admin-metric-card" key={label}>
-                  <span>{label}</span>
+                  <span>{tr(label)}</span>
                   <strong>
                     <AnimatedPercent value={percents[i]} />
                   </strong>
@@ -131,47 +140,49 @@ export default function AdminAnalytics() {
                   </span>
                   <small>
                     {data?.available
-                      ? `${ratio(values[i])}${values[i].total ? "" : " · aucune cohorte éligible"}`
-                      : "Mesure non disponible"}
+                      ? `${ratio(values[i])}${values[i].total ? "" : tr(" · aucune cohorte éligible")}`
+                      : tr("Mesure non disponible")}
                   </small>
                 </article>
               ))}
             </div>
             <AdminDisclosure
               className="admin-definitions"
-              label="Comprendre les indicateurs et les périodes"
+              label={tr("Comprendre les indicateurs et les périodes")}
             >
               <ul>
                 <li>
-                  Activation : au moins un animal avec profil complété et rappel
-                  créé dans les 7 jours suivant l’inscription. Seuls les foyers
-                  inscrits depuis au moins 7 jours entrent dans le dénominateur.
+                  {tr(
+                    "Activation : au moins un animal avec profil complété et rappel créé dans les 7 jours suivant l’inscription. Seuls les foyers inscrits depuis au moins 7 jours entrent dans le dénominateur.",
+                  )}
                 </li>
                 <li>
-                  Animal activement suivi : rappel programmé et interaction avec
-                  son dossier dans les 30 derniers jours.
+                  {tr(
+                    "Animal activement suivi : rappel programmé et interaction avec son dossier dans les 30 derniers jours.",
+                  )}
                 </li>
                 <li>
-                  Rétention : interaction pendant J30–J59, J90–J119 (M3) ou
-                  J180–J209 (M6). La fenêtre entière doit être terminée.
+                  {tr(
+                    "Rétention : interaction pendant J30–J59, J90–J119 (M3) ou J180–J209 (M6). La fenêtre entière doit être terminée.",
+                  )}
                 </li>
                 <li>
-                  Chaque ratio indique le numérateur et le dénominateur. « — »
-                  indique une absence de mesure ou de cohorte éligible, pas un
-                  taux nul.
+                  {tr(
+                    "Chaque ratio indique le numérateur et le dénominateur. « — » indique une absence de mesure ou de cohorte éligible, pas un taux nul.",
+                  )}
                 </li>
               </ul>
             </AdminDisclosure>
           </>
         )}
-        <h3>Par mois d’inscription</h3>
+        <h3>{tr("Par mois d’inscription")}</h3>
         {data && !updating && !result?.error && !data.cohorts.length ? (
           <EmptyState kind="data" />
         ) : (
           <div
             className="admin-table-panel admin-table-scroll"
             role="region"
-            aria-label="Cohortes par mois"
+            aria-label={tr("Cohortes par mois")}
             tabIndex={0}
           >
             <table>
@@ -200,7 +211,7 @@ export default function AdminAnalytics() {
                     >
                       {t === "Cohorte" ? (
                         <span className="admin-sort-heading">
-                          {t}
+                          {tr(t)}
                           <AdminIconButton
                             icon={
                               cohortSort === "none"
@@ -209,7 +220,7 @@ export default function AdminAnalytics() {
                                   ? "up"
                                   : "down"
                             }
-                            label={`Cohorte : ${cohortSort === "none" ? "trier par ordre croissant" : cohortSort === "asc" ? "trier par ordre décroissant" : "rétablir l’ordre normal"}`}
+                            label={`${tr("Cohorte")}: ${tr(cohortSort === "none" ? "trier par ordre croissant" : cohortSort === "asc" ? "trier par ordre décroissant" : "rétablir l’ordre normal")}`}
                             onClick={() =>
                               setCohortSort((v) =>
                                 v === "none"
@@ -222,7 +233,7 @@ export default function AdminAnalytics() {
                           />
                         </span>
                       ) : (
-                        t
+                        tr(t)
                       )}
                     </th>
                   ))}

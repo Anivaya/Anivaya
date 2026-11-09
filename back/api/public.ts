@@ -8,6 +8,7 @@ import { appUrl, sendMail } from "./mail.ts";
 import { centralMigration, transaction } from "../database/connection.ts";
 import {
   ApiError,
+  clientAddress,
   text,
   emailAddress,
   isPhone,
@@ -24,7 +25,7 @@ export function publicService(db: Database) {
     const now = Date.now();
     for (const [key, value] of attempts)
       if (value.until <= now) attempts.delete(key);
-    const key = request.socket.remoteAddress || "unknown";
+    const key = clientAddress(request);
     const bucket = attempts.get(key) || { count: 0, until: now + 15 * 60_000 };
     if (bucket.count >= 20)
       throw new ApiError(

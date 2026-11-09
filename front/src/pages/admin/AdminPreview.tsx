@@ -1,3 +1,5 @@
+import { adminRecordTitle } from "../../../../shared/translations/admin.ts";
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import EmptyState from "../../shared/ui/EmptyState.tsx";
 import { useEffect, useState, useRef } from "react";
 import type {
@@ -32,6 +34,7 @@ export default function AdminPreview({
   onClose: () => void;
   onChanged: () => void;
 }) {
+  const tr = useText();
   const [result, setResult] = useState<{ data?: AdminList; error?: string }>(
     {},
   );
@@ -98,19 +101,22 @@ export default function AdminPreview({
         <header className="admin-dialog-heading">
           <div>
             <h2 id="preview-title" tabIndex={-1} autoFocus>
-              {indicator.label}
+              {tr(indicator.label)}
             </h2>
             {(!result.data || result.data.total > 0) && (
               <p className="muted">
                 {result.data
-                  ? `${result.data.items.length} sur ${result.data.total} résultats`
-                  : "Chargement de l’aperçu…"}
+                  ? tr("{0} sur {1} résultats", [
+                      result.data.items.length,
+                      result.data.total,
+                    ])
+                  : tr("Chargement de l’aperçu…")}
               </p>
             )}
           </div>
           <AdminIconButton
             icon="close"
-            label="Fermer l’aperçu"
+            label={tr("Fermer l’aperçu")}
             danger
             className="admin-close"
             onClick={onClose}
@@ -118,7 +124,7 @@ export default function AdminPreview({
         </header>
         {result.error && (
           <div role="alert" className="admin-error">
-            <p>{result.error}</p>
+            <p>{tr(result.error)}</p>
             <button
               className="button outline"
               onClick={() => {
@@ -126,7 +132,7 @@ export default function AdminPreview({
                 setRevision((n) => n + 1);
               }}
             >
-              Réessayer
+              {tr("Réessayer")}
             </button>
           </div>
         )}
@@ -142,17 +148,21 @@ export default function AdminPreview({
                   disabled={busy}
                   onClick={() => void open(row)}
                 >
-                  {row.name}
+                  {adminRecordTitle(indicator.resource, row, tr)}
                 </button>
-                <p>{row.email || row.category || row.reference || row.city}</p>
+                <p>
+                  {row.email || tr(row.category) || row.reference || row.city}
+                </p>
                 <span className={`admin-badge ${statusTone(row.status)}`}>
-                  {row.status}
+                  {tr(row.status)}
                 </span>
               </div>
               <div className="admin-preview-actions">
                 <AdminIconButton
                   icon="eye"
-                  label={`Consulter ${row.name}`}
+                  label={tr("Consulter {0}", [
+                    adminRecordTitle(indicator.resource, row, tr),
+                  ])}
                   disabled={busy}
                   onClick={() => void open(row)}
                 />
@@ -166,7 +176,7 @@ export default function AdminPreview({
                         indicator.resource,
                         action.label,
                       )}
-                      label={`${action.label} — ${row.name}`}
+                      label={`${tr(action.label)} — ${row.name}`}
                       danger={isDangerAction(action.id)}
                       disabled={busy}
                       key={action.id}
@@ -185,7 +195,7 @@ export default function AdminPreview({
           )}
           {!result.data && !result.error && (
             <p className="admin-empty" role="status">
-              Chargement des dossiers…
+              {tr("Chargement des dossiers…")}
             </p>
           )}
         </div>
@@ -195,7 +205,7 @@ export default function AdminPreview({
               className="button"
               href={`${adminLink(indicator.resource)}?${indicator.query}${indicator.query ? "&" : ""}from=dashboard`}
             >
-              Voir la page complète
+              {tr("Voir la page complète")}
             </a>
           </footer>
         )}
@@ -207,7 +217,7 @@ export default function AdminPreview({
           resource={indicator.resource}
           role={role}
           initialAction={selection.action}
-          returnLabel="Retour à l’aperçu"
+          returnLabel={tr("Retour à l’aperçu")}
           onClose={closeSelection}
           onSaved={async () => {
             closeSelection();

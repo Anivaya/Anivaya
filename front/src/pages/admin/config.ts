@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+export { actionLabel } from "../../../../shared/translations/admin.ts";
 import type { EmptyKind } from "../../shared/ui/EmptyIllustration.tsx";
 import type {
   AdminResource,

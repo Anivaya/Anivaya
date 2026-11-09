@@ -6,26 +6,29 @@ API locale : http://127.0.0.1:3001. React utilise le proxy `/api` de Vite, puis 
 
 Toutes les routes métier nécessitent une session, sauf la santé du serveur, l’authentification, les catalogues de traduction et la lecture des fiches publiques. L’accès anonyme retourne 401. Les écritures utilisent JSON et vérifient l’origine du navigateur.
 
-| Méthode     | Route                                        | Usage                                                                                |
-| ----------- | -------------------------------------------- | ------------------------------------------------------------------------------------ |
-| GET         | /api/auth/demo                               | Liste des comptes de démonstration (name, email, password)                           |
-| GET         | /api/auth/session                            | Compte et profil, ou null                                                            |
-| POST        | /api/auth/register                           | name, email, password, confirmPassword ; compte vide et session                      |
-| POST        | /api/auth/login                              | email, password, remember facultatif ; cookie HttpOnly                               |
-| POST        | /api/auth/logout                             | Invalide la session et expire le cookie                                              |
-| GET / PATCH | /api/profile                                 | Profil, photo et préférences                                                         |
-| GET         | /api/profile/photo                           | Avatar privé                                                                         |
-| GET         | /api/directory                               | Professionnels, favoris, réservations et date de Paris                               |
-| PUT         | /api/professionals/:id/favorite              | favorite: boolean                                                                    |
-| GET         | /api/professionals/:id/slots?date=YYYY-MM-DD | Créneaux ; ignore=:bookingId pour un déplacement                                     |
-| POST        | /api/bookings                                | professional, animal, service (index), date, time, contactName, email, note, payment |
-| PATCH       | /api/bookings/:id                            | date et time pour déplacer, ou status: cancelled pour annuler                        |
-| GET         | /api/public/emergency/:token                 | Informations sélectionnées, sans session                                             |
-| GET         | /api/public/emergency/:token/photo           | Photo si autorisée sur la fiche active                                               |
-| DELETE      | /api/account                                 | confirmation: "SUPPRIMER" ; supprime le compte et ferme ses sessions (204)           |
-| GET         | /api/export?categories=profile,animals       | Export JSON : profile, animals, documents, sharing, bookings                         |
+| Méthode     | Route                                        | Usage                                                                                                            |
+| ----------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| GET         | /api/auth/session                            | Compte et profil, ou null                                                                                        |
+| POST        | /api/auth/register                           | name, email, password, confirmPassword ; compte vide et session                                                  |
+| POST        | /api/auth/login                              | email, password, remember facultatif ; cookie HttpOnly                                                           |
+| POST        | /api/auth/logout                             | Invalide la session et expire le cookie                                                                          |
+| POST        | /api/auth/password-reset                     | email ; envoie un lien valable une heure, utilisable une fois. Réponse 204 identique que l’adresse existe ou non |
+| GET         | /api/auth/password-reset/:token              | `{ valid }` : le lien est-il encore utilisable                                                                   |
+| POST        | /api/auth/password-reset/confirm             | token, password, confirmPassword ; change le mot de passe et ferme toutes les sessions (204)                     |
+| POST        | /api/account/password-reset                  | Avec session : envoie le lien à l’adresse du compte (409 pour un compte de démonstration)                        |
+| GET / PATCH | /api/profile                                 | Profil, photo et préférences                                                                                     |
+| GET         | /api/profile/photo                           | Avatar privé                                                                                                     |
+| GET         | /api/directory                               | Professionnels, favoris, réservations et date de Paris                                                           |
+| PUT         | /api/professionals/:id/favorite              | favorite: boolean                                                                                                |
+| GET         | /api/professionals/:id/slots?date=YYYY-MM-DD | Créneaux ; ignore=:bookingId pour un déplacement                                                                 |
+| POST        | /api/bookings                                | professional, animal, service (index), date, time, contactName, email, note, payment                             |
+| PATCH       | /api/bookings/:id                            | date et time pour déplacer, ou status: cancelled pour annuler                                                    |
+| GET         | /api/public/emergency/:token                 | Informations sélectionnées, sans session                                                                         |
+| GET         | /api/public/emergency/:token/photo           | Photo si autorisée sur la fiche active                                                                           |
+| DELETE      | /api/account                                 | confirmation: "SUPPRIMER" ; supprime le compte et ferme ses sessions (204)                                       |
+| GET         | /api/export?categories=profile,animals       | Export JSON : profile, animals, documents, sharing, bookings                                                     |
 
-Mot de passe : 12 à 256 caractères, hachage scrypt avec sel aléatoire. Jeton de session aléatoire, seul son SHA-256 est stocké. Durée maximale : 24 h, ou 7 jours avec remember=true. Connexion et inscription limitées à 30 tentatives par IP en 15 minutes. Les comptes de démonstration conservent leur adresse affichée ; leur suppression recrée leur espace d’exemple.
+Mot de passe : au moins 8 caractères, dont une majuscule, une minuscule et un caractère spécial (règle partagée avec React dans `shared/account.ts`), hachage scrypt avec sel aléatoire. Jeton de session aléatoire, seul son SHA-256 est stocké. Durée maximale : 24 h, ou 7 jours avec remember=true. Connexion, inscription et réinitialisation du mot de passe limitées à 30 tentatives par adresse réseau en 15 minutes. L’adresse est celle de la connexion ; derrière un proxy inverse, `TRUST_PROXY=1` fait compter la dernière adresse de `X-Forwarded-For`, celle que le proxy ajoute. Sans ce réglage l’en-tête est ignoré, car le client peut l’écrire lui-même. Les comptes de démonstration conservent leur adresse affichée ; leur suppression recrée leur espace d’exemple.
 
 Chaque compte dispose de sa base SQLite, sélectionnée depuis la session. Les identifiants des ressources d’un autre compte ne donnent pas accès à ses données.
 
@@ -37,30 +40,31 @@ Une fiche publique utilise un jeton imprévisible. Désactivation : 410 sans inf
 
 ## Routes métier
 
-| Méthode              | Route                       | Usage                                                               |
-| -------------------- | --------------------------- | ------------------------------------------------------------------- |
-| GET                  | /api/health                 | État du serveur                                                     |
-| GET                  | /api/dashboard              | Foyer, animaux, rappels, documents, événements, fiches d’urgence    |
-| GET / POST           | /api/animals                | Liste / création                                                    |
-| GET / PATCH / DELETE | /api/animals/:id            | Carnet complet / profil / retrait                                   |
-| GET                  | /api/animals/:id/photo      | Photo JPEG ou PNG                                                   |
-| GET / PUT / DELETE   | /api/animals/:id/emergency  | Fiche sauvegardée / génération / retrait                            |
-| POST                 | /api/events                 | Ajouter un événement                                                |
-| PATCH / DELETE       | /api/events/:id             | Modifier / retirer un événement                                     |
-| POST                 | /api/reminders              | Ajouter un rappel                                                   |
-| PATCH / DELETE       | /api/reminders/:id          | Modifier nom, date, fréquence ou statut / retirer                   |
-| POST                 | /api/documents              | Ajouter un fichier                                                  |
-| PATCH / DELETE       | /api/documents/:id          | Modifier ou remplacer / retirer                                     |
-| GET                  | /api/documents/:id/file     | Télécharger le fichier                                              |
-| GET                  | /api/sharing                | Personnes et partages avec statut calculé                           |
-| POST                 | /api/people                 | Créer une personne de confiance                                     |
-| PATCH / DELETE       | /api/people/:id             | Modifier / supprimer et révoquer ses partages                       |
-| POST                 | /api/associations           | Associer ou retirer plusieurs personnes de plusieurs animaux        |
-| POST                 | /api/shares                 | Créer des partages simulés                                          |
-| DELETE               | /api/shares/:id             | Révoquer un partage simulé                                          |
-| PATCH                | /api/received-shares/:id    | `status` : `accepted` ou `declined`, pour une invitation en attente |
-| PATCH                | /api/notifications/:id      | `read: boolean` : marquer comme lue ou non lue                      |
-| POST                 | /api/notifications/read-all | Tout marquer comme lu ; renvoie la liste                            |
+| Méthode              | Route                         | Usage                                                                  |
+| -------------------- | ----------------------------- | ---------------------------------------------------------------------- |
+| GET                  | /api/health                   | État du serveur                                                        |
+| GET                  | /api/dashboard                | Foyer, animaux, rappels, documents, événements, fiches d’urgence       |
+| GET / POST           | /api/animals                  | Liste / création                                                       |
+| GET / PATCH / DELETE | /api/animals/:id              | Carnet complet / profil / retrait                                      |
+| GET                  | /api/animals/:id/photo        | Photo JPEG ou PNG                                                      |
+| GET / PUT / DELETE   | /api/animals/:id/emergency    | Fiche sauvegardée / génération / retrait                               |
+| POST                 | /api/events                   | Ajouter un événement                                                   |
+| PATCH / DELETE       | /api/events/:id               | Modifier / retirer un événement                                        |
+| POST                 | /api/reminders                | Ajouter un rappel                                                      |
+| PATCH / DELETE       | /api/reminders/:id            | Modifier nom, date, fréquence ou statut / retirer                      |
+| POST                 | /api/documents                | Ajouter un fichier                                                     |
+| PATCH / DELETE       | /api/documents/:id            | Modifier ou remplacer / retirer                                        |
+| GET                  | /api/documents/:id/file       | Télécharger le fichier                                                 |
+| GET                  | /api/sharing                  | Personnes et partages avec statut calculé                              |
+| POST                 | /api/people                   | Créer une personne de confiance                                        |
+| PATCH / DELETE       | /api/people/:id               | Modifier / supprimer et révoquer ses partages                          |
+| POST                 | /api/associations             | Associer ou retirer plusieurs personnes de plusieurs animaux           |
+| POST                 | /api/shares                   | Créer des partages simulés                                             |
+| DELETE               | /api/shares/:id               | Révoquer un partage simulé                                             |
+| PATCH                | /api/received-shares/:id      | `status` : `accepted` ou `declined`, pour une invitation en attente    |
+| GET                  | /api/received-shares/:id/file | Document reçu d’un autre compte, tant que l’accès est accepté et actif |
+| PATCH                | /api/notifications/:id        | `read: boolean` : marquer comme lue ou non lue                         |
+| POST                 | /api/notifications/read-all   | Tout marquer comme lu ; renvoie la liste                               |
 
 Création : 201. Lecture/modification : 200. Suppression : 204. Erreurs : `{ "error": "Message", "field": "name" }`, avec `field` facultatif.
 
@@ -68,25 +72,26 @@ Création : 201. Lecture/modification : 200. Suppression : 204. Erreurs : `{ "er
 
 Les rôles d’équipe (Administrateur, Modérateur, Support, Vétérinaire référent) sont enregistrés dans `admin_members` de la base centrale, par `npm run admin:grant -- adresse "Rôle"` ou depuis Équipe. Le compte de démonstration `admin@anivaya.fr` est administrateur. Le rôle envoyé par le client n’est jamais pris en compte ; l’inscription l’ignore. Un compte suspendu (`account_controls`) ne peut plus se connecter (403) et ses sessions sont fermées. Un membre de l’équipe ne peut pas supprimer son propre compte (409).
 
-| Méthode    | Route                                        | Usage                                                                                                          |
-| ---------- | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| GET        | /api/admin/overview                          | Rôle, compteurs, indicateurs, dossiers en attente, actions récentes et notifications non lues                  |
-| GET        | /api/admin/analytics                         | Pilotage (administrateur) ; `source=maquette` pour le jeu d’exemples, `zone` et `channel` pour filtrer         |
-| GET        | /api/admin/:resource                         | Liste paginée : `q`, `status`, `scope=pending`, `category`, `sort=name\|date`, `direction`, `page`, `pageSize` |
-| POST       | /api/admin/:resource                         | Création : team (email, role), library (name, summary, body), announcements, tickets                           |
-| GET        | /api/admin/:resource/:id                     | Dossier complet avec historique                                                                                |
-| POST       | /api/admin/:resource/:id/actions             | `action`, `version` lue et `note` ; 409 si le dossier a changé ; 204 quand le dossier disparaît                |
-| GET        | /api/public/resources                        | Guides publiés après relecture et annonces diffusées (sans session)                                            |
-| POST       | /api/public/contact                          | name, email, subject, message : crée une demande d’assistance (sans session)                                   |
-| POST       | /api/reports                                 | targetType: "pros", target, name, message : signalement d’une fiche de l’annuaire                              |
-| POST       | /api/appeals                                 | reference (DEC-…), message : recours sur une décision concernant le compte                                     |
-| POST       | /api/feedback                                | name, category, message : retour sur un import assisté                                                         |
-| GET        | /api/support                                 | Demandes, signalements, recours et retours du compte connecté, réponses de l’équipe incluses                   |
-| GET / POST | /api/account/mfa                             | État de la double authentification / `action` setup, enable, renew ou disable avec `password` et `mfaCode`     |
-| POST       | /api/account/deletion-request                | message facultatif : demande de suppression examinée par l’équipe (409 si une demande est en cours)            |
-| POST       | /api/imports                                 | name, kind (Fichier ou Exemple intégré) : suivi d’un import assisté validé par l’utilisateur                   |
-| POST       | /api/public/emergency/:token/report          | name facultatif, message : signalement d’une fiche publique, avec ou sans session                              |
-| GET        | /api/admin/pros/:id/documents/:document/file | Pièce justificative reçue (PDF, JPEG ou PNG)                                                                   |
+| Méthode    | Route                                        | Usage                                                                                                                       |
+| ---------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| GET        | /api/admin/overview                          | Rôle, compteurs, indicateurs, dossiers en attente, actions récentes et notifications non lues                               |
+| GET        | /api/admin/analytics                         | Pilotage (administrateur) ; `source=maquette` pour le jeu d’exemples, `zone` et `channel` pour filtrer                      |
+| GET        | /api/admin/:resource                         | Liste paginée : `q`, `status`, `scope=pending`, `category`, `sort=name\|date`, `direction`, `page`, `pageSize`              |
+| POST       | /api/admin/:resource                         | Création : team (email, role), library (name, summary, body), announcements, tickets                                        |
+| GET        | /api/admin/:resource/:id                     | Dossier complet avec historique                                                                                             |
+| POST       | /api/admin/:resource/:id/actions             | `action`, `version` lue et `note` ; 409 si le dossier a changé ; 204 quand le dossier disparaît                             |
+| GET        | /api/public/resources                        | Guides publiés après relecture et annonces diffusées (sans session)                                                         |
+| POST       | /api/public/contact                          | name, email, subject, message : crée une demande d’assistance (sans session)                                                |
+| POST       | /api/reports                                 | targetType: "pros", target, name, message : signalement d’une fiche de l’annuaire                                           |
+| POST       | /api/appeals                                 | reference (DEC-…), message : recours sur une décision concernant le compte                                                  |
+| POST       | /api/feedback                                | name, category, message : retour sur un import assisté                                                                      |
+| GET        | /api/support                                 | Demandes, signalements, recours et retours du compte connecté, réponses de l’équipe incluses                                |
+| GET / POST | /api/account/mfa                             | État de la double authentification / `action` setup, enable, renew ou disable avec `password` et `mfaCode`                  |
+| POST       | /api/account/deletion-request                | message facultatif : demande de suppression examinée par l’équipe (409 si une demande est en cours)                         |
+| POST       | /api/imports/extract                         | type, content (PDF/JPEG/PNG en base64) : lecture du document par l’IA, sans rien enregistrer ; 503 sans `ANTHROPIC_API_KEY` |
+| POST       | /api/imports                                 | name, kind (Fichier ou Exemple intégré) : suivi d’un import assisté validé par l’utilisateur                                |
+| POST       | /api/public/emergency/:token/report          | name facultatif, message : signalement d’une fiche publique, avec ou sans session                                           |
+| GET        | /api/admin/pros/:id/documents/:document/file | Pièce justificative reçue (PDF, JPEG ou PNG)                                                                                |
 
 Ressources : `users`, `deletions`, `pros`, `reports`, `appeals`, `tickets`, `imports`, `feedback`, `announcements`, `library`, `team`, `security`, `history`, `alerts`. Chaque rôle n’accède qu’aux siennes (403 sinon). Les actions sont journalisées dans `admin_audit` avec leur auteur et leur motif.
 
@@ -133,23 +138,25 @@ Notifications : `GET /api/dashboard` inclut `notifications`, de la plus récente
 
 Données partagées entre tous les comptes, dans la base centrale (tables `social_*`). Les personnes sont identifiées par l’identifiant de leur compte (`demo`, `demo-2`, `demo-3` pour les comptes de démonstration ; `claire-demo` et `samir-demo` sont fictifs). Sans authentification, ces routes répondent 404.
 
-| Méthode       | Route                                       | Usage                                                                                      |
-| ------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| GET           | /api/social                                 | Vue du compte : personnes, communautés, événements, discussions lisibles, amis, blocages   |
-| POST / PATCH  | /api/social/communities[/:id]               | name, city, topic, description ; modification réservée au créateur                         |
-| DELETE        | /api/social/communities/:id                 | Supprime la discussion et annule les événements à venir                                    |
-| POST          | /api/social/communities/:id/join, /leave    | Rejoindre ou quitter ; la gestion passe au membre suivant                                  |
-| POST / PATCH  | /api/social/events[/:id]                    | name, city, place, date (à venir), capacity (1 à 200), community, description              |
-| POST          | /api/social/events/:id/cancel               | Annulation par l’organisateur                                                              |
-| POST          | /api/social/events/:id/participation        | join: boolean ; 409 si complet, fermé ou communauté non rejointe                           |
-| POST          | /api/social/threads                         | people, name facultatif (groupe privé) ; renvoie l’id, réutilise un message privé existant |
-| POST          | /api/social/threads/:id/members, /leave     | Inviter (créateur d’un groupe privé) ou quitter                                            |
-| POST / DELETE | /api/social/threads/:id/messages[/:message] | text (3 000 caractères), photo {type, content} JPG/PNG/WebP 1 Mo ; supprimer ses messages  |
-| POST          | /api/social/threads/:id/read                | Marque lu ; alimente « Lu » chez les autres membres                                        |
-| GET           | /api/social/photos/:message                 | Photo jointe, réservée aux membres de la discussion                                        |
-| PUT           | /api/social/friends/:person                 | action : request, accept ou remove                                                         |
-| PUT           | /api/social/blocks/:person                  | blocked: boolean ; bloquer masque les messages et retire l’amitié                          |
-| POST          | /api/social/reports                         | type (person ou message), target, reason                                                   |
+| Méthode       | Route                                       | Usage                                                                                               |
+| ------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| GET           | /api/social                                 | Vue du compte : personnes, communautés, événements, discussions lisibles, amis, blocages            |
+| POST / PATCH  | /api/social/communities[/:id]               | name, city, topic, description ; modification réservée au créateur                                  |
+| DELETE        | /api/social/communities/:id                 | Supprime la discussion et annule les événements à venir                                             |
+| POST          | /api/social/communities/:id/join, /leave    | Rejoindre ou quitter ; la gestion passe au membre suivant                                           |
+| POST / PATCH  | /api/social/events[/:id]                    | name, city, place, date (à venir), capacity (1 à 200), community, description                       |
+| POST          | /api/social/events/:id/cancel               | Annulation par l’organisateur                                                                       |
+| POST          | /api/social/events/:id/participation        | join: boolean ; 409 si complet, fermé ou communauté non rejointe                                    |
+| POST          | /api/social/threads                         | people, name facultatif (groupe privé) ; renvoie l’id, réutilise un message privé existant          |
+| POST          | /api/social/threads/:id/members, /leave     | Inviter (créateur d’un groupe privé) ou quitter                                                     |
+| PATCH         | /api/social/threads/:id                     | name (2 à 90 caractères), photo {type, content} ou null ; membres d’un groupe privé ou organisateur |
+| GET           | /api/social/threads/:id/photo               | Photo de la discussion, réservée à ses membres                                                      |
+| POST / DELETE | /api/social/threads/:id/messages[/:message] | text (3 000 caractères), photo {type, content} JPG/PNG/WebP 1 Mo ; supprimer ses messages           |
+| POST          | /api/social/threads/:id/read                | Marque lu ; alimente « Lu » chez les autres membres                                                 |
+| GET           | /api/social/photos/:message                 | Photo jointe, réservée aux membres de la discussion                                                 |
+| PUT           | /api/social/friends/:person                 | action : request, accept ou remove                                                                  |
+| PUT           | /api/social/blocks/:person                  | blocked: boolean ; bloquer masque les messages et retire l’amitié                                   |
+| POST          | /api/social/reports                         | type (person ou message), target, reason                                                            |
 
 Un nouveau message crée ou met à jour une notification par discussion chez les autres membres (`social-thread-<id>`) ; une demande d’ami crée `social-friend-<id>`. Lire la discussion marque sa notification comme lue. La suppression d’un compte le retire des communautés, des événements, des discussions et des relations.
 
@@ -176,6 +183,6 @@ Les demandes publiques alimentent `/api/admin/tickets` et utilisent les droits d
 
 ## Traductions de l’interface
 
-`GET /api/translations?scope=particular&lang=en` est public et renvoie `{ language, scope, version, messages }`. `scope` accepte `home` ou `particular` (défaut `home`) ; `lang` accepte `fr` ou `en` (défaut `fr`). Une valeur non reconnue renvoie 400. `messages` associe chaque texte source français à sa traduction ; le catalogue particulier inclut les menus et le pied de page communs. Les paramètres `{0}`, `{1}`, etc. sont remplacés côté React après traduction, sans traduire leurs valeurs.
+`GET /api/translations?scope=admin&lang=en` est public et renvoie `{ language, scope, version, messages }`. `scope` accepte `home`, `particular` ou `admin` (défaut `home`) ; `lang` accepte `fr` ou `en` (défaut `fr`). Une valeur non reconnue renvoie 400. La réponse porte un `ETag` et `Cache-Control: no-cache` : le navigateur conserve le catalogue et le revalide (304 sans contenu tant qu’il n’a pas changé) ; elle est compressée en gzip quand le client l’accepte. Les autres réponses de l’API restent en `no-store`. `messages` associe chaque texte source français à sa traduction ; les catalogues particulier et admin incluent les menus, formulaires du profil et pied de page communs. Le catalogue particulier sert aussi aux pages ouvertes sans session (connexion, inscription, mot de passe oublié, désinscription, Contact et Informations publics). Le catalogue admin ajoute les tableaux, filtres, actions, erreurs et indicateurs de l’administration. Les paramètres `{0}`, `{1}`, etc. sont remplacés côté React après traduction, sans traduire leurs valeurs. Les statuts, rôles et choix envoyés aux routes métier restent en français ; seules leurs étiquettes affichées changent.
 
-Les catalogues statiques versionnés de `shared/translations/` sont la source commune de l’API et du secours local chargé à la demande. La route ne nécessite ni clé de fournisseur externe, ni migration SQLite, ni contenu personnel. La préférence FR/EN reste mémorisée dans le navigateur. Les enregistrements métier, noms et fichiers en base ne sont pas modifiés. Les tests `translations.test.ts` couvrent la route, les paramètres, les clés de l’interface et la conservation des noms.
+Les catalogues statiques versionnés de `shared/translations/` sont la source commune de l’API et du secours local chargé à la demande. La route ne nécessite ni clé de fournisseur externe, ni migration SQLite, ni contenu personnel. La préférence FR/EN reste mémorisée dans le navigateur. En français, langue source, React n’appelle pas la route : chaque texte s’affiche tel quel. Les enregistrements métier, noms et fichiers en base ne sont pas modifiés. Les tests `translations.test.ts` couvrent la route, les paramètres, le cache, les clés de l’interface et la conservation des noms ; `translation-coverage.test.ts` vérifie que chaque texte passé à `tr(...)` dans React a son entrée anglaise.

@@ -91,7 +91,8 @@ export default function SupportPanel({
               {r.history?.map((h, i) => (
                 <div className="admin-note" key={i}>
                   <strong>
-                    {h.actor} ·{" "}
+                    {/* « Vous » ou « Équipe Anivaya » : libellés fixés par l’API. */}
+                    {tr(h.actor)} ·{" "}
                     {new Date(h.date).toLocaleDateString(uiLocale())}
                   </strong>
                   <p className="admin-preserve">{h.note}</p>

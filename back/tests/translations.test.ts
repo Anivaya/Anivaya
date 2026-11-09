@@ -8,11 +8,19 @@ import type { AddressInfo } from "node:net";
 import { openDatabase } from "../database/connection.ts";
 import { createApi } from "../api/app.ts";
 import { translationCatalogue } from "../../shared/translations/catalogue.ts";
+import { adminEnglish } from "../../shared/translations/admin.en.ts";
 import {
   translateMessage,
   translationScope,
 } from "../../shared/translations.ts";
 import { notificationText } from "../../shared/translations/notification.ts";
+import {
+  adminHistoryAction,
+  actionLabel,
+  adminRecordTitle,
+  adminAssignee,
+} from "../../shared/translations/admin.ts";
+import { pageTitle } from "../../front/src/shared/layout/pageTitle.ts";
 
 test("public translation API supplies FR/EN catalogues, defaults and validates parameters", async (t) => {
   const directory = mkdtempSync(join(tmpdir(), "anivaya-translations-"));
@@ -28,7 +36,7 @@ test("public translation API supplies FR/EN catalogues, defaults and validates p
     rmSync(directory, { recursive: true, force: true });
   });
   const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}/api/translations`;
-  for (const scope of ["home", "particular"] as const) {
+  for (const scope of ["home", "particular", "admin"] as const) {
     for (const language of ["fr", "en"] as const) {
       const response = await fetch(`${base}?scope=${scope}&lang=${language}`);
       assert.equal(response.status, 200);
@@ -45,12 +53,38 @@ test("public translation API supplies FR/EN catalogues, defaults and validates p
   );
   for (const query of [
     "lang=de",
-    "scope=admin",
+    "scope=unknown",
     "scope=../../private",
     "lang=en%27",
   ]) {
     assert.equal((await fetch(`${base}?${query}`)).status, 400);
   }
+  // Le catalogue est compressé, conservé par le navigateur et revalidé sans être renvoyé.
+  const url = `${base}?scope=admin&lang=en`;
+  const first = await fetch(url);
+  const etag = first.headers.get("etag");
+  assert.ok(etag);
+  assert.equal(first.headers.get("cache-control"), "no-cache");
+  assert.equal(first.headers.get("content-encoding"), "gzip");
+  await first.arrayBuffer();
+  const plain = await fetch(url, {
+    headers: { "Accept-Encoding": "identity" },
+  });
+  assert.equal(plain.headers.get("content-encoding"), null);
+  assert.equal(plain.headers.get("etag"), etag);
+  assert.deepEqual(await plain.json(), translationCatalogue("admin", "en"));
+  const unchanged = await fetch(url, { headers: { "If-None-Match": etag } });
+  assert.equal(unchanged.status, 304);
+  assert.equal(await unchanged.text(), "");
+  const other = await fetch(`${base}?scope=home&lang=en`, {
+    headers: { "If-None-Match": etag },
+  });
+  assert.equal(other.status, 200);
+  await other.arrayBuffer();
+  // Les autres réponses de l’API ne sont jamais mises en cache.
+  const invalid = await fetch(`${base}?lang=de`);
+  assert.equal(invalid.headers.get("cache-control"), "no-store");
+  await invalid.arrayBuffer();
 });
 
 test("names matching interface keys are preserved in greetings, document actions and notifications", () => {
@@ -119,7 +153,9 @@ test("names matching interface keys are preserved in greetings, document actions
   );
 });
 
-test("translation scope excludes administration and sign-in while retaining home and personal routes", () => {
+test("translation scope includes administration and the pages open without a session", () => {
+  // Contact et Informations existent aussi en version publique.
+  const open = new Set(["contact", "informations"]);
   for (const page of [
     "espace",
     "animaux/nala",
@@ -135,11 +171,118 @@ test("translation scope excludes administration and sign-in while retaining home
     "informations",
   ]) {
     assert.equal(translationScope("#" + page), "particular");
-    assert.equal(translationScope("#" + page, false), null);
+    assert.equal(
+      translationScope("#" + page, false),
+      open.has(page) ? "particular" : null,
+    );
   }
+  for (const page of [
+    "connexion",
+    "inscription",
+    "reinitialisation",
+    "mot-de-passe/jeton",
+    "desinscription?token=jeton",
+  ])
+    assert.equal(translationScope("#" + page, false), "particular");
+  assert.equal(translationScope("#inconnue", false), null);
   assert.equal(translationScope("#accueil/pro-inscription", false), "home");
-  assert.equal(translationScope("#admin/profil"), null);
-  assert.equal(translationScope("#connexion"), null);
+  assert.equal(translationScope("#admin/profil"), "admin");
+  assert.equal(
+    translationScope("#admin/moderation/reports?status=À+traiter", false),
+    "admin",
+  );
+});
+
+test("admin copy, accessible actions, configuration and API option values are covered", () => {
+  const messages = translationCatalogue("admin", "en").messages;
+  const root = new URL("../../front/src/pages/admin/", import.meta.url);
+  for (const file of readdirSync(root).filter((f) => f.endsWith(".tsx"))) {
+    const source = readFileSync(new URL(file, root), "utf8");
+    for (const match of source.matchAll(/\btr\(\s*("(?:[^"\\]|\\.)*")/g)) {
+      const key = JSON.parse(match[1]) as string;
+      assert.ok(Object.hasOwn(messages, key), `${file}: ${key}`);
+    }
+    for (const match of source.matchAll(
+      /<option\b([^>]*)>([\s\S]*?)<\/option>/g,
+    )) {
+      if (match[2].includes("tr(")) assert.match(match[1], /\bvalue=/, file);
+    }
+    assert.doesNotMatch(
+      source,
+      /key=\{tr\(/,
+      `${file}: locale must not remount fields`,
+    );
+    assert.doesNotMatch(
+      source,
+      /\btr\((?:d\.name|v\.title|row\.(?:message|body|note|assignee)|entry\.actor|proof\.fileName)\)/,
+      file,
+    );
+  }
+  const config = readFileSync(new URL("config.ts", root), "utf8");
+  for (const match of config.matchAll(
+    /(?:title|intro|description|label):\s*("(?:[^"\\]|\\.)*")/g,
+  )) {
+    const key = JSON.parse(match[1]) as string;
+    assert.ok(Object.hasOwn(messages, key), key);
+  }
+  for (const [source, translated] of Object.entries(adminEnglish)) {
+    if (source.trim()) assert.ok(translated.trim(), source);
+    assert.deepEqual(
+      translated.match(/\{\d+\}/g)?.sort(),
+      source.match(/\{\d+\}/g)?.sort(),
+      source,
+    );
+  }
+});
+
+test("admin audit actions and proof actions preserve names even when they match interface keys", () => {
+  const messages = translationCatalogue("admin", "en").messages;
+  const tr = (
+    source: string | null | undefined,
+    values?: readonly (string | number | null | undefined)[],
+  ) => translateMessage(messages, source, values);
+  assert.equal(
+    actionLabel({ id: "proof:activity", label: "Vérifier : Documents" }, tr),
+    "Verify: Documents",
+  );
+  assert.equal(adminHistoryAction("Création : Équipe", tr), "Created: Équipe");
+  assert.equal(
+    adminHistoryAction("save : Tableau de bord", tr),
+    "Updated: Tableau de bord",
+  );
+  assert.equal(
+    adminHistoryAction("Création : {0} $& <b>Test</b>", tr),
+    "Created: {0} $& <b>Test</b>",
+  );
+  assert.equal(
+    tr("Dossier : {0}. L’action sera enregistrée dans l’historique.", [
+      "Modération",
+    ]),
+    "Record: Modération. This action will be recorded in the history.",
+  );
+  assert.equal(
+    pageTitle("#admin/pilotage", undefined, "en"),
+    "Anivaya · Analytics",
+  );
+  assert.equal(pageTitle("#admin/equipe", undefined, "fr"), "Anivaya · Équipe");
+  const record = {
+    id: "test",
+    name: "Équipe",
+    status: "Actif",
+    version: 1,
+    createdAt: "",
+    updatedAt: "",
+  };
+  assert.equal(adminRecordTitle("users", record, tr), "Équipe");
+  assert.equal(adminRecordTitle("imports", record, tr), "Équipe");
+  assert.equal(adminRecordTitle("library", record, tr), "Équipe");
+  assert.equal(
+    adminRecordTitle("deletions", { ...record, name: "Demande de Équipe" }, tr),
+    "Request from Équipe",
+  );
+  assert.equal(adminAssignee("Julien Moreau", tr), "Julien Moreau");
+  assert.equal(adminAssignee("Modération", tr), "Modération");
+  assert.equal(adminAssignee("Administrateur", tr), "Administrator");
 });
 
 test("personal interface static keys are covered and translated options retain explicit API values", () => {

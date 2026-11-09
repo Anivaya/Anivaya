@@ -1,10 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { homeText } from "../../front/src/shared/i18n/home-text.ts";
-import { homeEnglish } from "../../front/src/shared/i18n/home.en.ts";
+import { homeEnglish } from "../../shared/translations/home.en.ts";
+import { translationCatalogue } from "../../shared/translations/catalogue.ts";
+import { translateMessage } from "../../shared/translations.ts";
 import { pageTitle } from "../../front/src/shared/layout/pageTitle.ts";
 import { validateLead } from "../../shared/lead-validation.ts";
+
+/** Texte de l’accueil tel que l’application l’affiche dans chaque langue. */
+const homeText = (text: string, language: "fr" | "en") =>
+  translateMessage(translationCatalogue("home", language).messages, text);
 
 test("home copy has English entries and preserves the French source", () => {
   for (const [french, english] of Object.entries(homeEnglish)) {
@@ -88,4 +93,20 @@ test("home and personal titles switch to English", () => {
     "Anivaya · Profile settings",
   );
   assert.equal(pageTitle("#accueil"), "Anivaya · Accueil");
+  // Pages ouvertes sans session.
+  assert.equal(pageTitle("#connexion", undefined, "en"), "Anivaya · Sign in");
+  assert.equal(pageTitle("#inscription", undefined, "en"), "Anivaya · Sign up");
+  assert.equal(
+    pageTitle("#reinitialisation", undefined, "en"),
+    "Anivaya · Password reset",
+  );
+  assert.equal(
+    pageTitle("#mot-de-passe/jeton", undefined, "en"),
+    "Anivaya · New password",
+  );
+  assert.equal(
+    pageTitle("#desinscription", undefined, "en"),
+    "Anivaya · Unsubscribe",
+  );
+  assert.equal(pageTitle("#connexion"), "Anivaya · Connexion");
 });

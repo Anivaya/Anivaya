@@ -7,6 +7,7 @@ import type { FormError } from "../../shared/types.ts";
 import { api } from "../../shared/services/api.ts";
 import PublicHeader from "../../shared/layout/PublicHeader.tsx";
 import Icon from "../../shared/ui/Icon.tsx";
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 export default function AuthPage({
   register: requestedRegister,
   onAuthenticated,
@@ -14,6 +15,7 @@ export default function AuthPage({
   register: boolean;
   onAuthenticated: (user: AuthUser) => void;
 }) {
+  const tr = useText();
   const [register, setRegister] = useState(requestedRegister);
   const [mfaCode, setMfaCode] = useState(""),
     [mfaRequired, setMfaRequired] = useState(false);
@@ -152,29 +154,31 @@ export default function AuthPage({
   };
   return (
     <AuthLayout cardRef={card} opening={opening} switching={switching} aligned>
-      <nav className="auth-tabs" aria-label="Accéder à mon espace">
+      <nav className="auth-tabs" aria-label={tr("Accéder à mon espace")}>
         <a
           href="#connexion"
           onClick={() => setError(null)}
           aria-current={!register ? "page" : undefined}
         >
-          Connexion
+          {tr("Connexion")}
         </a>
         <a
           href="#inscription"
           onClick={() => setError(null)}
           aria-current={register ? "page" : undefined}
         >
-          Inscription
+          {tr("Inscription")}
         </a>
       </nav>
       <h1 id="auth-title">
-        {register ? "Créer mon compte" : "Heureux de vous retrouver."}
+        {tr(register ? "Créer mon compte" : "Heureux de vous retrouver.")}
       </h1>
       <p className="intro">
-        {register
-          ? "Un espace pour vous et vos compagnons."
-          : "Connectez-vous pour retrouver vos compagnons et leur quotidien."}
+        {tr(
+          register
+            ? "Un espace pour vous et vos compagnons."
+            : "Connectez-vous pour retrouver vos compagnons et leur quotidien.",
+        )}
       </p>
       <form
         className={register ? "registration-fields" : undefined}
@@ -186,7 +190,7 @@ export default function AuthPage({
           const password = name === "password" || name === "confirmPassword";
           return (
             <div className={"field auth-field-" + name} key={name}>
-              <label htmlFor={"auth-" + name}>{labels[name]}</label>
+              <label htmlFor={"auth-" + name}>{tr(labels[name])}</label>
               <div className={password ? "password-field" : undefined}>
                 <input
                   id={"auth-" + name}
@@ -226,11 +230,11 @@ export default function AuthPage({
                     className="password-toggle"
                     type="button"
                     onClick={() => setVisible(!visible)}
-                    aria-label={
+                    aria-label={tr(
                       visible
                         ? "Masquer le mot de passe"
-                        : "Afficher le mot de passe"
-                    }
+                        : "Afficher le mot de passe",
+                    )}
                     aria-pressed={visible}
                   >
                     <Icon name={visible ? "eye-off" : "eye"} />
@@ -238,7 +242,7 @@ export default function AuthPage({
                 )}
               </div>
               {register && name === "password" && (
-                <p className="field-help">{PASSWORD_RULE}</p>
+                <p className="field-help">{tr(PASSWORD_RULE)}</p>
               )}
             </div>
           );
@@ -246,14 +250,14 @@ export default function AuthPage({
         {!register && (
           <div className="forgot-line">
             <a className="text-button" href="#reinitialisation">
-              Mot de passe oublié ?
+              {tr("Mot de passe oublié ?")}
             </a>
           </div>
         )}
         {!register && mfaRequired && (
           <div className="field">
             <label htmlFor="auth-mfaCode">
-              Code de vérification ou code de secours
+              {tr("Code de vérification ou code de secours")}
             </label>
             <input
               id="auth-mfaCode"
@@ -271,26 +275,28 @@ export default function AuthPage({
         )}
         {error && (
           <p id="auth-error" className="form-message error" role="alert">
-            {error.message}
+            {tr(error.message)}
           </p>
         )}
         <button className="button submit" disabled={busy}>
-          {busy
-            ? register
-              ? "Création du compte…"
-              : "Connexion en cours…"
-            : register
-              ? "Créer mon compte"
-              : "Se connecter"}
+          {tr(
+            busy
+              ? register
+                ? "Création du compte…"
+                : "Connexion en cours…"
+              : register
+                ? "Créer mon compte"
+                : "Se connecter",
+          )}
         </button>
       </form>
       <p className="switch-page">
-        {register ? "Déjà un compte ? " : "Pas encore de compte ? "}
+        {tr(register ? "Déjà un compte ?" : "Pas encore de compte ?")}{" "}
         <a
           onClick={() => setError(null)}
           href={register ? "#connexion" : "#inscription"}
         >
-          {register ? "Se connecter" : "Créer mon compte"}
+          {tr(register ? "Se connecter" : "Créer mon compte")}
         </a>
       </p>
     </AuthLayout>
@@ -318,6 +324,7 @@ export function AuthLayout({
   /** Ajoute « Se connecter » au menu mobile (mot de passe oublié). */
   menuLogin?: boolean;
 }) {
+  const tr = useText();
   return (
     <div
       className={
@@ -334,7 +341,7 @@ export function AuthLayout({
           document.getElementById("auth-content")?.focus();
         }}
       >
-        Aller au formulaire
+        {tr("Aller au formulaire")}
       </a>
       <div className="auth-shell">
         <PublicHeader account menuLogin={menuLogin} />

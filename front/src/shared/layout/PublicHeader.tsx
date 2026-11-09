@@ -3,6 +3,7 @@ import Icon from "../ui/Icon.tsx";
 import { useAdminView } from "./AdminViewContext.ts";
 import { useEffect, useRef, useState } from "react";
 import { wordmark } from "./brand.ts";
+import { useText } from "../i18n/HomeLocale.tsx";
 const links = [
   ["accueil", "Accueil"],
   ["accueil/professionnels", "Professionnels"],
@@ -15,6 +16,7 @@ export default function PublicHeader(_props: {
   account?: boolean;
   menuLogin?: boolean;
 }) {
+  const tr = useText();
   const isAdmin = useAdminView();
   const [open, setOpen] = useState(false);
   const toggle = useRef<HTMLButtonElement>(null);
@@ -61,7 +63,7 @@ export default function PublicHeader(_props: {
           <a
             className="brand"
             href="#accueil"
-            aria-label="Anivaya, retour à l'accueil"
+            aria-label={tr("Anivaya, retour à l’accueil")}
           >
             <img
               className="brand__picto"
@@ -84,7 +86,7 @@ export default function PublicHeader(_props: {
             type="button"
             aria-expanded={open}
             aria-controls="public-menu"
-            aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
+            aria-label={tr(open ? "Fermer le menu" : "Ouvrir le menu")}
             onClick={() => setOpen(!open)}
           >
             <svg className="ic ic--open" viewBox="0 0 24 24" aria-hidden="true">
@@ -102,20 +104,20 @@ export default function PublicHeader(_props: {
             ref={nav}
             className={"nav" + (open ? " is-open" : "")}
             id="public-menu"
-            aria-label="Navigation principale"
+            aria-label={tr("Navigation principale")}
           >
             <ul className="nav__links">
               {links.map(([href, label]) => (
                 <li key={href}>
                   <a href={"#" + href} onClick={() => setOpen(false)}>
-                    {label}
+                    {tr(label)}
                   </a>
                 </li>
               ))}
               {!isAdmin && (
                 <li className="mobile-help-nav">
                   <a href="#contact" onClick={() => setOpen(false)}>
-                    Nous contacter
+                    {tr("Nous contacter")}
                   </a>
                 </li>
               )}
@@ -123,7 +125,7 @@ export default function PublicHeader(_props: {
                 <li className="mobile-help-nav">
                   <a href="#informations" onClick={() => setOpen(false)}>
                     <Icon name="info" />
-                    Informations du service
+                    {tr("Informations du service")}
                   </a>
                 </li>
               )}
@@ -135,7 +137,7 @@ export default function PublicHeader(_props: {
                 href="#connexion"
                 onClick={() => setOpen(false)}
               >
-                Se connecter / S’inscrire
+                {tr("Se connecter / S’inscrire")}
               </a>
             </div>
           </nav>

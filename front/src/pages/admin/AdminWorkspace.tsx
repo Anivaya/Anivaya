@@ -1,3 +1,4 @@
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import { useCallback, useEffect, useState } from "react";
 import type { AuthUser, Profile } from "../../../../shared/account.ts";
 import type { AdminOverview } from "../../../../shared/admin.ts";
@@ -40,6 +41,7 @@ export default function AdminWorkspace({
   onProfileChanged: (p: Profile) => Promise<void>;
   onAccountDeleted: () => void;
 }) {
+  const tr = useText();
   const [path, query = ""] = route.split("?"),
     [, rawPage = "dashboard", section] = path.split("/");
   const page =
@@ -106,7 +108,7 @@ export default function AdminWorkspace({
           document.getElementById("admin-content")?.focus();
         }}
       >
-        Aller au contenu
+        {tr("Aller au contenu")}
       </a>
       <Sidebar
         page={page}
@@ -118,7 +120,7 @@ export default function AdminWorkspace({
         <a
           className="app-brand"
           href="#admin/dashboard"
-          aria-label="Anivaya, administration"
+          aria-label={tr("Anivaya, administration")}
         >
           <img
             src="/images/logo-anivaya-wordmark.png"
@@ -127,7 +129,7 @@ export default function AdminWorkspace({
             height="1162"
           />
         </a>
-        <nav className="side-nav" aria-label="Administration">
+        <nav className="side-nav" aria-label={tr("Administration")}>
           {Object.entries(adminPages)
             .sort(
               ([a], [b]) =>
@@ -146,7 +148,7 @@ export default function AdminWorkspace({
                 aria-current={page === id ? "page" : undefined}
               >
                 <Icon name={p.icon} />
-                {p.title}
+                {tr(p.title)}
               </a>
             ))}
         </nav>
@@ -165,7 +167,7 @@ export default function AdminWorkspace({
           {/* Sur tablette et mobile : bouton menu à gauche. */}
           <button
             className="admin-menu menu-toggle"
-            aria-label="Ouvrir la navigation"
+            aria-label={tr("Ouvrir la navigation")}
             aria-expanded={menu}
             aria-controls="main-sidebar"
             onClick={() => setMenu(true)}
@@ -179,15 +181,17 @@ export default function AdminWorkspace({
             roleLabel={role || "Mon compte"}
             mobile
           />
-          <nav aria-label="Fil d’Ariane">
-            <a href="#admin/dashboard">Administration</a>
-            <span> / {config?.title || "Page introuvable"}</span>
+          <nav aria-label={tr("Fil d’Ariane")}>
+            <a href="#admin/dashboard">{tr("Administration")}</a>
+            <span> / {tr(config?.title || "Page introuvable")}</span>
           </nav>
           <div>
             {allowed.includes("alerts") && (
               <button
                 className="admin-alert-trigger"
-                aria-label={`Notifications de l’équipe, ${overview?.unread || 0} non lues`}
+                aria-label={tr("Notifications de l’équipe, {0} non lues", [
+                  overview?.unread || 0,
+                ])}
                 aria-haspopup="dialog"
                 onClick={() => setAlerts(true)}
               >
@@ -203,14 +207,16 @@ export default function AdminWorkspace({
           {new URLSearchParams(query).get("from") === "dashboard" && (
             <a className="admin-back" href="#admin/dashboard">
               <Icon name="back" />
-              <span className="sr-only">Retour au tableau de bord</span>
+              <span className="sr-only">{tr("Retour au tableau de bord")}</span>
             </a>
           )}
           <div className="admin-heading">
             <div>
-              <h1>{config?.title || "Page introuvable"}</h1>
+              <h1>{tr(config?.title || "Page introuvable")}</h1>
               <p>
-                {config?.intro || "Cette page d’administration n’existe pas."}
+                {tr(
+                  config?.intro || "Cette page d’administration n’existe pas.",
+                )}
               </p>
             </div>
             {role === "Administrateur" && page === "dashboard" && (
@@ -219,36 +225,36 @@ export default function AdminWorkspace({
                 href="#admin/pilotage"
               >
                 <Icon name="chart" />
-                Voir le pilotage
+                {tr("Voir le pilotage")}
               </a>
             )}
           </div>
           {error && (
             <div className="admin-error" role="alert">
-              <p>{error}</p>
+              <p>{tr(error)}</p>
               <button className="button outline" onClick={refresh}>
-                Réessayer
+                {tr("Réessayer")}
               </button>
             </div>
           )}
           {!config || denied ? (
             <section className="admin-panel admin-empty">
-              <h2>{denied ? "Accès réservé" : "Page introuvable"}</h2>
+              <h2>{denied ? tr("Accès réservé") : tr("Page introuvable")}</h2>
               <p>
                 {denied
-                  ? "Votre rôle ne permet pas d’accéder à cette rubrique."
-                  : "Revenez au tableau de bord pour continuer."}
+                  ? tr("Votre rôle ne permet pas d’accéder à cette rubrique.")
+                  : tr("Revenez au tableau de bord pour continuer.")}
               </p>
               <a
                 className="button"
                 href={role ? "#admin/dashboard" : "#espace"}
               >
-                Revenir à mon espace
+                {tr("Revenir à mon espace")}
               </a>
             </section>
           ) : !overview && !error ? (
             <div className="admin-empty" role="status">
-              Chargement de l’administration…
+              {tr("Chargement de l’administration…")}
             </div>
           ) : (
             overview && (
@@ -298,7 +304,7 @@ export default function AdminWorkspace({
                         return [
                           key,
                           ["feedback", "imports"].includes(key) && waiting
-                            ? `${label} (${waiting})`
+                            ? `${tr(label)} (${waiting})`
                             : label,
                         ] as const;
                       })}

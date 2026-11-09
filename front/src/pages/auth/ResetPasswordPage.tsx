@@ -5,6 +5,7 @@ import Icon from "../../shared/ui/Icon.tsx";
 import { api } from "../../shared/services/api.ts";
 import { errorMessage } from "../../shared/types.ts";
 import { AuthLayout } from "./AuthPage.tsx";
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 
 type Step = "request" | "sent" | "checking" | "new" | "unavailable" | "success";
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -22,6 +23,7 @@ export default function ResetPasswordPage({
   /** E-mail du compte connecté, proposé par défaut. */
   email?: string;
 }) {
+  const tr = useText();
   const [step, setStep] = useState<Step>(
     token === undefined ? "request" : "checking",
   );
@@ -120,7 +122,7 @@ export default function ResetPasswordPage({
     help?: string,
   ) => (
     <div className="field">
-      <label htmlFor={"reset-" + key}>{label}</label>
+      <label htmlFor={"reset-" + key}>{tr(label)}</label>
       <div className="password-field">
         <input
           id={"reset-" + key}
@@ -142,12 +144,15 @@ export default function ResetPasswordPage({
           type="button"
           className="password-toggle"
           aria-pressed={visible[key]}
-          aria-label={
-            (visible[key] ? "Masquer" : "Afficher") +
-            (key === "password"
-              ? " le nouveau mot de passe"
-              : " la confirmation")
-          }
+          aria-label={tr(
+            key === "password"
+              ? visible[key]
+                ? "Masquer le nouveau mot de passe"
+                : "Afficher le nouveau mot de passe"
+              : visible[key]
+                ? "Masquer la confirmation"
+                : "Afficher la confirmation",
+          )}
           onClick={() => setVisible({ ...visible, [key]: !visible[key] })}
         >
           <Icon name={visible[key] ? "eye-off" : "eye"} />
@@ -155,30 +160,34 @@ export default function ResetPasswordPage({
       </div>
       {help && (
         <p className="field-help" id={`reset-${key}-help`}>
-          {help}
+          {tr(help)}
         </p>
       )}
       <p className="field-error" id={`reset-${key}-error`} role="alert">
-        {errors[key]}
+        {tr(errors[key])}
       </p>
     </div>
   );
 
   return (
     <AuthLayout opening menuLogin>
-      <a className="reset-back" href="#connexion" title="Retour à la connexion">
+      <a
+        className="reset-back"
+        href="#connexion"
+        title={tr("Retour à la connexion")}
+      >
         <Icon name="back" />
-        <span className="sr-only">Retour à la connexion</span>
+        <span className="sr-only">{tr("Retour à la connexion")}</span>
       </a>
       <h1 id="auth-title" tabIndex={-1} ref={title}>
-        {titles[step]}
+        {tr(titles[step])}
       </h1>
-      {intro && <p className="intro">{intro}</p>}
+      {intro && <p className="intro">{tr(intro)}</p>}
 
       {step === "request" && (
         <form noValidate onSubmit={request} aria-busy={busy}>
           <div className="field">
-            <label htmlFor="reset-email">Adresse e-mail</label>
+            <label htmlFor="reset-email">{tr("Adresse e-mail")}</label>
             <input
               id="reset-email"
               type="email"
@@ -194,11 +203,11 @@ export default function ResetPasswordPage({
               required
             />
             <p className="field-error" id="reset-email-error" role="alert">
-              {errors.email}
+              {tr(errors.email)}
             </p>
           </div>
           <button className="button submit" type="submit" disabled={busy}>
-            {busy ? "Envoi…" : "Recevoir un lien de réinitialisation"}
+            {tr(busy ? "Envoi…" : "Recevoir un lien de réinitialisation")}
           </button>
         </form>
       )}
@@ -206,16 +215,17 @@ export default function ResetPasswordPage({
       {step === "sent" && (
         <>
           <p>
-            Si un compte correspond à <strong>{email.trim()}</strong>, un lien
-            vient de lui être envoyé. Il est valable une heure et ne fonctionne
-            qu’une fois. Pensez à vérifier vos courriers indésirables.
+            {tr("Si un compte correspond à")} <strong>{email.trim()}</strong>
+            {tr(
+              ", un lien vient de lui être envoyé. Il est valable une heure et ne fonctionne qu’une fois. Pensez à vérifier vos courriers indésirables.",
+            )}
           </p>
           <button
             type="button"
             className="text-button"
             onClick={() => show("request")}
           >
-            Utiliser une autre adresse
+            {tr("Utiliser une autre adresse")}
           </button>
         </>
       )}
@@ -225,7 +235,7 @@ export default function ResetPasswordPage({
           {passwordField("password", "Nouveau mot de passe", PASSWORD_RULE)}
           {passwordField("confirm", "Confirmer le nouveau mot de passe")}
           <button type="submit" className="button submit" disabled={busy}>
-            {busy ? "Enregistrement…" : "Valider le nouveau mot de passe"}
+            {tr(busy ? "Enregistrement…" : "Valider le nouveau mot de passe")}
           </button>
         </form>
       )}
@@ -233,11 +243,12 @@ export default function ResetPasswordPage({
       {step === "unavailable" && (
         <>
           <p>
-            Ce lien a expiré, a déjà servi ou est incomplet. Demandez un nouveau
-            lien pour continuer.
+            {tr(
+              "Ce lien a expiré, a déjà servi ou est incomplet. Demandez un nouveau lien pour continuer.",
+            )}
           </p>
           <a className="button submit" href="#reinitialisation">
-            Demander un nouveau lien
+            {tr("Demander un nouveau lien")}
           </a>
         </>
       )}
@@ -245,11 +256,12 @@ export default function ResetPasswordPage({
       {step === "success" && (
         <>
           <p>
-            Votre mot de passe a été modifié et vos sessions ouvertes ont été
-            fermées. Connectez-vous avec votre nouveau mot de passe.
+            {tr(
+              "Votre mot de passe a été modifié et vos sessions ouvertes ont été fermées. Connectez-vous avec votre nouveau mot de passe.",
+            )}
           </p>
           <a className="button submit" href="#connexion">
-            Se connecter
+            {tr("Se connecter")}
           </a>
         </>
       )}

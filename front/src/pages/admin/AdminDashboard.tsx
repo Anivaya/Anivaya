@@ -1,3 +1,9 @@
+import {
+  adminHistoryAction,
+  adminRecordTitle,
+} from "../../../../shared/translations/admin.ts";
+import { uiLocale } from "../../shared/i18n/locale.ts";
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import EmptyState from "../../shared/ui/EmptyState.tsx";
 import { useState } from "react";
 import type {
@@ -21,6 +27,7 @@ export default function AdminDashboard({
   overview: AdminOverview;
   onChanged: () => void;
 }) {
+  const tr = useText();
   const [preview, setPreview] = useState<AdminIndicator | null>(null);
   const main = overview.indicators.filter(
     (i) => !["active-users", "validated-pros"].includes(i.id),
@@ -47,7 +54,7 @@ export default function AdminDashboard({
     if (!item.count)
       return (
         <section className="admin-stat admin-stat-empty" key={item.id}>
-          <h2>{item.label}</h2>
+          <h2>{tr(item.label)}</h2>
           <EmptyState
             {...adminEmptyStates[item.resource]}
             description=""
@@ -66,8 +73,8 @@ export default function AdminDashboard({
           <Icon name={item.icon} />
         </span>
         <strong>{item.count}</strong>
-        <span>{item.label}</span>
-        <small>Voir l’aperçu →</small>
+        <span>{tr(item.label)}</span>
+        <small>{tr("Voir l’aperçu →")}</small>
       </button>
     );
   }
@@ -78,7 +85,7 @@ export default function AdminDashboard({
       </div>
       {!!state.length && (
         <section className="admin-panel">
-          <h2>État des comptes et de l’annuaire</h2>
+          <h2>{tr("État des comptes et de l’annuaire")}</h2>
           <div className="admin-state-metrics">
             {state.map((item) =>
               item.count ? (
@@ -88,7 +95,7 @@ export default function AdminDashboard({
                   aria-haspopup="dialog"
                   onClick={() => setPreview(item)}
                 >
-                  <span>{item.label}</span>
+                  <span>{tr(item.label)}</span>
                   <strong>{item.count}</strong>
                 </button>
               ) : (
@@ -96,10 +103,10 @@ export default function AdminDashboard({
                   className="admin-metric-line admin-metric-line-empty"
                   key={item.id}
                 >
-                  <span>{item.label}</span>
+                  <span>{tr(item.label)}</span>
                   <EmptyState
                     kind="data"
-                    title="Aucune donnée"
+                    title={tr("Aucune donnée")}
                     description=""
                     size="inline"
                   />
@@ -108,28 +115,30 @@ export default function AdminDashboard({
             )}
           </div>
           <p>
-            Ces nombres décrivent les statuts des comptes, pas leur activité
-            récente.
+            {tr(
+              "Ces nombres décrivent les statuts des comptes, pas leur activité récente.",
+            )}
           </p>
         </section>
       )}
       {overview.role === "Administrateur" && (
         <section className="admin-panel admin-section-title admin-highlight">
           <div>
-            <h2>Activation et rétention</h2>
+            <h2>{tr("Activation et rétention")}</h2>
             <p>
-              Activation à 7 jours, suivi des animaux et rétention J30 / M3 /
-              M6.
+              {tr(
+                "Activation à 7 jours, suivi des animaux et rétention J30 / M3 / M6.",
+              )}
             </p>
           </div>
           <a className="button outline" href="#admin/pilotage?from=dashboard">
-            Consulter les indicateurs
+            {tr("Consulter les indicateurs")}
           </a>
         </section>
       )}
       {!!indicators.length && (
         <section className="admin-panel">
-          <h2>Suivi complémentaire</h2>
+          <h2>{tr("Suivi complémentaire")}</h2>
           <div className="admin-state-metrics">
             {indicators.map((item) =>
               item.count ? (
@@ -139,7 +148,7 @@ export default function AdminDashboard({
                   aria-haspopup="dialog"
                   onClick={() => setPreview(item)}
                 >
-                  <span>{item.label}</span>
+                  <span>{tr(item.label)}</span>
                   <strong>{item.count}</strong>
                 </button>
               ) : (
@@ -147,10 +156,10 @@ export default function AdminDashboard({
                   className="admin-metric-line admin-metric-line-empty"
                   key={item.id}
                 >
-                  <span>{item.label}</span>
+                  <span>{tr(item.label)}</span>
                   <EmptyState
                     kind="actions"
-                    title="Aucune action en attente"
+                    title={tr("Aucune action en attente")}
                     description=""
                     size="inline"
                   />
@@ -161,17 +170,19 @@ export default function AdminDashboard({
         </section>
       )}
       <section className="admin-panel">
-        <h2>Signalements et demandes en attente</h2>
+        <h2>{tr("Signalements et demandes en attente")}</h2>
         <div className="admin-dashboard-grid">
           {[true, false].map((reports) => (
             <section key={String(reports)}>
-              <h3>{reports ? "Signalements" : "Demandes"}</h3>
+              <h3>{reports ? tr("Signalements") : tr("Demandes")}</h3>
               <div
                 className="admin-pending-scroll"
                 tabIndex={0}
                 role="region"
                 aria-label={
-                  reports ? "Liste des signalements" : "Liste des demandes"
+                  reports
+                    ? tr("Liste des signalements")
+                    : tr("Liste des demandes")
                 }
               >
                 {pending
@@ -179,7 +190,7 @@ export default function AdminDashboard({
                   .map((group) => (
                     <div key={group.resource} className="admin-pending-group">
                       <h4>
-                        {group.label}{" "}
+                        {tr(group.label)}{" "}
                         <span className="admin-badge">{group.total}</span>
                       </h4>
                       {group.items.map((row) => (
@@ -189,18 +200,20 @@ export default function AdminDashboard({
                           href={`${adminLink(group.resource)}?record=${encodeURIComponent(row.id)}&from=dashboard`}
                         >
                           <span>
-                            <strong>{row.name}</strong>
+                            <strong>
+                              {adminRecordTitle(group.resource, row, tr)}
+                            </strong>
                             <small>
-                              {row.priority ||
-                                row.category ||
+                              {tr(row.priority) ||
+                                tr(row.category) ||
                                 row.email ||
-                                group.label}
+                                tr(group.label)}
                             </small>
                           </span>
                           <span
                             className={`admin-badge ${statusTone(row.status)}`}
                           >
-                            {row.status}
+                            {tr(row.status)}
                           </span>
                         </a>
                       ))}
@@ -209,7 +222,9 @@ export default function AdminDashboard({
                           className="admin-text-button"
                           href={`${adminLink(group.resource)}?scope=pending&from=dashboard`}
                         >
-                          Voir les {group.total} dossiers →
+                          {tr("Voir les ")}
+                          {group.total}
+                          {tr(" dossiers →")}
                         </a>
                       )}
                     </div>
@@ -223,10 +238,10 @@ export default function AdminDashboard({
                     compact
                     title={
                       reports
-                        ? "Aucun signalement à traiter"
-                        : "Aucune demande en attente"
+                        ? tr("Aucun signalement à traiter")
+                        : tr("Aucune demande en attente")
                     }
-                    description="Les nouveaux dossiers apparaîtront ici."
+                    description={tr("Les nouveaux dossiers apparaîtront ici.")}
                   />
                 )}
               </div>
@@ -237,11 +252,11 @@ export default function AdminDashboard({
       <div className="admin-dashboard-grid">
         <section className="admin-panel">
           <div className="admin-section-title">
-            <h2>Dernières actions</h2>
+            <h2>{tr("Dernières actions")}</h2>
             {overview.role === "Administrateur" &&
               overview.recent.length > 0 && (
                 <a href="#admin/historique?from=dashboard">
-                  Voir l’historique →
+                  {tr("Voir l’historique →")}
                 </a>
               )}
           </div>
@@ -252,11 +267,11 @@ export default function AdminDashboard({
                   className="admin-record-link"
                   href={`${adminLink("history")}?record=${row.id}&from=dashboard`}
                 >
-                  {row.name}
+                  {adminHistoryAction(row.name, tr)}
                 </a>
                 <small>
                   {row.email} ·{" "}
-                  {new Date(row.createdAt).toLocaleString("fr-FR")}
+                  {new Date(row.createdAt).toLocaleString(uiLocale())}
                 </small>
               </article>
             ))}
@@ -265,14 +280,14 @@ export default function AdminDashboard({
                 kind="actions"
                 className="admin-empty"
                 compact
-                title="Aucune action récente"
-                description="L’activité de votre équipe apparaîtra ici."
+                title={tr("Aucune action récente")}
+                description={tr("L’activité de votre équipe apparaîtra ici.")}
               />
             )}
           </div>
         </section>
         <section className="admin-panel">
-          <h2>Accès rapides</h2>
+          <h2>{tr("Accès rapides")}</h2>
           {[
             ["users", "Gérer les utilisateurs"],
             ["tickets", "Ouvrir l’assistance"],
@@ -286,7 +301,7 @@ export default function AdminDashboard({
                 className="admin-quick-link"
                 href={adminLink(r as AdminResource)}
               >
-                {label}
+                {tr(label)}
                 <span>→</span>
               </a>
             ))}

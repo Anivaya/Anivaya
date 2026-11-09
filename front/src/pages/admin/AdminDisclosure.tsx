@@ -1,3 +1,4 @@
+import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import { useId, useState, type ReactNode } from "react";
 import Icon from "../../shared/ui/Icon.tsx";
 
@@ -10,6 +11,7 @@ export default function AdminDisclosure({
   children: ReactNode;
   className?: string;
 }) {
+  const tr = useText();
   const [open, setOpen] = useState(false),
     id = useId();
   return (
@@ -22,7 +24,7 @@ export default function AdminDisclosure({
       >
         {/* « + » fermé, qui pivote en « × » à l’ouverture (comme les questions de l’accueil). */}
         <Icon name="plus" />
-        {label}
+        {tr(label)}
       </button>
       <div
         id={id}
