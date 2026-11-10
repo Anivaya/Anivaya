@@ -25,6 +25,7 @@ import type { SharedAccess } from "./shared-access.ts";
 import { ApiError, text, clientAddress } from "./validation.ts";
 import { rateLimiter } from "./rate-limit.ts";
 import { legalContent } from "./config.ts";
+import { testingPreview, previewBlocksEmailRoute } from "./preview.ts";
 import { translationCatalogue } from "../../shared/translations/catalogue.ts";
 
 const MAX_BODY_BYTES = 14 * 1024 * 1024;
@@ -882,7 +883,7 @@ export function createApi(
       auth.hooks.security = admin.securityEvent;
     }
     const stopReminders =
-      auth && options.reminders && process.env.REMINDERS_MODE !== "external" ? startReminderMail(auth) : undefined;
+      auth && options.reminders && !testingPreview() && process.env.REMINDERS_MODE !== "external" ? startReminderMail(auth) : undefined;
     return {
       db: database,
       ready,
@@ -939,6 +940,9 @@ export function createApi(
       checkOrigin(request);
       await Promise.all([normal.ready, empty?.ready]);
       const url = new URL(request.url || "/", "http://localhost");
+      if (testingPreview()) response.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
+      if (previewBlocksEmailRoute(url.pathname, request.method))
+        throw new ApiError(503, "Version de test : les e-mails, formulaires de contact et modifications administratives sont désactivés.");
       if (url.pathname === "/api/health") db.prepare("SELECT 1 AS ok").get();
       if (url.pathname === "/api/internal/reminders") {
         if (request.method !== "POST" || !secretMatches(request.headers.authorization, process.env.CRON_SECRET ? `Bearer ${process.env.CRON_SECRET}` : undefined))

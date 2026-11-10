@@ -1,5 +1,7 @@
 # Contrat des interfaces Anivaya
 
+Recette limitée (10 novembre 2026, choix utilisateur) : `TestingNotice` possède le bandeau global FR/EN, dans le flux du document, avec les tokens de `global.css`. Il indique les données fictives et les fonctions indisponibles. Le backend conserve toutes les protections production ; `ANIVAYA_TESTING_PREVIEW=1` bloque les e-mails, resets, contact/leads et modifications administratives. Le frontend `VITE_TESTING_PREVIEW=1` n'accorde aucun droit et ajoute noindex. Le profil complet conserve ses prérequis juridiques et e-mail.
+
 Références : maquettes locales confirmées par l’utilisateur, `back/docs/API.md`, composants partagés et parcours profil/documents existants. Locale : français, données calendaires métier en Europe/Paris. Structure React → API Node → SQLite conservée.
 
 ## Canonical UI Map

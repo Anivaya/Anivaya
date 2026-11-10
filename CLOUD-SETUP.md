@@ -4,6 +4,14 @@ Ce profil sert au démarrage gratuit et à la recette. Le frontend est sur Verce
 
 ## 1. Supabase
 
+### Recette limitée sans e-mails
+
+Profil explicitement choisi pour la première mise en ligne de test : conserver `NODE_ENV=production`, définir sur Render `ANIVAYA_TESTING_PREVIEW=1`, `MAIL_PROVIDER=disabled`, `REMINDERS_MODE=disabled`. Utiliser la même origine stable `https://….vercel.app` pour APP_URL, PUBLIC_SITE_URL et ALLOWED_ORIGINS. Le domaine public est refusé dans ce mode. PostgreSQL, TLS, bucket privé, MFA et secrets du proxy restent obligatoires. Aucun contenu juridique n'est marqué relu artificiellement.
+
+Sur Vercel ajouter `VITE_TESTING_PREVIEW=1` : bandeau FR/EN invitant à utiliser des données fictives uniquement, robots.txt et en-tête noindex. Les e-mails sont court-circuités avant tout appel réseau ou écriture de boîte locale. Les réinitialisations de mot de passe, formulaires de contact/leads, rappels planifiés et modifications administratives retournent une indisponibilité explicite. Les inscriptions/connexions et l'espace particulier restent testables. Ce mode est une recette publique, pas une restriction d'accès par mot de passe ni un lancement commercial.
+
+Avant un lancement complet, configurer le domaine, les e-mails vérifiés et le contenu juridique relu, retirer les deux indicateurs de test, restaurer Resend et les rappels externes, puis refaire les vérifications de bout en bout.
+
 Créer un projet dédié, dans une région proche de Frankfurt (Render). Exécuter `deploy/supabase-setup.sql` dans son éditeur SQL, puis définir un mot de passe fort pour le rôle `anivaya_app` et activer LOGIN comme indiqué dans le fichier.
 
 Dans **Connect**, choisir une connexion poolée compatible IPv4 (Supavisor). Utiliser le rôle `anivaya_app` dans le nom d’utilisateur du pooler (`anivaya_app.REFERENCE_DU_PROJET` selon la chaîne affichée). Encoder les caractères spéciaux du mot de passe dans l’URL. La connexion transactionnelle est compatible : le client utilise des paramètres liés sans préparations nommées, et fixe `search_path` dans chaque transaction. Le pool applicatif est limité à quatre connexions. Les requêtes SQL et l’attente de connexion ont des délais maximum.

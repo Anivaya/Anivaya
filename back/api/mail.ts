@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
 import { databasePath } from "../database/connection.ts";
+import { testingPreview } from "./preview.ts";
 
 export interface Mail {
   to: string;
@@ -83,6 +84,8 @@ function html(mail: Mail) {
 export async function sendMail(
   mail: Mail,
 ): Promise<"sent" | "outbox" | "skipped" | "failed"> {
+  if (testingPreview()) return "skipped";
+  if (process.env.MAIL_PROVIDER === "disabled") return "failed";
   const to = mail.to.trim().toLowerCase();
   if (!to || reserved.test(to) || excluded.has(to)) return "skipped";
   const from = process.env.MAIL_FROM || "Anivaya <no-reply@anivaya.fr>";

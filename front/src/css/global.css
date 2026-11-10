@@ -1,3 +1,14 @@
+.testing-notice {
+  display: grid;
+  gap: 4px;
+  padding: 12px 20px;
+  color: var(--navy);
+  background: var(--pale);
+  border-bottom: 3px solid var(--gold);
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
 /* Nunito : police libre SIL Open Font License, Vernon Adams et contributeurs. Intégrée pour usage hors ligne. */
 @font-face {
   font-family: "Anivaya Nunito";

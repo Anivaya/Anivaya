@@ -24,6 +24,7 @@ import "./css/footer.css";
 import "./css/language.css";
 import "./css/scrollbars.css";
 import App from "./App.tsx";
+import TestingNotice from "./shared/layout/TestingNotice.tsx";
 import { startWideZoom } from "./shared/wideZoom.ts";
 import { startResponsiveScrollbars } from "./shared/scrollbars.ts";
 import { startPageTitles } from "./shared/layout/startPageTitles.ts";
@@ -76,6 +77,7 @@ if (import.meta.hot) import.meta.hot.dispose(stopResponsiveScrollbars);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
+    <TestingNotice />
     <App />
   </StrictMode>,
 );
