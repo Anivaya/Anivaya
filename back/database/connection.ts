@@ -51,11 +51,15 @@ export function openDatabase(
   demo = process.env.NODE_ENV !== "production",
   empty = emptyStateMode(),
   workspace?: string,
+  previewDemo?: Database["previewDemo"],
 ): Database {
-  if (process.env.DATABASE_URL) demo = false;
-  if (emptyStateMode(empty)) demo = false;
+  if (previewDemo && (process.env.ANIVAYA_TESTING_PREVIEW !== "1" || !workspace?.startsWith(`preview-${previewDemo}-`)))
+    throw new Error("Demo preview databases require an isolated workspace and testing preview mode.");
+  if (process.env.DATABASE_URL && !previewDemo) demo = false;
+  if (emptyStateMode(empty, !!previewDemo)) demo = false;
   if (!process.env.DATABASE_URL && path !== ":memory:") mkdirSync(dirname(path), { recursive: true });
   const database = process.env.DATABASE_URL ? openPostgres(workspace) : new DatabaseSync(path);
+  if (previewDemo) Object.defineProperty(database, "previewDemo", { value: previewDemo });
   const applyOnce = (name: string, file: string) => {
     if (
       database
@@ -89,7 +93,7 @@ export function openDatabase(
     );
     for (const migration of migrations)
       applyOnce(migration, `./migrations/${migration}`);
-    if (!empty && process.env.NODE_ENV !== "production" && !process.env.DATABASE_URL) database.exec(sql("./seeds/professionals.sql"));
+    if (!empty && (previewDemo === "sample" || (process.env.NODE_ENV !== "production" && !process.env.DATABASE_URL))) database.exec(sql("./seeds/professionals.sql"));
     if (demo) {
       applyOnce("directory_demo_bookings", "./seeds/bookings.sql");
       applyOnce("demo_notifications", "./seeds/notifications.sql");

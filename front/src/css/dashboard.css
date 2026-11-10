@@ -376,9 +376,9 @@
   border-radius: 13px;
   padding: 22px;
 }
-/* Documents récents et panneau Mes animaux vide : même bordure haute bleue. */
-.app-right .panel,
-.animals-empty-panel {
+/* L’accent bleu des blocs vides reste réservé à la vue d’ensemble. */
+.workspace:not(.section-mode) .app-right .panel,
+.workspace:not(.section-mode) .animals-empty-panel {
   border-top: 4px solid var(--blue);
 }
 .panel .section-head {

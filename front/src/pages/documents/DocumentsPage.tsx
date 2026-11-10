@@ -31,7 +31,6 @@ export default function DocumentsPage({ data, actions }: PageProps) {
     <>
       <PageHeading
         title={tr("Mes documents")}
-        hasContent={data.documents.length > 0}
         description={tr("Les documents de vos animaux, au même endroit.")}
         actionLabel={tr("Ajouter un document")}
         onAction={() => actions.add("document")}
@@ -204,11 +203,9 @@ export function DocumentsSection({
           filtered={documents.length > 0}
         />
       )}
-      {filtered.length > 0 && (
-        <button className="button outline" onClick={onAdd}>
-          {tr("+ Ajouter un document")}
-        </button>
-      )}
+      <button className="button outline" onClick={onAdd}>
+        {tr("+ Ajouter un document")}
+      </button>
     </section>
   );
 }

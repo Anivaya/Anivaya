@@ -190,6 +190,7 @@ export default function AdminCollection({
       params.get("scope"),
   );
   const emptyContent = !loading && !error && data?.items.length === 0;
+  const hasResults = !loading && !!data?.items.length;
   const titleColumn =
     (
       {
@@ -266,158 +267,152 @@ export default function AdminCollection({
         </section>
       )}
       <section className="admin-panel admin-list-panel" aria-busy={loading}>
-        {(!emptyContent || hasFilters) && (
-          <div className="admin-toolbar">
-            <div className="admin-search">
-              <label className="sr-only" htmlFor="admin-search">
-                {tr("Rechercher")}
-              </label>
-              <div>
-                <input
-                  ref={input}
-                  id="admin-search"
-                  type="search"
-                  placeholder={tr("Rechercher…")}
-                  value={search}
-                  onCompositionStart={() => {
-                    setComposing(true);
+        <div className="admin-toolbar">
+          <div className="admin-search">
+            <label className="sr-only" htmlFor="admin-search">
+              {tr("Rechercher")}
+            </label>
+            <div>
+              <input
+                ref={input}
+                id="admin-search"
+                type="search"
+                placeholder={tr("Rechercher…")}
+                value={search}
+                onCompositionStart={() => {
+                  setComposing(true);
+                }}
+                onCompositionEnd={(e) => {
+                  setComposing(false);
+                  setSearch(e.currentTarget.value);
+                }}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.nativeEvent.isComposing)
+                    change("q", search);
+                }}
+              />
+              {search && (
+                <button
+                  type="button"
+                  aria-label={tr("Effacer la recherche")}
+                  onClick={() => {
+                    setSearch("");
+                    change("q", "");
+                    input.current?.focus();
                   }}
-                  onCompositionEnd={(e) => {
-                    setComposing(false);
-                    setSearch(e.currentTarget.value);
-                  }}
-                  onChange={(e) => setSearch(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.nativeEvent.isComposing)
-                      change("q", search);
-                  }}
-                />
-                {search && (
-                  <button
-                    type="button"
-                    aria-label={tr("Effacer la recherche")}
-                    onClick={() => {
-                      setSearch("");
-                      change("q", "");
-                      input.current?.focus();
-                    }}
-                  >
-                    {tr("×")}
-                  </button>
-                )}
-              </div>
+                >
+                  {tr("×")}
+                </button>
+              )}
             </div>
+          </div>
+          <div className="field">
+            <label className="sr-only" htmlFor="admin-status">
+              {tr("État")}
+            </label>
+            <select
+              id="admin-status"
+              value={params.get("status") || ""}
+              onChange={(e) => change("status", e.target.value)}
+            >
+              <option value="">{tr("Tous les statuts")}</option>
+              {[
+                ...new Set([
+                  ...(data?.statuses || []),
+                  params.get("status") || "",
+                ]),
+              ]
+                .filter(Boolean)
+                .map((s) => (
+                  <option key={s} value={s}>
+                    {tr(s)}
+                  </option>
+                ))}
+            </select>
+          </div>
+          {resource === "alerts" && (
             <div className="field">
-              <label className="sr-only" htmlFor="admin-status">
-                {tr("État")}
+              <label className="sr-only" htmlFor="admin-category">
+                {tr("Catégorie")}
               </label>
               <select
-                id="admin-status"
-                value={params.get("status") || ""}
-                onChange={(e) => change("status", e.target.value)}
+                id="admin-category"
+                value={params.get("category") || ""}
+                onChange={(e) => change("category", e.target.value)}
               >
-                <option value="">{tr("Tous les statuts")}</option>
+                <option value="">{tr("Toutes les catégories")}</option>
                 {[
-                  ...new Set([
-                    ...(data?.statuses || []),
-                    params.get("status") || "",
-                  ]),
-                ]
-                  .filter(Boolean)
-                  .map((s) => (
-                    <option key={s} value={s}>
-                      {tr(s)}
-                    </option>
-                  ))}
+                  ["pros", "Professionnels"],
+                  ["reports", "Signalements"],
+                  ["appeals", "Recours"],
+                  ["tickets", "Assistance"],
+                  ["feedback", "Retours"],
+                  ["imports", "Imports"],
+                  ["library", "Guides"],
+                  ["deletions", "Suppressions"],
+                ].map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {tr(label)}
+                  </option>
+                ))}
               </select>
             </div>
-            {resource === "alerts" && (
-              <div className="field">
-                <label className="sr-only" htmlFor="admin-category">
-                  {tr("Catégorie")}
-                </label>
-                <select
-                  id="admin-category"
-                  value={params.get("category") || ""}
-                  onChange={(e) => change("category", e.target.value)}
-                >
-                  <option value="">{tr("Toutes les catégories")}</option>
-                  {[
-                    ["pros", "Professionnels"],
-                    ["reports", "Signalements"],
-                    ["appeals", "Recours"],
-                    ["tickets", "Assistance"],
-                    ["feedback", "Retours"],
-                    ["imports", "Imports"],
-                    ["library", "Guides"],
-                    ["deletions", "Suppressions"],
-                  ].map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {tr(label)}
-                    </option>
-                  ))}
-                </select>
-              </div>
+          )}
+          <div className="admin-toolbar-actions">
+            {canCreate && (
+              <AdminIconButton
+                icon="plus"
+                label={
+                  resource === "team"
+                    ? tr("Inviter un membre")
+                    : resource === "library"
+                      ? tr("Créer un guide")
+                      : resource === "tickets"
+                        ? tr("Créer une demande")
+                        : tr("Créer une annonce")
+                }
+                onClick={() => setDialog({ row: null })}
+              />
             )}
-            {!emptyContent && (
-              <div className="admin-toolbar-actions">
-                {canCreate && (
-                  <AdminIconButton
-                    icon="plus"
-                    label={
-                      resource === "team"
-                        ? tr("Inviter un membre")
-                        : resource === "library"
-                          ? tr("Créer un guide")
-                          : resource === "tickets"
-                            ? tr("Créer une demande")
-                            : tr("Créer une annonce")
-                    }
-                    onClick={() => setDialog({ row: null })}
-                  />
-                )}
-                {resource === "history" && (
-                  <AdminIconButton
-                    icon="download"
-                    label={
-                      exporting
-                        ? tr("Export en cours…")
-                        : tr("Exporter le journal")
-                    }
-                    disabled={exporting}
-                    onClick={() => void download()}
-                  />
-                )}
-                {resource === "alerts" && (
-                  <AdminIconButton
-                    icon="check"
-                    label={tr("Tout marquer comme lu")}
-                    onClick={async () => {
-                      try {
-                        await adminApi.act("alerts", "all", {
-                          action: "read-all",
-                        });
-                        setNotice(
-                          "Toutes les notifications sont marquées comme lues.",
-                        );
-                        setRetry((n) => n + 1);
-                        onChanged();
-                      } catch (e) {
-                        setExportError(errorMessage(e));
-                      }
-                    }}
-                  />
-                )}
-                <AdminIconButton
-                  icon="refresh"
-                  label={tr("Actualiser")}
-                  disabled={loading}
-                  onClick={() => setRetry((n) => n + 1)}
-                />
-              </div>
+            {resource === "history" && hasResults && (
+              <AdminIconButton
+                icon="download"
+                label={
+                  exporting ? tr("Export en cours…") : tr("Exporter le journal")
+                }
+                disabled={exporting}
+                onClick={() => void download()}
+              />
             )}
+            {resource === "alerts" && hasResults && (
+              <AdminIconButton
+                icon="check"
+                label={tr("Tout marquer comme lu")}
+                onClick={async () => {
+                  try {
+                    await adminApi.act("alerts", "all", {
+                      action: "read-all",
+                    });
+                    setNotice(
+                      "Toutes les notifications sont marquées comme lues.",
+                    );
+                    setRetry((n) => n + 1);
+                    onChanged();
+                  } catch (e) {
+                    setExportError(errorMessage(e));
+                  }
+                }}
+              />
+            )}
+            <AdminIconButton
+              icon="refresh"
+              label={tr("Actualiser")}
+              disabled={loading}
+              onClick={() => setRetry((n) => n + 1)}
+            />
           </div>
-        )}
+        </div>
         <div
           role="status"
           className="admin-feedback"

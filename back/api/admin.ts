@@ -285,7 +285,7 @@ export function adminService(db: Database, auth: Authentication, empty = emptySt
   }
   let seeded = false;
   function seed() {
-    if (seeded || empty || process.env.NODE_ENV === "production") return;
+    if (seeded || empty || (process.env.NODE_ENV === "production" && db.previewDemo !== "sample")) return;
     transaction(db, () => {
       if (
         !db.prepare("SELECT key FROM admin_metadata WHERE key='seed-v1'").get()

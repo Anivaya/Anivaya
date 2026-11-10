@@ -821,6 +821,7 @@
 /* Bouton « + » : créer une communauté, un événement ou une discussion. */
 /* Bouton de création : « + » suivi d’un libellé court, pour ne pas le confondre avec la recherche. */
 .social-toolbar > .social-primary {
+  align-self: end;
   flex-shrink: 0;
   gap: 6px;
   height: 44px;
@@ -1540,18 +1541,22 @@ a.event-date:focus-visible {
   .social-toolbar > div {
     width: auto;
   }
-  /* Ordre mobile : recherche et « + » sur la première ligne, le filtre en dessous. */
+  /* La recherche occupe une ligne ; le filtre et la création sont alignés dessous. */
   .social-toolbar > .social-search {
-    flex: 1 1 0;
+    flex: 1 0 100%;
     order: 0;
   }
   .social-toolbar > .social-primary {
-    order: 1;
+    order: 2;
   }
   .social-toolbar > .social-filter-field {
-    flex: 1 0 100%;
-    order: 2;
+    flex: 1 1 0;
+    order: 1;
     min-width: 0;
+  }
+  /* La messagerie n’a pas de select : son bouton reste à côté de la recherche. */
+  .social-toolbar:not(:has(.social-filter-field)) > .social-search {
+    flex: 1 1 0;
   }
   .social-toolbar > .social-filter-field label,
   .social-search label {

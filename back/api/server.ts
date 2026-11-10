@@ -5,6 +5,7 @@ import { openDatabase, databasePath } from "../database/connection.ts";
 import { emptyStateMode } from "../database/empty-state.ts";
 import { createApi } from "./app.ts";
 import { validateProductionConfig } from "./config.ts";
+import { testingPreview } from "./preview.ts";
 
 // Réglages locaux (SMTP, clé OpenRouter…) : fichier .env à la racine, jamais commité.
 const env = fileURLToPath(new URL("../../.env", import.meta.url));
@@ -20,13 +21,21 @@ if (process.env.NODE_ENV === "production" && (
   throw new Error("The central database contains development animal records. Start production with a clean persistent volume; do not upload the local demo database.");
 }
 const emptyRoot = join(dirname(databasePath()), "empty-state");
-const emptyDatabase = !emptyStateMode() && process.env.NODE_ENV !== "production"
+const demoRoot = join(dirname(databasePath()), "preview-demo");
+const demoDatabase = testingPreview()
+  ? openDatabase(join(demoRoot, "central.sqlite"), true, false, "preview-sample-central", "sample")
+  : undefined;
+const emptyDatabase = testingPreview()
+  ? openDatabase(join(emptyRoot, "central.sqlite"), false, true, "preview-empty-central", "empty")
+  : !emptyStateMode() && process.env.NODE_ENV !== "production"
   ? openDatabase(join(emptyRoot, "central.sqlite"), false, true)
   : undefined;
 const server = createApi(database, {
   reminders: true,
   emptyDatabase,
   emptyUserDatabaseDirectory: join(emptyRoot, "accounts"),
+  demoDatabase,
+  demoUserDatabaseDirectory: join(demoRoot, "accounts"),
 });
 const port = Number(process.env.PORT || 3001);
 const host = process.env.HOST || "127.0.0.1";
@@ -39,6 +48,7 @@ server.on("error", (error) => {
   console.error(error.message);
   database.close();
   emptyDatabase?.close();
+  demoDatabase?.close();
   process.exitCode = 1;
 });
 for (const signal of ["SIGINT", "SIGTERM"])
@@ -46,6 +56,7 @@ for (const signal of ["SIGINT", "SIGTERM"])
     server.close(() => {
       database.close();
       emptyDatabase?.close();
+      demoDatabase?.close();
       process.exit(0);
     }),
   );

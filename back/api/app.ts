@@ -4,7 +4,7 @@ import { gzipSync } from "node:zlib";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Database, Input } from "../database/types.ts";
 import type { Account, Authentication } from "./auth.ts";
-import { authentication, emptyAccounts } from "./auth.ts";
+import { authentication, demoAccounts, emptyAccounts } from "./auth.ts";
 import { publicService } from "./public.ts";
 import { emptyStateMode } from "../database/empty-state.ts";
 import { adminService } from "./admin.ts";
@@ -847,6 +847,8 @@ export function createApi(
     /** Base isolée des comptes vides, accessible par la connexion habituelle. */
     emptyDatabase?: Database;
     emptyUserDatabaseDirectory?: string;
+    demoDatabase?: Database;
+    demoUserDatabaseDirectory?: string;
   } = {},
 ) {
   function services(
@@ -861,7 +863,7 @@ export function createApi(
             database,
             directory,
             empty,
-            options.emptyDatabase ? "anivaya_session" : undefined,
+            options.emptyDatabase || options.demoDatabase ? "anivaya_session" : undefined,
           );
     const social =
       auth &&
@@ -904,6 +906,10 @@ export function createApi(
   const empty = options.emptyDatabase
     ? services(options.emptyDatabase, options.emptyUserDatabaseDirectory, true)
     : null;
+  const demo = options.demoDatabase
+    ? services(options.demoDatabase, options.demoUserDatabaseDirectory, false)
+    : null;
+  const sandboxes = [empty, demo].filter((service) => service !== null);
 
   /** Données de l’espace : la base vient de la session, jamais du client. */
   function workspace(
@@ -938,7 +944,7 @@ export function createApi(
     response.setHeader("X-Content-Type-Options", "nosniff");
     try {
       checkOrigin(request);
-      await Promise.all([normal.ready, empty?.ready]);
+      await Promise.all([normal.ready, ...sandboxes.map(service => service.ready)]);
       const url = new URL(request.url || "/", "http://localhost");
       if (testingPreview()) response.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
       if (previewBlocksEmailRoute(url.pathname, request.method))
@@ -963,25 +969,28 @@ export function createApi(
           limits.consume("contact-recipient", value.email.trim().toLowerCase(), 5, 60 * 60_000);
         return value;
       }));
-      let selected = empty?.auth?.current(request) ? empty : normal;
+      let selected = sandboxes.find(service => service.auth?.current(request)) || normal;
       if (
-        empty &&
         request.method === "POST" &&
         url.pathname === "/api/auth/login"
       ) {
         const data = await body();
         const email =
           typeof data.email === "string" ? data.email.trim().toLowerCase() : "";
-        selected = emptyAccounts.some((account) => account.email === email)
+        selected = empty && emptyAccounts.some((account) => account.email === email)
           ? empty
+          : demo && demoAccounts.some((account) => account.email === email)
+          ? demo
           : normal;
       }
+      // Une inscription appartient toujours au site, même avec une session démo.
+      if (url.pathname === "/api/auth/register") selected = normal;
       // Les liens publics restent accessibles même après déconnexion.
       const publicToken = url.pathname.match(
         /^\/api\/public\/emergency\/([a-f0-9]{48})(?:\/|$)/,
       )?.[1];
       if (publicToken)
-        selected = empty?.auth?.publicOwner(publicToken) ? empty : normal;
+        selected = sandboxes.find(service => service.auth?.publicOwner(publicToken)) || normal;
       const { auth, admin } = selected;
       const context = {
         publicSite,
@@ -1046,6 +1055,7 @@ export function createApi(
   server.on("close", () => {
     normal.close();
     empty?.close();
+    demo?.close();
   });
-  return Object.assign(server, { ready: Promise.all([normal.ready, empty?.ready]) });
+  return Object.assign(server, { ready: Promise.all([normal.ready, ...sandboxes.map(service => service.ready)]) });
 }

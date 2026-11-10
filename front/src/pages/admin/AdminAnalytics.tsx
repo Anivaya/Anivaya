@@ -82,35 +82,33 @@ export default function AdminAnalytics() {
                 ])}
           </p>
         )}
-        {(!!data?.cohorts.length || zone || channel) && (
-          <div className="admin-toolbar admin-metric-filters">
-            <label>
-              {tr("Zone")}
-              <select value={zone} onChange={(e) => setZone(e.target.value)}>
-                <option value="">{tr("Toutes les zones")}</option>
-                {data?.zones.map((v) => (
-                  <option key={v} value={v}>
-                    {tr(v)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              {tr("Origine")}
-              <select
-                value={channel}
-                onChange={(e) => setChannel(e.target.value)}
-              >
-                <option value="">{tr("Toutes les origines")}</option>
-                {data?.channels.map((v) => (
-                  <option key={v} value={v}>
-                    {tr(v)}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-        )}
+        <div className="admin-toolbar admin-metric-filters">
+          <label>
+            {tr("Zone")}
+            <select value={zone} onChange={(e) => setZone(e.target.value)}>
+              <option value="">{tr("Toutes les zones")}</option>
+              {data?.zones.map((v) => (
+                <option key={v} value={v}>
+                  {tr(v)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            {tr("Origine")}
+            <select
+              value={channel}
+              onChange={(e) => setChannel(e.target.value)}
+            >
+              <option value="">{tr("Toutes les origines")}</option>
+              {data?.channels.map((v) => (
+                <option key={v} value={v}>
+                  {tr(v)}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
         {data &&
         !updating &&
         !result?.error &&

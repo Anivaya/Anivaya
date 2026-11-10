@@ -530,6 +530,9 @@
 .profile-page .account-danger > p {
   font-size: 14px;
 }
+.profile-page .account-danger > .button + p {
+  margin-top: 18px;
+}
 .profile-page .delete-consent {
   display: flex;
   gap: 12px;

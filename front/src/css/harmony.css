@@ -1,4 +1,19 @@
 /* Alignement des contrôles partagés : hauteur stable, sans étirement par le contenu voisin. */
+/* États vides des pages particulières : même cadre neutre, hors vue d’ensemble. */
+.workspace.section-mode .empty-state {
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: white;
+}
+/* Les panneaux déjà encadrés portent la bordure, sans second cadre à l’intérieur. */
+.workspace.section-mode
+  :is(.panel, .sharing-panel, .messaging-layout)
+  .empty-state {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
 .landing-v2 .landing-fields {
   border: 0;
   padding: 0;

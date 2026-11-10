@@ -35,7 +35,6 @@ export default function AnimalsPage({
     <>
       <PageHeading
         title={tr("Mes animaux")}
-        hasContent={data.animals.length > 0}
         description={tr("Un carnet pour chacun de vos compagnons.")}
         actionLabel={tr("Ajouter un animal")}
         onAction={() => actions.add("animal")}

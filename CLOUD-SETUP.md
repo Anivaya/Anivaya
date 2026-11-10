@@ -12,6 +12,10 @@ Sur Vercel ajouter `VITE_TESTING_PREVIEW=1` : bandeau FR/EN invitant à utiliser
 
 Avant un lancement complet, configurer le domaine, les e-mails vérifiés et le contenu juridique relu, retirer les deux indicateurs de test, restaurer Resend et les rappels externes, puis refaire les vérifications de bout en bout.
 
+Les comptes démo sont disponibles uniquement avec `ANIVAYA_TESTING_PREVIEW=1` dans des espaces isolés des inscriptions du site : `test@gmail.com` (test), `admin@anivaya.fr` (admin), `test.vide@anivaya.test` (test-vide), `admin.vide@anivaya.test` (admin-vide). Mot de passe commun : `Anivaya2026!`. Utiliser leur adresse e-mail dans le formulaire de connexion. Les administrateurs démo ne voient que les données fictives de leur sandbox ; les modifications administratives restent désactivées dans l’aperçu. Les comptes vides restent vides tant qu’aucune donnée n’y est ajoutée ; les données persistent entre les connexions.
+
+Les schémas PostgreSQL démo utilisent des identifiants d’espace préfixés `preview-sample-` et `preview-empty-`, hachés comme les autres espaces privés. La base des inscriptions reste sans comptes ni rôles administrateurs par défaut. Retirer le mode aperçu désactive l’accès aux démos sans les fusionner avec les données réelles. Après un push, déclencher aussi le déploiement manuel Render si son autodéploiement reste désactivé.
+
 Créer un projet dédié, dans une région proche de Frankfurt (Render). Exécuter `deploy/supabase-setup.sql` dans son éditeur SQL, puis définir un mot de passe fort pour le rôle `anivaya_app` et activer LOGIN comme indiqué dans le fichier.
 
 Dans **Connect**, choisir une connexion poolée compatible IPv4 (Supavisor). Utiliser le rôle `anivaya_app` dans le nom d’utilisateur du pooler (`anivaya_app.REFERENCE_DU_PROJET` selon la chaîne affichée). Encoder les caractères spéciaux du mot de passe dans l’URL. La connexion transactionnelle est compatible : le client utilise des paramètres liés sans préparations nommées, et fixe `search_path` dans chaque transaction. Le pool applicatif est limité à quatre connexions. Les requêtes SQL et l’attente de connexion ont des délais maximum.

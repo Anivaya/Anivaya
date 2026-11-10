@@ -4,6 +4,7 @@ import PageHeading from "../../shared/layout/PageHeading.tsx";
 import { AnimalsSection } from "../animals/AnimalsPage.tsx";
 import { RemindersSection } from "../reminders/RemindersPage.tsx";
 import { DocumentsSection } from "../documents/DocumentsPage.tsx";
+import { AiImportButton } from "../documents/AiImport.tsx";
 import Icon from "../../shared/ui/Icon.tsx";
 
 export default function DashboardPage({ data, actions, pending }: PageProps) {
@@ -12,10 +13,12 @@ export default function DashboardPage({ data, actions, pending }: PageProps) {
     <>
       <PageHeading
         title={tr("Bonjour {0},", [data.household.firstName])}
-        hasContent={data.animals.length > 0}
         description={tr("Tout pour prendre soin de vos compagnons.")}
         actionLabel={tr("Ajouter un animal")}
         onAction={() => actions.add("animal")}
+        secondary={
+          <AiImportButton onClick={() => actions.openDialog("ai-import")} />
+        }
       />
       <div className="app-grid">
         <div className="app-left">

@@ -355,6 +355,7 @@
 .directory-page .favorite-filter,
 .directory-dialog .favorite-filter {
   display: flex;
+  margin-inline-start: auto;
   align-items: center;
   gap: 8px;
   font-size: 12px;

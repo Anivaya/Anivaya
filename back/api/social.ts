@@ -94,7 +94,7 @@ export function socialService(db: Database, hooks: Hooks, empty = emptyStateMode
     db.exec(
       "ALTER TABLE social_threads ADD COLUMN photo BLOB; ALTER TABLE social_threads ADD COLUMN photo_type TEXT; ALTER TABLE social_threads ADD COLUMN photo_at TEXT;",
     );
-  if (!empty && process.env.NODE_ENV !== "production" && !db.prepare("SELECT key FROM social_meta WHERE key='seeded'").get())
+  if (!empty && (process.env.NODE_ENV !== "production" || db.previewDemo === "sample") && !db.prepare("SELECT key FROM social_meta WHERE key='seeded'").get())
     transaction(db, () => {
       seed();
       db.prepare("INSERT INTO social_meta VALUES ('seeded','1')").run();

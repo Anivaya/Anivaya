@@ -253,12 +253,11 @@ export default function AdminDashboard({
         <section className="admin-panel">
           <div className="admin-section-title">
             <h2>{tr("Dernières actions")}</h2>
-            {overview.role === "Administrateur" &&
-              overview.recent.length > 0 && (
-                <a href="#admin/historique?from=dashboard">
-                  {tr("Voir l’historique →")}
-                </a>
-              )}
+            {overview.role === "Administrateur" && (
+              <a href="#admin/historique?from=dashboard">
+                {tr("Voir l’historique →")}
+              </a>
+            )}
           </div>
           <div className="admin-timeline">
             {overview.recent.map((row) => (

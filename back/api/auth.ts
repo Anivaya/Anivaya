@@ -85,8 +85,8 @@ export function authentication(
   empty = emptyStateMode(),
   cookieName?: string,
 ) {
-  emptyStateMode(empty);
-  const production = process.env.NODE_ENV === "production";
+  emptyStateMode(empty, !!db.previewDemo);
+  const production = process.env.NODE_ENV === "production" && !db.previewDemo;
   const initialAccounts = production ? [] : empty ? emptyAccounts : demoAccounts;
   const adminAccount = empty ? "empty-admin" : DEMO_ADMIN.id;
   const SESSION_COOKIE =
@@ -158,6 +158,7 @@ export function authentication(
   const connections = new Map<string, Database>();
   const attempts = new Map<string, { count: number; until: number }>();
   const workspacePath = (name: string) => join(root, name + ".sqlite");
+  const workspaceKey = (name: string) => db.previewDemo ? `preview-${db.previewDemo}-${name}` : name;
   function workspace(account: Account) {
     let own = connections.get(account.id);
     if (!own) {
@@ -165,7 +166,8 @@ export function authentication(
         workspacePath(account.workspace),
         isDemo(account),
         empty,
-        account.workspace,
+        workspaceKey(account.workspace),
+        db.previewDemo,
       );
       connections.set(account.id, own);
     }
@@ -175,7 +177,7 @@ export function authentication(
   function dropWorkspace(account: Account) {
     connections.get(account.id)?.close();
     connections.delete(account.id);
-    if (process.env.DATABASE_URL) return dropPostgresWorkspace(account.workspace);
+    if (process.env.DATABASE_URL) return dropPostgresWorkspace(workspaceKey(account.workspace));
     for (const suffix of ["", "-wal", "-shm"])
       rmSync(workspacePath(account.workspace) + suffix, { force: true });
   }
@@ -263,6 +265,9 @@ export function authentication(
     );
   }
   function assertEmailAvailable(email: string, except = "") {
+    if (process.env.ANIVAYA_TESTING_PREVIEW === "1" && !db.previewDemo &&
+        [...demoAccounts, ...emptyAccounts].some(account => account.email === email))
+      throw new ApiError(409, "Cette adresse est réservée à la démonstration.", "email");
     if (
       db
         .prepare("SELECT id FROM accounts WHERE email=? AND id<>?")

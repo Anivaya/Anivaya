@@ -12,7 +12,6 @@ import Icon from "../../shared/ui/Icon.tsx";
 import PageHeading from "../../shared/layout/PageHeading.tsx";
 import { matches } from "../../shared/utils/format.ts";
 import { Empty } from "./Common.tsx";
-import EmptyState from "../../shared/ui/EmptyState.tsx";
 import { CommunityDetail, EventDetail } from "./Details.tsx";
 import SocialDialogView from "./Dialogs.tsx";
 import Messaging from "./Messaging.tsx";
@@ -248,27 +247,6 @@ function SocialList({
         : Date.parse(a.date) - Date.parse(b.date),
     );
   const list = tab === "communautes" ? communities : events;
-  if (
-    !(
-      tab === "communautes"
-        ? data.communities
-        : tab === "evenements"
-          ? data.events
-          : data.threads
-    ).length &&
-    !id
-  )
-    return (
-      <EmptyState
-        kind={
-          tab === "communautes"
-            ? "communities"
-            : tab === "evenements"
-              ? "events"
-              : "conversations"
-        }
-      />
-    );
   return (
     <>
       <div className="social-toolbar">
@@ -342,18 +320,20 @@ function SocialList({
         />
       ) : (
         <>
-          <p className="results-label" role="status">
-            {tr(
-              tab === "communautes"
-                ? list.length === 1
-                  ? "{0} communauté"
-                  : "{0} communautés"
-                : list.length === 1
-                  ? "{0} événement"
-                  : "{0} événements",
-              [list.length],
-            )}
-          </p>
+          {list.length > 0 && (
+            <p className="results-label" role="status">
+              {tr(
+                tab === "communautes"
+                  ? list.length === 1
+                    ? "{0} communauté"
+                    : "{0} communautés"
+                  : list.length === 1
+                    ? "{0} événement"
+                    : "{0} événements",
+                [list.length],
+              )}
+            </p>
+          )}
           <div className="social-grid">
             {tab === "communautes"
               ? communities

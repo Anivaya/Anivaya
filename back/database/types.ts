@@ -29,6 +29,8 @@ export type {
 export type Input = Record<string, unknown>;
 /** Types des projections SQL : chaque requête précise la forme de ses colonnes. */
 export type Database = Omit<DatabaseSync, "prepare"> & {
+  /** Sandbox explicite de l’aperçu, jamais la base des inscriptions réelles. */
+  readonly previewDemo?: "sample" | "empty";
   prepare(sql: string): Omit<StatementSync, "get" | "all"> & {
     get<T = Record<string, SQLOutputValue>>(
       ...params: SQLInputValue[]

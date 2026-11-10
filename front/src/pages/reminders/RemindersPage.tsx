@@ -19,6 +19,7 @@ import {
   byReminderOrder,
 } from "../../shared/utils/format.ts";
 import PageHeading from "../../shared/layout/PageHeading.tsx";
+import { AiImportButton } from "../documents/AiImport.tsx";
 import Icon from "../../shared/ui/Icon.tsx";
 import CollectionFilters from "../../shared/ui/CollectionFilters.tsx";
 import { useMediaQuery } from "../../shared/hooks.ts";
@@ -29,10 +30,12 @@ export default function RemindersPage({ data, actions, pending }: PageProps) {
     <>
       <PageHeading
         title={tr("Mes rappels")}
-        hasContent={data.reminders.length > 0}
         description={tr("Retrouvez les échéances que vous avez choisies.")}
         actionLabel={tr("Ajouter un rappel")}
         onAction={() => actions.add("reminder")}
+        secondary={
+          <AiImportButton onClick={() => actions.openDialog("ai-import")} />
+        }
       />
       <div className="app-grid">
         <div className="app-left">
@@ -82,9 +85,9 @@ export function RemindersSection({
     .sort(byReminderOrder);
   return (
     <section className="reminders-panel" aria-labelledby="reminders-title">
-      <div className="section-head">
+      <div className={overview ? "section-head" : "sr-only"}>
         <h2 id="reminders-title">
-          {overview ? tr("Prochains rappels") : tr("Vos rappels")}
+          {overview ? tr("Prochains rappels") : tr("Mes rappels")}
         </h2>
         {overview && reminders.length > 0 && (
           <a className="subtle" href="#rappels">
