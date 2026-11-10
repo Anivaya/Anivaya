@@ -19,6 +19,8 @@ services:
         sync: false
       - key: DATABASE_SCHEMA
         value: anivaya
+      - key: DATABASE_CA_PATH
+        value: deploy/supabase-ca.crt
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
