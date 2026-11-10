@@ -372,7 +372,8 @@ export function mountLanding(host: HTMLElement, t: (text: string) => string) {
         window.scrollY -
         (header?.getBoundingClientRect().height || 72) -
         1;
-      moveBlock(top, changed);
+      // The testing notice precedes the landing header; do not scroll past it on entry.
+      moveBlock(import.meta.env.VITE_TESTING_PREVIEW === "1" && id === "accueil" ? 0 : top, changed);
       if (id === "contenu") target?.focus({ preventScroll: true });
       if (changed) {
         const h = view.querySelector<HTMLElement>("h1");
