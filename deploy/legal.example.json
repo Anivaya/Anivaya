@@ -1,0 +1,8 @@
+{
+  "reviewed": false,
+  "sections": [
+    { "id": "mentions-legales", "title": "Mentions légales", "paragraphs": [] },
+    { "id": "confidentialite", "title": "Politique de confidentialité", "paragraphs": [] },
+    { "id": "cookies", "title": "Cookies", "paragraphs": [] }
+  ]
+}

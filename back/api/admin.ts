@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomUUID, randomBytes, createHash } from "node:crypto";
 import type { Database, Input } from "../database/types.ts";
 import type { Account, Authentication } from "./auth.ts";
 import type {
@@ -113,6 +113,9 @@ const INVITATION_DAYS = 14;
 
 /** Service central : aucune décision d'autorisation ne dépend du rôle envoyé par React. */
 export function adminService(db: Database, auth: Authentication, empty = emptyStateMode()) {
+  if (!db.prepare("PRAGMA table_info(admin_invitations)").all<{ name: string }>().some(c => c.name === "token_hash"))
+    db.exec("ALTER TABLE admin_invitations ADD COLUMN token_hash TEXT");
+  db.exec("CREATE UNIQUE INDEX IF NOT EXISTS admin_invitation_token ON admin_invitations(token_hash)");
   function role(account: Account): AdminRole {
     const member = db
       .prepare(
@@ -282,7 +285,7 @@ export function adminService(db: Database, auth: Authentication, empty = emptySt
   }
   let seeded = false;
   function seed() {
-    if (seeded || empty) return;
+    if (seeded || empty || process.env.NODE_ENV === "production") return;
     transaction(db, () => {
       if (
         !db.prepare("SELECT key FROM admin_metadata WHERE key='seed-v1'").get()
@@ -1404,54 +1407,18 @@ export function adminService(db: Database, auth: Authentication, empty = emptySt
         const target = db
           .prepare("SELECT id FROM accounts WHERE email=?")
           .get<{ id: string }>(email);
-        if (!target) {
-          // Personne non inscrite : invitation, appliquée à sa première connexion.
-          if (
-            db
-              .prepare("SELECT id FROM admin_invitations WHERE email=?")
-              .get(email)
-          )
-            throw new ApiError(
-              409,
-              "Une invitation est déjà en attente pour cette adresse.",
-              "email",
-            );
-          const id = randomUUID();
-          db.prepare(
-            "INSERT INTO admin_invitations(id,email,role,invited_by,created_at,expires_at) VALUES (?,?,?,?,?,?)",
-          ).run(
-            id,
-            email,
-            memberRole,
-            account.email,
-            now(),
-            new Date(Date.now() + INVITATION_DAYS * 86400000).toISOString(),
-          );
-          row = invitationRows().find((r) => r.id === id)!;
-          log(account, kind, id, "Invitation : " + email, memberRole);
-          inviteByMail(email, memberRole, account.email);
-          return row;
-        }
-        if (
-          db
-            .prepare("SELECT account FROM admin_members WHERE account=?")
-            .get(target.id)
-        )
+        if (target && db.prepare("SELECT account FROM admin_members WHERE account=?").get(target.id))
           throw new ApiError(409, "Ce compte appartient déjà à l’équipe.");
-        db.prepare("INSERT INTO admin_members(account,role) VALUES (?,?)").run(
-          target.id,
-          memberRole,
-        );
-        row = accountRows(true).find((r) => r.id === target.id)!;
-        void sendMail({
-          to: email,
-          subject: "Vous rejoignez l’équipe Anivaya",
-          text: `Bonjour,\n\n${account.email} vous a ajouté à l’équipe Anivaya en tant que ${memberRole}. L’administration est accessible dès votre prochaine connexion.`,
-          action: {
-            label: "Ouvrir l’administration",
-            url: `${appUrl()}/#admin`,
-          },
-        });
+        if (db.prepare("SELECT id FROM admin_invitations WHERE email=?").get(email))
+          throw new ApiError(409, "Une invitation est déjà en attente pour cette adresse.", "email");
+        const id = randomUUID();
+        db.prepare(
+          "INSERT INTO admin_invitations(id,email,role,invited_by,created_at,expires_at) VALUES (?,?,?,?,?,?)",
+        ).run(id, email, memberRole, account.email, now(), new Date(Date.now() + INVITATION_DAYS * 86400000).toISOString());
+        row = invitationRows().find((r) => r.id === id)!;
+        log(account, kind, id, "Invitation : " + email, memberRole);
+        inviteByMail(email, memberRole, account.email);
+        return row;
       } else if (kind === "library") {
         const title = text(data.name, "name", 180),
           summary = text(data.summary, "summary", 600),
@@ -2186,13 +2153,16 @@ export function adminService(db: Database, auth: Authentication, empty = emptySt
     });
     return { reference: record.id, status: record.status };
   }
-  /** Invitation à rejoindre l’équipe : à créer son compte avec l’adresse invitée. */
+  /** Only the digest is stored. Renewing an invitation invalidates its previous link. */
   function inviteByMail(email: string, role: string, invitedBy: string) {
+    const token = randomBytes(32).toString("hex");
+    db.prepare("UPDATE admin_invitations SET token_hash=? WHERE email=?")
+      .run(createHash("sha256").update(token).digest("hex"), email);
     void sendMail({
       to: email,
       subject: "Invitation à rejoindre l’équipe Anivaya",
-      text: `Bonjour,\n\n${invitedBy} vous invite à rejoindre l’équipe Anivaya en tant que ${role}. L’invitation est valable ${INVITATION_DAYS} jours.\n\nCréez votre compte avec cette adresse e-mail, ou connectez-vous si vous en avez déjà un : l’accès à l’administration s’ouvre à votre première connexion.`,
-      action: { label: "Rejoindre l’équipe", url: `${appUrl()}/#inscription` },
+      text: invitedBy + " vous invite en tant que " + role + ". Connectez-vous avec cette adresse, puis confirmez l’invitation avec ce lien personnel. Il expire dans " + INVITATION_DAYS + " jours et ne fonctionne qu’une fois.",
+      action: { label: "Confirmer l’invitation", url: appUrl() + "/#invitation/" + token },
     });
   }
   function createReport(
@@ -2308,28 +2278,24 @@ export function adminService(db: Database, auth: Authentication, empty = emptySt
       history: [],
     });
   }
-  /** Invitation acceptée à la première connexion de la personne invitée. */
-  function acceptInvitation(account: Account) {
-    const invitation = db
-      .prepare(
-        "SELECT id,role,expires_at AS expiresAt FROM admin_invitations WHERE email=?",
-      )
-      .get<{ id: string; role: AdminRole; expiresAt: string }>(account.email);
-    if (!invitation) return;
-    db.prepare("DELETE FROM admin_invitations WHERE id=?").run(invitation.id);
-    if (invitation.expiresAt < now()) return;
-    db.prepare(
-      "INSERT OR IGNORE INTO admin_members(account,role) VALUES (?,?)",
-    ).run(account.id, invitation.role);
-    db.prepare("INSERT INTO admin_audit VALUES (?,?,?,?,?,?,?)").run(
-      randomUUID(),
-      account.email,
-      "Invitation acceptée",
-      "team",
-      account.id,
-      invitation.role,
-      now(),
-    );
+  /** Possession of the emailed token AND the matching signed-in account is required. */
+  function acceptInvitation(account: Account, value: unknown) {
+    if (typeof value !== "string" || !/^[a-f0-9]{64}$/.test(value))
+      throw new ApiError(400, "Invitation invalide ou expirée.");
+    return transaction(db, () => {
+      const invitation = db.prepare(
+        "SELECT id,role,email,expires_at AS expiresAt FROM admin_invitations WHERE token_hash=?",
+      ).get<{ id: string; role: AdminRole; email: string; expiresAt: string }>(createHash("sha256").update(value).digest("hex"));
+      if (!invitation || invitation.expiresAt <= now())
+        throw new ApiError(400, "Invitation invalide ou expirée.");
+      if (invitation.email !== account.email)
+        throw new ApiError(403, "Connectez-vous avec l’adresse destinataire de l’invitation.");
+      if (db.prepare("SELECT account FROM admin_members WHERE account=?").get(account.id))
+        throw new ApiError(409, "Ce compte appartient déjà à l’équipe.");
+      db.prepare("INSERT INTO admin_members(account,role) VALUES (?,?)").run(account.id, invitation.role);
+      db.prepare("DELETE FROM admin_invitations WHERE id=?").run(invitation.id);
+      db.prepare("INSERT INTO admin_audit VALUES (?,?,?,?,?,?,?)").run(randomUUID(), account.email, "Invitation acceptée", "team", account.id, invitation.role, now());
+    }, "BEGIN IMMEDIATE");
   }
   function proofFile(account: Account, id: string, document: string) {
     authorize(account, "pros");

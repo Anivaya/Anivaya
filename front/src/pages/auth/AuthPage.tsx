@@ -11,11 +11,14 @@ import { useText } from "../../shared/i18n/HomeLocale.tsx";
 export default function AuthPage({
   register: requestedRegister,
   onAuthenticated,
+  invitationToken,
 }: {
   register: boolean;
   onAuthenticated: (user: AuthUser) => void;
+  invitationToken?: string;
 }) {
   const tr = useText();
+  const suffix = invitationToken ? `/invitation/${invitationToken}` : "";
   const [register, setRegister] = useState(requestedRegister);
   const [mfaCode, setMfaCode] = useState(""),
     [mfaRequired, setMfaRequired] = useState(false);
@@ -156,14 +159,14 @@ export default function AuthPage({
     <AuthLayout cardRef={card} opening={opening} switching={switching} aligned>
       <nav className="auth-tabs" aria-label={tr("Accéder à mon espace")}>
         <a
-          href="#connexion"
+          href={`#connexion${suffix}`}
           onClick={() => setError(null)}
           aria-current={!register ? "page" : undefined}
         >
           {tr("Connexion")}
         </a>
         <a
-          href="#inscription"
+          href={`#inscription${suffix}`}
           onClick={() => setError(null)}
           aria-current={register ? "page" : undefined}
         >
@@ -294,7 +297,7 @@ export default function AuthPage({
         {tr(register ? "Déjà un compte ?" : "Pas encore de compte ?")}{" "}
         <a
           onClick={() => setError(null)}
-          href={register ? "#connexion" : "#inscription"}
+          href={`${register ? "#connexion" : "#inscription"}${suffix}`}
         >
           {tr(register ? "Se connecter" : "Créer mon compte")}
         </a>

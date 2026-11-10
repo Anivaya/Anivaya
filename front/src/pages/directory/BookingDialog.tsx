@@ -115,7 +115,7 @@ export default function BookingDialog({
       <ol className="stepper">
         {[
           "Rendez-vous",
-          booking ? "Vérification" : "Paiement",
+          "Vérification",
           "Confirmation",
         ].map((label, i) => (
           <li key={label} aria-current={step === i + 1 ? "step" : undefined}>
@@ -329,9 +329,9 @@ export default function BookingDialog({
             <div className="payment-card">
               <Icon name="card" />
               <p>
-                {tr("Paiement à la confirmation")}
+                {tr("Aucun paiement en ligne")}
                 <small>
-                  {tr("Le reçu est envoyé par e-mail à")}{" "}
+                  {tr("La confirmation est envoyée par e-mail à")}{" "}
                   {form.email || tr("votre adresse")}.
                 </small>
               </p>
@@ -363,7 +363,7 @@ export default function BookingDialog({
                 ? tr("Enregistrement…")
                 : booking
                   ? tr("Confirmer le déplacement")
-                  : tr("Confirmer et payer")}
+                  : tr("Confirmer la réservation")}
             </button>
           </div>
         </>
@@ -388,7 +388,7 @@ export default function BookingDialog({
           </p>
           <p className="muted">
             {tr(
-              "La réservation est enregistrée dans votre espace. Un e-mail de confirmation et le reçu de paiement ont été envoyés à ",
+              "La réservation est enregistrée dans votre espace. La confirmation est adressée à ",
             )}
             {result.email}.
           </p>

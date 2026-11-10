@@ -14,13 +14,17 @@ import { exportAccount } from "./export.ts";
 import { socialService } from "./social.ts";
 import type { SocialService } from "./social.ts";
 import { directoryRepository } from "./directory.ts";
+import { prepareBookingStore, migrateBookings } from "./booking-store.ts";
 import { profileRepository } from "./profile.ts";
 import { createRepository } from "./repository.ts";
 import { sharedAccess } from "./shared-access.ts";
-import { startReminderMail } from "./reminder-mail.ts";
+import { startReminderMail, sendDueReminders } from "./reminder-mail.ts";
+import { secretMatches, trustedVercelProxy } from "./proxy.ts";
 import { extractDocument } from "./ai-import.ts";
 import type { SharedAccess } from "./shared-access.ts";
-import { ApiError, text } from "./validation.ts";
+import { ApiError, text, clientAddress } from "./validation.ts";
+import { rateLimiter } from "./rate-limit.ts";
+import { legalContent } from "./config.ts";
 import { translationCatalogue } from "../../shared/translations/catalogue.ts";
 
 const MAX_BODY_BYTES = 14 * 1024 * 1024;
@@ -133,6 +137,7 @@ function requireAdmin(admin: AdminService | null) {
 // Routes accessibles sans session.
 const open = router<RequestContext>();
 open.get("/api/health", () => ({ status: "ok" }));
+open.get("/api/public/legal", () => legalContent());
 /** Catalogues sérialisés une seule fois : ils ne changent qu’avec le code. */
 const catalogues = new Map<
   string,
@@ -283,6 +288,11 @@ open.get(/^\/api\/public\/emergency\/(.+)$/, ({ auth, params }) => {
 
 // Routes de l’espace connecté.
 const api = router<WorkspaceContext>();
+api.post("/api/account/invitation", async ({ admin, auth, account, request, response, body }) => {
+  requireAdmin(admin).acceptInvitation(account!, (await body()).token);
+  requireAuth(auth).refreshSession(request, response, account!);
+  return requireAuth(auth).user(account!);
+});
 
 api.get("/api/profile", ({ profile }) => profile.get());
 api.patch("/api/profile", async ({ auth, account, profile, body }) =>
@@ -796,7 +806,7 @@ async function readJson(request: IncomingMessage): Promise<Input> {
 function checkOrigin(request: IncomingMessage) {
   const origin = request.headers.origin;
   const allowed = [
-    ...LOCAL_ORIGINS,
+    ...(process.env.NODE_ENV === "production" ? [] : LOCAL_ORIGINS),
     ...(process.env.ALLOWED_ORIGINS?.split(",")
       .map((value) => value.trim())
       .filter(Boolean) ?? []),
@@ -863,15 +873,19 @@ export function createApi(
         empty,
       );
     const admin = auth && adminService(database, auth, empty);
+    if (auth) prepareBookingStore(database);
+    const ready = auth?.ready.then(() => migrateBookings(database, auth));
+    // Attach immediately to avoid an unhandled rejection before the first request.
+    void ready?.catch(error => console.error("Initialisation des réservations impossible :", error));
     const access = auth && sharedAccess(database, auth);
     if (auth && admin) {
       auth.hooks.security = admin.securityEvent;
-      auth.hooks.login = admin.acceptInvitation;
     }
     const stopReminders =
-      auth && options.reminders ? startReminderMail(auth) : undefined;
+      auth && options.reminders && process.env.REMINDERS_MODE !== "external" ? startReminderMail(auth) : undefined;
     return {
       db: database,
+      ready,
       auth,
       social,
       admin,
@@ -883,6 +897,8 @@ export function createApi(
     };
   }
   const normal = services(db, options.userDatabaseDirectory);
+  const limits = rateLimiter(db);
+  let aiRequests = 0;
   const publicSite = publicService(db);
   const empty = options.emptyDatabase
     ? services(options.emptyDatabase, options.emptyUserDatabaseDirectory, true)
@@ -909,21 +925,40 @@ export function createApi(
       account,
       repository: createRepository(own, publicURL),
       profile: profileRepository(own),
-      directory: directoryRepository(own),
+      directory: directoryRepository(own, auth && account ? { db, account: account.id } : undefined),
       social,
       access,
     };
   }
 
   const server = createServer(async (request, response) => {
+    let releaseAI = false;
     response.setHeader("Cache-Control", "no-store");
     response.setHeader("X-Content-Type-Options", "nosniff");
     try {
       checkOrigin(request);
-      await Promise.all([normal.auth?.ready, empty?.auth?.ready]);
+      await Promise.all([normal.ready, empty?.ready]);
       const url = new URL(request.url || "/", "http://localhost");
+      if (url.pathname === "/api/health") db.prepare("SELECT 1 AS ok").get();
+      if (url.pathname === "/api/internal/reminders") {
+        if (request.method !== "POST" || !secretMatches(request.headers.authorization, process.env.CRON_SECRET ? `Bearer ${process.env.CRON_SECRET}` : undefined))
+          throw new ApiError(401, "Accès non autorisé.");
+        await sendDueReminders(requireAuth(normal.auth));
+        return send(response, 204, undefined);
+      }
+      if (process.env.API_PROXY_SECRET && url.pathname !== "/api/health" && !trustedVercelProxy(request))
+        throw new ApiError(403, "Accès non autorisé.");
+      const address = clientAddress(request);
+      if (request.method === "POST" && url.pathname === "/api/public/contact")
+        limits.consume("contact", address, 5, 15 * 60_000);
+      if (request.method === "POST" && /^\/api\/public\/emergency\/[^/]+\/report$/.test(url.pathname))
+        limits.consume("public-report", address, 10, 15 * 60_000);
       let parsedBody: Promise<Input> | undefined;
-      const body = () => (parsedBody ??= readJson(request));
+      const body = () => (parsedBody ??= readJson(request).then(value => {
+        if (url.pathname === "/api/public/contact" && typeof value.email === "string")
+          limits.consume("contact-recipient", value.email.trim().toLowerCase(), 5, 60 * 60_000);
+        return value;
+      }));
       let selected = empty?.auth?.current(request) ? empty : normal;
       if (
         empty &&
@@ -966,6 +1001,17 @@ export function createApi(
       const account = auth?.current(request) ?? null;
       if (auth && !account)
         throw new ApiError(401, "Connectez-vous pour accéder à votre espace.");
+      if (account && !["GET", "HEAD", "OPTIONS"].includes(request.method || ""))
+        limits.consume("account-write", account.id, 120, 60_000);
+      if (account && request.method === "POST" && url.pathname === "/api/account/invitation")
+        limits.consume("invitation", account.id, 10, 15 * 60_000);
+      if (account && request.method === "POST" && url.pathname === "/api/imports/extract") {
+        if (aiRequests >= 2) throw new ApiError(429, "Trop de demandes. Réessayez plus tard.");
+        limits.consume("ai-account", account.id, 10, 24 * 60 * 60_000);
+        limits.consume("ai-global", "installation", 100, 24 * 60 * 60_000);
+        aiRequests++;
+        releaseAI = true;
+      }
       const privateRoute = api.match(request.method, url.pathname);
       if (!privateRoute)
         throw new ApiError(404, "Cette route est introuvable.");
@@ -989,11 +1035,13 @@ export function createApi(
         field: known ? error.field : undefined,
         fields: known ? error.fields : undefined,
       });
+    } finally {
+      if (releaseAI) aiRequests--;
     }
   });
   server.on("close", () => {
     normal.close();
     empty?.close();
   });
-  return server;
+  return Object.assign(server, { ready: Promise.all([normal.ready, empty?.ready]) });
 }

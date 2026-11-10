@@ -143,6 +143,8 @@ export const api = {
     confirmPassword: string;
   }) => send<AuthUser>("/auth/register", "POST", body),
   logout: () => send<void>("/auth/logout", "POST", {}),
+  acceptInvitation: (token: string) => send<AuthUser>("/account/invitation", "POST", { token }),
+  legal: (signal?: AbortSignal) => request<import("../../../../shared/legal.ts").LegalContent | null>("/public/legal", { signal }),
   saveProfile: (body: ProfileInput) => send<Profile>("/profile", "PATCH", body),
   exportData: (categories: ExportCategory[]) =>
     request<unknown>(`/export?categories=${categories.join(",")}`),

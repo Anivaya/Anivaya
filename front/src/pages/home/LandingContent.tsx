@@ -6,6 +6,7 @@ import type { AuthUser } from "../../../../shared/account.ts";
 import { AccountMenu } from "../../shared/layout/Sidebar.tsx";
 import PublicFooter from "../../shared/layout/PublicFooter.tsx";
 import LandingForm from "./LandingForm.tsx";
+import LegalContent from "./LegalContent.tsx";
 /** Contenu de présentation fidèle à la maquette ; les formulaires utilisent l’API. */
 export default memo(function LandingContent({
   user,
@@ -2446,6 +2447,7 @@ export default memo(function LandingContent({
         >
           <section className="section section--tight-top">
             <div className="wrap legal">
+              <LegalContent>
               <h1>{t("Informations légales")}</h1>
               <p className="legal__warn">
                 {t(
@@ -2559,6 +2561,7 @@ export default memo(function LandingContent({
                   "La connexion utilise un cookie de session nécessaire au fonctionnement de votre espace. Aucun outil de mesure d’audience n’est ajouté par cette page.",
                 )}
               </p>
+              </LegalContent>
             </div>
           </section>
         </div>

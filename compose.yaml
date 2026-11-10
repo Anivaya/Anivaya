@@ -1,0 +1,53 @@
+name: anivaya
+services:
+  api:
+    build:
+      context: .
+      target: api
+    env_file: ${ANIVAYA_ENV_FILE:-.env.production}
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3001
+      DATABASE_PATH: /data/central.sqlite
+      LEGAL_CONTENT_PATH: /config/legal.json
+      TRUST_PROXY: "1"
+    volumes:
+      - app-data:/data
+      - backups:/backups
+      - ./deploy/legal.json:/config/legal.json:ro
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 40s
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    mem_limit: 1g
+  web:
+    build:
+      context: .
+      target: web
+    environment:
+      DOMAIN: anivaya.com
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 256m
+volumes:
+  app-data:
+    name: ${ANIVAYA_DATA_VOLUME:-anivaya-data}
+  backups:
+  caddy-data:
+  caddy-config:

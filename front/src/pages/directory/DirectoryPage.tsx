@@ -618,7 +618,7 @@ export default function DirectoryPage({
               </dd>
             </div>
             <div>
-              <dt>{tr("Montant réglé")}</dt>
+              <dt>{tr("Tarif annoncé")}</dt>
               <dd>{money(detail.price)}</dd>
             </div>
             <div>
@@ -638,17 +638,12 @@ export default function DirectoryPage({
           </dl>
           {detail.status === "cancelled" && (
             <p className="muted">
-              {tr("Remboursement de ")}
-              {money(detail.price)}
-              {tr(" : un e-mail de confirmation a été envoyé à ")}
-              {detail.email}.
+              {tr("Réservation annulée. Aucun paiement en ligne ni remboursement effectué.")}
             </p>
           )}
           {cancel && (
             <p>
-              {tr("Le créneau sera libéré et le montant de ")}
-              {money(detail.price)}{" "}
-              {tr("remboursé. Cette action ne peut pas être annulée.")}
+              {tr("Le créneau sera libéré. Aucun remboursement en ligne n’est nécessaire. Cette action ne peut pas être annulée.")}
             </p>
           )}
           {error && (

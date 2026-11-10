@@ -1,5 +1,7 @@
 import type { IncomingMessage } from "node:http";
 import type { Input } from "../database/types.ts";
+import { trustedVercelProxy } from "./proxy.ts";
+import { isIP } from "node:net";
 
 /**
  * Adresse du client, pour les limites de tentatives. Derrière un proxy de confiance
@@ -8,6 +10,11 @@ import type { Input } from "../database/types.ts";
  */
 export function clientAddress(request: IncomingMessage) {
   const direct = request.socket.remoteAddress || "unknown";
+  if (trustedVercelProxy(request)) {
+    // Vercel overwrites X-Forwarded-For; Render may append its next hop.
+    const client = String(request.headers["x-forwarded-for"] || "").split(",")[0].trim();
+    return isIP(client) ? client : direct;
+  }
   if (process.env.TRUST_PROXY !== "1") return direct;
   const forwarded = String(request.headers["x-forwarded-for"] || "")
     .split(",")

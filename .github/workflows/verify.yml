@@ -1,0 +1,54 @@
+name: Verify
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: local-ci-only
+          POSTGRES_DB: anivaya_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            front/package-lock.json
+            back/package-lock.json
+      - run: npm ci
+      - run: npm --prefix front ci
+      - run: npm --prefix back ci
+      - run: npm run build
+      - run: npm run lint
+      - run: npm test
+      - name: Create restricted disposable database role
+        env:
+          PGPASSWORD: local-ci-only
+        run: psql -h 127.0.0.1 -U postgres -d anivaya_ci -c "CREATE ROLE anivaya_app LOGIN PASSWORD 'local-ci-only' NOSUPERUSER NOCREATEDB NOCREATEROLE; GRANT CONNECT, CREATE ON DATABASE anivaya_ci TO anivaya_app;"
+      - run: npm run test:cloud
+        env:
+          TEST_DATABASE_URL: postgresql://anivaya_app:local-ci-only@127.0.0.1:5432/anivaya_ci
+      - name: Validate Vercel output (local fixture only, never uploaded)
+        run: node scripts/vercel-output.ts
+        env:
+          RENDER_API_URL: https://anivaya-api.onrender.com
+          API_PROXY_SECRET: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      - run: npm --prefix front audit --omit=dev --audit-level=high
+      - run: npm --prefix back audit --omit=dev --audit-level=high
+      - run: docker build --target api -t anivaya-api:check .
+      - run: docker run --rm --network none anivaya-api:check node scripts/production-smoke.ts
+      - run: docker build --target web -t anivaya-web:check .
+      - run: docker run --rm --entrypoint caddy anivaya-web:check validate --config /etc/caddy/Caddyfile --adapter caddyfile

@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { once } from "node:events";
@@ -168,6 +169,14 @@ test("Administration : rôles, dossiers réels, publication, modération, concur
         admin.cookie,
         201,
       );
+
+      for (const member of [vet, support]) {
+        const token = "a".repeat(64);
+        db.prepare("UPDATE admin_invitations SET token_hash=? WHERE email=?").run(createHash("sha256").update(token).digest("hex"), member.user.profile.email);
+        const accepted = await req("/account/invitation", "POST", { token }, member.cookie);
+        assert.equal(accepted.status, 200);
+        member.cookie = accepted.headers.get("set-cookie")!.split(";")[0];
+      }
       assert.equal(
         (await req("/admin/history", "GET", undefined, support.cookie)).status,
         403,

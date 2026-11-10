@@ -17,7 +17,7 @@ try {
     .prepare("SELECT id FROM accounts WHERE email=?")
     .get<{ id: string }>(email.trim().toLowerCase());
   if (!account) throw new Error("Créez d’abord le compte dans l’application.");
-  if (account.id === "demo-admin" && process.env.NODE_ENV === "production")
+  if ((auth.isDemo(account) || /^sample-\d+$/.test(account.id)) && process.env.NODE_ENV === "production")
     throw new Error("Utilisez un compte personnel en production.");
   db.prepare(
     "INSERT INTO admin_members(account,role) VALUES (?,?) ON CONFLICT(account) DO UPDATE SET role=excluded.role,status='Actif',version=admin_members.version+1",

@@ -48,6 +48,7 @@ import ContactPage, {
 } from "./pages/contact/ContactPage.tsx";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage.tsx";
 import UnsubscribePage from "./pages/auth/UnsubscribePage.tsx";
+import InvitationPage from "./pages/auth/InvitationPage.tsx";
 import Icon from "./shared/ui/Icon.tsx";
 import {
   AnimalDetails,
@@ -190,7 +191,9 @@ function AppContent({
     setUser(value);
     setError("");
     // Un membre de l’équipe arrive sur son tableau de bord d’administration.
-    window.location.hash = value.adminRole ? "admin/dashboard" : "espace";
+    const destination = params[0] === "invitation" && /^[a-f0-9]{64}$/.test(params[1] || "")
+      ? `invitation/${params[1]}` : value.adminRole ? "admin/dashboard" : "espace";
+    window.location.assign(`#${destination}`);
   };
   const logout = async () => {
     await api.logout();
@@ -235,6 +238,7 @@ function AppContent({
     return (
       <AuthPage
         register={page === "inscription"}
+        invitationToken={params[0] === "invitation" && /^[a-f0-9]{64}$/.test(params[1] || "") ? params[1] : undefined}
         onAuthenticated={authenticated}
       />
     );
@@ -253,6 +257,8 @@ function AppContent({
         </button>
       </div>
     );
+  if (page === "invitation")
+    return <InvitationPage key={route} token={params[0] || ""} user={user} onAccepted={authenticated} onLogout={logout} />;
   if (!user)
     return page === "contact" || page === "informations" ? (
       <PublicContactPage section={page} tab={params[0]} />

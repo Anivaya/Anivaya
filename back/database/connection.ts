@@ -4,6 +4,7 @@ import { mkdirSync, readFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { emptyStateMode } from "./empty-state.ts";
+import { openPostgres } from "./postgres.ts";
 
 const migrations = [
   "002_animal_records.sql",
@@ -47,12 +48,14 @@ export function transaction<T>(
 
 export function openDatabase(
   path = databasePath(),
-  demo = true,
+  demo = process.env.NODE_ENV !== "production",
   empty = emptyStateMode(),
+  workspace?: string,
 ): Database {
+  if (process.env.DATABASE_URL) demo = false;
   if (emptyStateMode(empty)) demo = false;
-  if (path !== ":memory:") mkdirSync(dirname(path), { recursive: true });
-  const database = new DatabaseSync(path);
+  if (!process.env.DATABASE_URL && path !== ":memory:") mkdirSync(dirname(path), { recursive: true });
+  const database = process.env.DATABASE_URL ? openPostgres(workspace) : new DatabaseSync(path);
   const applyOnce = (name: string, file: string) => {
     if (
       database
@@ -86,7 +89,7 @@ export function openDatabase(
     );
     for (const migration of migrations)
       applyOnce(migration, `./migrations/${migration}`);
-    if (!empty) database.exec(sql("./seeds/professionals.sql"));
+    if (!empty && process.env.NODE_ENV !== "production" && !process.env.DATABASE_URL) database.exec(sql("./seeds/professionals.sql"));
     if (demo) {
       applyOnce("directory_demo_bookings", "./seeds/bookings.sql");
       applyOnce("demo_notifications", "./seeds/notifications.sql");

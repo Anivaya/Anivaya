@@ -5,11 +5,16 @@ dist-ssr/
 build/
 coverage/
 .vite/
+.vercel/
 
 # Secrets et configuration locale
 .env
 .env.*
 !.env.example
+!.env.production.example
+!.env.cloud.example
+deploy/legal.json
+backups/
 *.local
 
 # Backend Python éventuel

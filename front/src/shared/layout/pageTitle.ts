@@ -18,6 +18,7 @@ const titles: Record<string, string> = {
   reinitialisation: "Réinitialisation du mot de passe",
   "mot-de-passe": "Nouveau mot de passe",
   desinscription: "Désinscription",
+  invitation: "Invitation à rejoindre l’équipe",
 };
 const publicTitles: Record<string, string> = {
   professionnels: "Professionnels",
@@ -67,6 +68,7 @@ const englishPublicTitles: Record<string, string> = {
   "Réinitialisation du mot de passe": "Password reset",
   "Nouveau mot de passe": "New password",
   Désinscription: "Unsubscribe",
+  "Invitation à rejoindre l’équipe": "Team invitation",
   "Mon espace": "My space",
   "Mes animaux": "My animals",
   "Mes documents": "My documents",

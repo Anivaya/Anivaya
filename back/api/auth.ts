@@ -26,6 +26,7 @@ import type { SocialNotice } from "./social.ts";
 import { ApiError, clientAddress, text, emailAddress } from "./validation.ts";
 import { appUrl, excludeFromMail, sendMail } from "./mail.ts";
 import { emptyStateMode } from "../database/empty-state.ts";
+import { dropPostgresWorkspace } from "../database/postgres.ts";
 
 const scrypt = promisify(derive);
 /** Durée de validité d’un lien de réinitialisation du mot de passe. */
@@ -85,12 +86,14 @@ export function authentication(
   cookieName?: string,
 ) {
   emptyStateMode(empty);
-  const initialAccounts = empty ? emptyAccounts : demoAccounts;
+  const production = process.env.NODE_ENV === "production";
+  const initialAccounts = production ? [] : empty ? emptyAccounts : demoAccounts;
   const adminAccount = empty ? "empty-admin" : DEMO_ADMIN.id;
   const SESSION_COOKIE =
     cookieName || (empty ? "anivaya_empty_session" : "anivaya_session");
   const isDemo = (account: Pick<Account, "id">) =>
-    initialAccounts.some((demo) => demo.id === account.id);
+    [...demoAccounts, ...emptyAccounts].some((demo) => demo.id === account.id);
+  const isDevelopmentAccount = (account: Pick<Account, "id">) => isDemo(account) || /^sample-\d+$/.test(account.id);
   db.exec(`CREATE TABLE IF NOT EXISTS accounts(id TEXT PRIMARY KEY,email TEXT NOT NULL UNIQUE,password TEXT NOT NULL,workspace TEXT NOT NULL UNIQUE);
  CREATE TABLE IF NOT EXISTS sessions(token TEXT PRIMARY KEY,account TEXT NOT NULL REFERENCES accounts(id),expires INTEGER NOT NULL);
  CREATE TABLE IF NOT EXISTS public_sheets(token TEXT PRIMARY KEY,account TEXT NOT NULL REFERENCES accounts(id),animal TEXT NOT NULL,UNIQUE(account,animal));
@@ -137,7 +140,6 @@ export function authentication(
   /** Branchements de l’administration : alertes de sécurité et invitations acceptées. */
   const hooks: {
     security?: (kind: string, detail: string, account?: string) => void;
-    login?: (account: Account) => void;
   } = {};
   const failures = new Map<string, { count: number; until: number }>();
   function failed(email: string, account: Account | undefined) {
@@ -163,6 +165,7 @@ export function authentication(
         workspacePath(account.workspace),
         isDemo(account),
         empty,
+        account.workspace,
       );
       connections.set(account.id, own);
     }
@@ -172,6 +175,7 @@ export function authentication(
   function dropWorkspace(account: Account) {
     connections.get(account.id)?.close();
     connections.delete(account.id);
+    if (process.env.DATABASE_URL) return dropPostgresWorkspace(account.workspace);
     for (const suffix of ["", "-wal", "-shm"])
       rmSync(workspacePath(account.workspace) + suffix, { force: true });
   }
@@ -207,7 +211,18 @@ export function authentication(
       account.id,
     );
   }
+  let dummyPassword = "";
   const ready = (async () => {
+    dummyPassword = await hash(randomBytes(32).toString("hex"));
+    // A copied development database must not preserve privileged demo sessions.
+    if (production) {
+      for (const account of db.prepare("SELECT id FROM accounts").all<{ id: string }>()) {
+        if (!isDevelopmentAccount(account)) continue;
+        db.prepare("DELETE FROM sessions WHERE account=?").run(account.id);
+        db.prepare("DELETE FROM admin_members WHERE account=?").run(account.id);
+        db.prepare("DELETE FROM public_sheets WHERE account=?").run(account.id);
+      }
+    }
     for (const demo of initialAccounts) {
       const existing = db
         .prepare("SELECT * FROM accounts WHERE id=? OR email=?")
@@ -233,7 +248,7 @@ export function authentication(
         new Date().toISOString(),
       );
     }
-    if (db.prepare("SELECT id FROM accounts WHERE id=?").get(adminAccount))
+    if (!production && db.prepare("SELECT id FROM accounts WHERE id=?").get(adminAccount))
       db.prepare(
         "INSERT OR IGNORE INTO admin_members(account,role) VALUES (?,?)",
       ).run(adminAccount, DEMO_ADMIN.role);
@@ -278,6 +293,7 @@ export function authentication(
     );
   }
   function suspended(account: Pick<Account, "id">) {
+    if (production && isDevelopmentAccount(account)) return true;
     return (
       db
         .prepare("SELECT status FROM account_controls WHERE account=?")
@@ -389,6 +405,10 @@ export function authentication(
   }
   /** Efface le compte, son espace, ses liens publics et ses sessions. */
   function purge(account: Account) {
+    if (db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='shared_bookings'").get()) {
+      db.prepare("DELETE FROM shared_bookings WHERE account=?").run(account.id);
+      db.prepare("DELETE FROM booking_migrations WHERE account=?").run(account.id);
+    }
     dropWorkspace(account);
     db.prepare("DELETE FROM public_sheets WHERE account=?").run(account.id);
     db.prepare("DELETE FROM sessions WHERE account=?").run(account.id);
@@ -402,6 +422,10 @@ export function authentication(
     user,
     mfa,
     verifyPassword,
+    refreshSession(req: IncomingMessage, res: ServerResponse, account: Account) {
+      db.prepare("DELETE FROM sessions WHERE account=?").run(account.id);
+      session(req, res, account);
+    },
     /** Ferme les autres sessions du compte, par exemple après un changement de MFA. */
     revokeOtherSessions(req: IncomingMessage, account: Account) {
       db.prepare("DELETE FROM sessions WHERE account=? AND token<>?").run(
@@ -419,10 +443,7 @@ export function authentication(
         .get<Account>(email);
       // Le temps de réponse ne révèle pas si l’adresse existe.
       const stored =
-        account ||
-        db
-          .prepare("SELECT * FROM accounts WHERE id=?")
-          .get<Account>(initialAccounts[0].id)!;
+        account || { password: dummyPassword } as Account;
       if (!(await verifyPassword(stored, password)) || !account) {
         failed(email, account);
         throw new ApiError(401, "Adresse e-mail ou mot de passe incorrect.");
@@ -442,7 +463,6 @@ export function authentication(
         mfa.verify(account.id, data.mfaCode);
       }
       failures.delete(email);
-      hooks.login?.(account);
       session(req, res, account, data.remember === true);
       return user(account);
     },
@@ -534,7 +554,6 @@ export function authentication(
       db.prepare(
         "INSERT INTO accounts(id,email,password,workspace,created_at) VALUES (?,?,?,?,?)",
       ).run(id, email, encoded, id, new Date().toISOString());
-      hooks.login?.(account);
       session(req, res, account);
       return user(account);
     },
@@ -587,7 +606,7 @@ export function authentication(
     isDemo,
     /** Tous les comptes, pour les indicateurs de l’installation. */
     accounts() {
-      return db.prepare("SELECT * FROM accounts").all<Account>();
+      return db.prepare("SELECT * FROM accounts").all<Account>().filter(a => !production || !isDevelopmentAccount(a));
     },
     saveProfile(account: Account, data: Input) {
       const email = emailAddress(data.email);
@@ -661,7 +680,7 @@ export function authentication(
           "SELECT a.*,p.animal FROM public_sheets p JOIN accounts a ON a.id=p.account WHERE p.token=?",
         )
         .get<Account & { animal: string }>(value);
-      return row
+      return row && !suspended(row)
         ? {
             db: workspace(row),
             animal: row.animal,

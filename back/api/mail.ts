@@ -12,6 +12,8 @@ export interface Mail {
   text: string;
   /** Lien principal, affiché comme bouton dans la version HTML. */
   action?: { label: string; url: string };
+  /** Stable key for retryable scheduled messages. */
+  idempotencyKey?: string;
 }
 
 /**
@@ -34,6 +36,10 @@ function smtp() {
         host,
         port: Number(process.env.SMTP_PORT || 587),
         secure: process.env.SMTP_SECURE === "true",
+        requireTLS: process.env.NODE_ENV === "production",
+        connectionTimeout: 10_000,
+        greetingTimeout: 10_000,
+        socketTimeout: 30_000,
         auth: process.env.SMTP_USER
           ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD }
           : undefined,
@@ -83,8 +89,23 @@ export async function sendMail(
   const text = mail.action
     ? `${mail.text}\n\n${mail.action.label} : ${mail.action.url}`
     : mail.text;
-  const transport = smtp();
   try {
+    if (process.env.MAIL_PROVIDER === "resend") {
+      if (!process.env.RESEND_API_KEY) throw new Error("RESEND_API_KEY is missing.");
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+          "Content-Type": "application/json",
+          ...(mail.idempotencyKey ? { "Idempotency-Key": mail.idempotencyKey } : {}),
+        },
+        body: JSON.stringify({ from, to: [to], subject: mail.subject, text, html: html(mail) }),
+        signal: AbortSignal.timeout(20_000),
+      });
+      if (!response.ok) throw new Error(`Resend rejected the email (${response.status}).`);
+      return "sent";
+    }
+    const transport = smtp();
     if (transport) {
       await transport.sendMail({
         from,

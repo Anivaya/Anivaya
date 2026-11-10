@@ -61,6 +61,7 @@ const personalPages = new Set([
  * le catalogue de l’espace personnel, déjà en mémoire après la connexion.
  */
 const publicPages = new Set([
+  "invitation",
   "connexion",
   "inscription",
   "reinitialisation",

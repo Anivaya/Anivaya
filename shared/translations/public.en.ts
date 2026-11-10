@@ -3,6 +3,23 @@
  * et libellés fixés par l’API que l’espace personnel et l’administration affichent tous deux.
  */
 export const publicEnglish: Record<string, string> = {
+  "Invitation à rejoindre l’équipe": "Team invitation",
+  "Créer un compte": "Create an account",
+  "Tarif annoncé": "Listed price",
+  "Réservation annulée. Aucun paiement en ligne ni remboursement effectué.": "Booking cancelled. No online payment or refund was processed.",
+  "Le créneau sera libéré. Aucun remboursement en ligne n’est nécessaire. Cette action ne peut pas être annulée.": "The slot will be released. No online refund is needed. This action cannot be undone.",
+  "Impossible de charger les informations légales. Réessayez plus tard.": "Unable to load the legal information. Please try again later.",
+  "Trop de demandes. Réessayez plus tard.": "Too many requests. Please try again later.",
+  "Invitation invalide ou expirée.": "Invalid or expired invitation.",
+  "Connectez-vous avec l’adresse destinataire, puis confirmez votre accès à l’équipe.": "Sign in with the recipient address, then confirm your team access.",
+  "Connectez-vous avec l’adresse destinataire de l’invitation.": "Sign in with the invitation recipient address.",
+  "Confirmer l’invitation": "Confirm invitation",
+  "Utiliser un autre compte": "Use another account",
+  "Aucun paiement en ligne": "No online payment",
+  "La confirmation est envoyée par e-mail à": "The confirmation is emailed to",
+  "Confirmer la réservation": "Confirm booking",
+  "La réservation est enregistrée dans votre espace. La confirmation est adressée à ": "The booking is saved in your account. The confirmation is addressed to ",
+
   // Connexion et inscription
   "Accéder à mon espace": "Access my space",
   Connexion: "Sign in",

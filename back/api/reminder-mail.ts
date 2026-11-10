@@ -20,7 +20,15 @@ const addDays = (day: string, days: number) => {
  * Rappels arrivés à leur délai de prévenance : une notification dans l’espace et un
  * e-mail, une seule fois par rappel, si la personne a gardé « Rappels » dans ses préférences.
  */
-export async function sendDueReminders(auth: Authentication) {
+const running = new WeakMap<Authentication, Promise<void>>();
+export function sendDueReminders(auth: Authentication): Promise<void> {
+  const existing = running.get(auth);
+  if (existing) return existing;
+  const job = deliverDueReminders(auth).finally(() => running.delete(auth));
+  running.set(auth, job);
+  return job;
+}
+async function deliverDueReminders(auth: Authentication) {
   const today = localToday();
   for (const account of auth.accounts()) {
     const ws = auth.workspace(account);
@@ -53,13 +61,14 @@ export async function sendDueReminders(auth: Authentication) {
         "Voir les rappels",
         new Date().toISOString(),
       );
-      await sendMail({
+      const delivery = await sendMail({
+        idempotencyKey: `reminder/${account.id}/${reminder.id}/${reminder.date}`,
         to: account.email,
         subject: `Rappel : ${reminder.name} pour ${reminder.animal}`,
         text: `Bonjour ${profile.name || ""},\n\n« ${reminder.name} » pour ${reminder.animal} est prévu ${when}.\n\nVous recevez ce message car les rappels sont activés dans vos préférences.`,
         action: { label: "Voir mes rappels", url: `${appUrl()}/#rappels` },
       });
-      ws.prepare("UPDATE reminders SET notified_at=? WHERE id=?").run(
+      if (delivery !== "failed") ws.prepare("UPDATE reminders SET notified_at=? WHERE id=?").run(
         new Date().toISOString(),
         reminder.id,
       );

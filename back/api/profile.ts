@@ -18,7 +18,7 @@ interface ProfileRow {
   phone: string;
   city: string;
   postal_code: string;
-  photo: Uint8Array | null;
+  photo: Uint8Array | number | null;
   photo_type: string | null;
   notifications: string;
   updated_at: string;
@@ -58,8 +58,8 @@ function photoValue(value: unknown) {
 }
 
 export function profileRepository(db: Database) {
-  const row = () =>
-    db.prepare("SELECT * FROM user_profile WHERE id=1").get<ProfileRow>()!;
+  const row = (withPhoto = false) =>
+    db.prepare(withPhoto ? "SELECT * FROM user_profile WHERE id=1" : "SELECT name,email,phone,city,postal_code,length(photo) AS photo,photo_type,notifications,updated_at FROM user_profile WHERE id=1").get<ProfileRow>()!;
   const get = (): Profile => {
     const p = row();
     return {
@@ -77,8 +77,8 @@ export function profileRepository(db: Database) {
   return {
     get,
     photo() {
-      const p = row();
-      if (!p.photo || !p.photo_type)
+      const p = row(true);
+      if (!(p.photo instanceof Uint8Array) || !p.photo_type)
         throw new ApiError(404, "Aucune photo disponible.");
       return { content: p.photo, type: p.photo_type };
     },
@@ -98,22 +98,21 @@ export function profileRepository(db: Database) {
           : postalCode(data.postalCode);
       const photo =
         data.photo === undefined
-          ? { content: old.photo, type: old.photo_type }
+          ? undefined
           : data.photo === null
             ? { content: null, type: null }
             : photoValue(data.photo);
       const [first, ...last] = name.split(/\s+/);
       transaction(db, () => {
         db.prepare(
-          "UPDATE user_profile SET name=?,email=?,phone=?,city=?,postal_code=?,photo=?,photo_type=?,notifications=?,updated_at=? WHERE id=1",
+          `UPDATE user_profile SET name=?,email=?,phone=?,city=?,postal_code=?,${photo ? "photo=?,photo_type=?," : ""}notifications=?,updated_at=? WHERE id=1`,
         ).run(
           name,
           email,
           phone,
           city,
           code,
-          photo.content,
-          photo.type,
+          ...(photo ? [photo.content, photo.type] : []),
           JSON.stringify(notifications),
           new Date().toISOString(),
         );

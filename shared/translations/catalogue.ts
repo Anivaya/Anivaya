@@ -32,7 +32,7 @@ export function translationCatalogue(
   return {
     scope,
     language,
-    version: "2026-11-09.3",
+    version: "2026-11-10.1",
     messages: language === "en" ? english[scope] : french[scope],
   };
 }

@@ -1,6 +1,12 @@
 # Anivaya
 
-Application React et TypeScript reproduite à partir des treize maquettes : accueil public, connexion, inscription, réinitialisation du mot de passe, espace connecté, carnet, partage, profil, annuaire, notifications, communautés, contact et informations, et fiche d’urgence publique. API Node.js et bases SQLite locales.
+Application React et TypeScript reproduite à partir des treize maquettes : accueil public, connexion, inscription, réinitialisation du mot de passe, espace connecté, carnet, partage, profil, annuaire, notifications, communautés, contact et informations, et fiche d’urgence publique. API Node.js, SQLite en local ou PostgreSQL et Storage Supabase pour le cloud.
+
+## Production
+
+Le profil gratuit **Vercel + Render + Supabase** est décrit dans [CLOUD-SETUP.md](CLOUD-SETUP.md), avec Resend pour les e-mails HTTP. Les secrets et les comptes fournisseurs restent à configurer ; aucun déploiement automatique n’est effectué.
+
+Le déploiement pour `anivaya.com`, les variables obligatoires, la première attribution administrateur et la sauvegarde/restauration sont documentés dans [PRODUCTION.md](PRODUCTION.md). Les comptes et données de démonstration sont réservés au développement. Aucun paiement en ligne n’est activé.
 
 ## Démarrer
 
@@ -39,7 +45,7 @@ Comptes de démonstration (aucun n’est présélectionné sur la page de connex
 
 Chacun a son propre espace d’exemple. Aucun e-mail n’est jamais envoyé à ces adresses, qui ne nous appartiennent pas ; leur mot de passe ne peut pas être modifié. Supprimer un compte de démonstration recrée son espace d’exemple au lieu de le faire disparaître.
 
-L’administration ajoute une seule fois, à la première ouverture d’une page admin, 24 foyers d’exemple (`sample-01` à `sample-24`, adresses en `@foyers.example`, défini dans `back/api/admin-samples.ts`). Inscrits sur les onze derniers mois dans cinq villes et quatre origines, avec des animaux, des rappels et une activité datée, ils alimentent Utilisateurs et le Pilotage. Ils n’ont aucun mot de passe utilisable. Le même jeu ajoute des dossiers à tous les états dans chaque rubrique : signalements, recours, demandes, imports, retours, annonces, guides, suppressions, alertes de sécurité, équipe et historique.
+En développement uniquement, l’administration ajoute une seule fois, à la première ouverture d’une page admin, 24 foyers d’exemple (`sample-01` à `sample-24`, adresses en `@foyers.example`, défini dans `back/api/admin-samples.ts`). Inscrits sur les onze derniers mois dans cinq villes et quatre origines, avec des animaux, des rappels et une activité datée, ils alimentent Utilisateurs et le Pilotage. Ils n’ont aucun mot de passe utilisable. Le même jeu ajoute des dossiers à tous les états dans chaque rubrique : signalements, recours, demandes, imports, retours, annonces, guides, suppressions, alertes de sécurité, équipe et historique.
 
 L’inscription crée un vrai compte avec un espace vide. Le mot de passe doit comporter 8 à 256 caractères, dont une majuscule, une minuscule et un caractère spécial ; il est haché avec scrypt et un sel aléatoire. La session est stockée côté serveur ; le navigateur reçoit un cookie HttpOnly et SameSite=Strict, valable au maximum 24 heures sans option de mémorisation.
 
@@ -49,10 +55,10 @@ Chaque compte, y compris les comptes de démonstration, dispose d’une base dan
 
 Copiez `.env.example` en `.env` à la racine (jamais commité) :
 
-- **E-mails** (`SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `MAIL_FROM`, `APP_URL`) : mot de passe oublié (lien valable une heure, à usage unique), invitations de l’équipe, partages de documents, confirmations, déplacements et annulations de réservation avec reçu, accusé de réception et réponses du support, décisions de modération, rappels selon le délai choisi (vérifiés toutes les heures, si « Rappels » est activé dans les préférences). Sans `SMTP_HOST`, chaque e-mail est déposé dans `back/database/data/outbox/` pour être consulté. Aucun e-mail n’est envoyé aux adresses des comptes de démonstration ni aux domaines réservés (`.example`, `.test`).
+- **E-mails** (`SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `MAIL_FROM`, `APP_URL`) : mot de passe oublié (lien valable une heure, à usage unique), invitations de l’équipe, partages de documents, confirmations, déplacements et annulations de réservation, accusé de réception et réponses du support, décisions de modération, rappels selon le délai choisi (vérifiés toutes les heures, si « Rappels » est activé dans les préférences). Sans `SMTP_HOST`, chaque e-mail est déposé dans `back/database/data/outbox/` pour être consulté. Aucun e-mail n’est envoyé aux adresses des comptes de démonstration ni aux domaines réservés (`.example`, `.test`).
 - **Import par IA** (`OPENROUTER_API_KEY`, `OPENROUTER_MODEL`) : le document (photo ou PDF) est lu par un modèle choisi sur OpenRouter (gratuit par défaut pour les tests, `anthropic/claude-haiku-5.5` conseillé en production) ; les champs proposés sont vérifiés par la personne, puis le document, l’identité, l’événement et le rappel choisis sont enregistrés dans le carnet. Sans clé, l’import affiche un message de configuration.
 
-Le paiement des réservations reste simulé (aucun débit) ; la confirmation et le reçu sont envoyés par e-mail.
+Les réservations sont sans paiement en ligne : aucun débit ni remboursement n’est effectué. Les messages confirment la réservation et indiquent le tarif annoncé, sans reçu de paiement.
 
 ## Structure et ordre de lecture
 
@@ -132,7 +138,7 @@ Le code postal facultatif est validé à l’inscription et dans le profil, cons
 
 La connexion se fait par saisie des identifiants, sans sélection de compte de maquette. Les services simulés des maquettes, la MFA fictive et les décisions administratives simulées ne sont pas repris : les parcours existants continuent d’utiliser l’API réelle.
 
-Les informations légales de la maquette restent un **gabarit à compléter** avant publication. Les prix et le calendrier conservent leur mention indicative.
+En développement, les informations légales restent un gabarit. En production, `LEGAL_CONTENT_PATH` doit désigner un fichier JSON complet et relu, servi par l’API et affiché à la place du gabarit ; sinon le serveur refuse de démarrer. Les prix et le calendrier conservent leur mention indicative.
 
 - Accueil responsive, sections interactives et FAQ ; connexion, inscription et déconnexion réelles.
 - Profil : photo JPG/PNG/WebP jusqu’à 5 Mo, coordonnées, préférences de notification, accès au changement de mot de passe, confirmation avant de perdre les modifications.
@@ -142,7 +148,7 @@ Les informations légales de la maquette restent un **gabarit à compléter** av
 - Documents : téléchargement direct, et sur la page Documents sélection multiple pour partager, télécharger (archive ZIP) ou supprimer plusieurs documents.
 - Notifications : cloche avec le nombre de non lues dans la barre du haut, filtres Toutes / Non lues et par catégorie, lu / non lu, tout marquer comme lu. Rappels, partages et réservations sont aussi envoyés par e-mail selon les préférences.
 - Contact et informations : formulaire transmis au support (accusé de réception par e-mail), présentation du service et données, accessible sans compte ou depuis l’espace.
-- Annuaire : six professionnels, filtres et favoris privés. Réservation en trois étapes, créneaux, paiement simulé, déplacement et annulation persistants, confirmations et reçus par e-mail.
+- Annuaire : six professionnels fictifs en développement, aucun en production initialement. Filtres et favoris privés, réservation sans paiement en ligne, créneaux partagés entre comptes, déplacement et annulation persistants, confirmations par e-mail.
 - Ajout, modification et suppression d’un animal ; photo JPEG/PNG jusqu’à 2 Mo.
 - Carnet en sept onglets : vue d’ensemble, identité, suivi, documents, rappels, habitudes et personnes de confiance.
 - Événements et rappels : ajout, modification, suppression, statut, fréquence, délai, recherche et filtres.
@@ -159,7 +165,7 @@ Désactiver une fiche bloque son accès public. La supprimer révoque définitiv
 
 Les QR utilisent l’origine locale du navigateur par défaut. Pour une future installation accessible depuis un téléphone, définir `PUBLIC_SITE_URL` avec l’URL HTTPS du site et ajouter son origine à `ALLOWED_ORIGINS` (origines séparées par une virgule). Une adresse 127.0.0.1 n’est accessible que sur sa propre machine.
 
-`DATABASE_PATH` permet de choisir la base centrale. `NODE_ENV=production` active le cookie Secure et nécessite HTTPS. L’hébergement et les services d’e-mail et de paiement ne sont pas configurés dans cette version locale.
+`DATABASE_PATH` permet de choisir la base centrale. `NODE_ENV=production` active le cookie Secure et nécessite HTTPS. Docker Compose et Caddy assurent le déploiement prévu sur un VPS avec disque persistant. Le compte SMTP, les informations légales et l’accès au serveur doivent être renseignés avant lancement ; voir PRODUCTION.md.
 
 ## Vérifications
 

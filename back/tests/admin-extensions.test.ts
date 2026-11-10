@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { once } from "node:events";
@@ -116,7 +117,7 @@ test("Administration : invitations, suppressions, fiches publiques, imports, sé
   });
 
   await t.test(
-    "une invitation devient un accès à la première connexion",
+    "une invitation exige la confirmation du lien reçu",
     async () => {
       const invitation = await json<AdminRecord>(
         "/admin/team",
@@ -137,7 +138,13 @@ test("Administration : invitations, suppressions, fiches publiques, imports, sé
       const renewed = await act("team", invitation, "renew");
       assert.ok(renewed.expiresAt! >= invitation.expiresAt!);
       const invitee = await register("invitee@example.test");
-      assert.equal(invitee.user.adminRole, "Modérateur");
+      assert.equal(invitee.user.adminRole, undefined);
+      const token = "b".repeat(64);
+      db.prepare("UPDATE admin_invitations SET token_hash=? WHERE email=?").run(createHash("sha256").update(token).digest("hex"), "invitee@example.test");
+      const accepted = await req("/account/invitation", "POST", { token }, invitee.cookie);
+      assert.equal(accepted.status, 200);
+      invitee.cookie = accepted.headers.get("set-cookie")!.split(";")[0];
+      assert.equal((await accepted.json() as AuthUser).adminRole, "Modérateur");
       const team = await list("team", "?pageSize=50");
       assert.ok(!team.items.some((m) => m.id === invitation.id));
       assert.equal(

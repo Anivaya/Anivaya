@@ -340,7 +340,7 @@ test("Fonctions réelles : mot de passe oublié, partage entre comptes et e-mail
   );
 
   await t.test(
-    "une réservation envoie sa confirmation et son reçu",
+    "une réservation envoie sa confirmation sans prétendre encaisser",
     async () => {
       const data = await json<DirectoryData>(
         "/directory",
@@ -372,7 +372,7 @@ test("Fonctions réelles : mot de passe oublié, partage entre comptes et e-mail
       );
       const received = mails("alice@anivaya-courrier.fr");
       assert.ok(received.some((m) => m.includes("Rendez-vous confirmé")));
-      assert.ok(received.some((m) => m.includes("Paiement reçu")));
+      assert.ok(received.some((m) => m.includes("Aucun paiement en ligne effectué")));
       await json(
         `/bookings/${booking.id}`,
         "PATCH",
@@ -381,7 +381,7 @@ test("Fonctions réelles : mot de passe oublié, partage entre comptes et e-mail
       );
       assert.ok(
         mails("alice@anivaya-courrier.fr").some((m) =>
-          m.includes("Remboursement"),
+          m.includes("Aucun paiement en ligne ni remboursement effectué"),
         ),
       );
     },
