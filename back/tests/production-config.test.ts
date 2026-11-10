@@ -11,7 +11,7 @@ test("production fails on missing or unsafe configuration and accepts complete l
     NODE_ENV: "production", APP_URL: "https://anivaya.com", PUBLIC_SITE_URL: "https://anivaya.com",
     ALLOWED_ORIGINS: "https://anivaya.com", DATABASE_PATH: join(root, "central.sqlite"), SMTP_HOST: "smtp.test.invalid",
     MAIL_FROM: "test@test.invalid", MFA_ENCRYPTION_KEY: "ab".repeat(32), LEGAL_CONTENT_PATH: join(root, "legal.json"),
-    OPENROUTER_API_KEY: "", ANIVAYA_EMPTY_STATE: "0",
+    OPENROUTER_API_KEY: "", OPENROUTER_MODEL: "", ANIVAYA_EMPTY_STATE: "0",
   };
   const saved = Object.fromEntries(Object.keys(config).map(key => [key, process.env[key]]));
   try {
@@ -20,6 +20,14 @@ test("production fails on missing or unsafe configuration and accepts complete l
     writeFileSync(config.LEGAL_CONTENT_PATH, JSON.stringify(content));
     assert.deepEqual(legalContent(), content);
     assert.doesNotThrow(validateProductionConfig);
+    process.env.OPENROUTER_API_KEY = "fixture-ai-key";
+    for (const model of ["", "   ", "nvidia/nemotron-3.5-super-vl:free", " nvidia/nemotron-3.5-super-vl:free "]) {
+      process.env.OPENROUTER_MODEL = model;
+      assert.throws(validateProductionConfig, /explicit non-free OPENROUTER_MODEL/);
+    }
+    process.env.OPENROUTER_MODEL = "fixture/paid-model";
+    assert.doesNotThrow(validateProductionConfig);
+    process.env.OPENROUTER_API_KEY = "";
     process.env.MFA_ENCRYPTION_KEY = "";
     assert.throws(validateProductionConfig, /Missing production configuration/);
     process.env.MFA_ENCRYPTION_KEY = config.MFA_ENCRYPTION_KEY;

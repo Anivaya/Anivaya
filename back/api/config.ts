@@ -61,7 +61,8 @@ export function validateProductionConfig() {
   }
   if (!preview && !/[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+/.test(process.env.MAIL_FROM!)) throw new Error("MAIL_FROM must contain a valid sender address.");
   if (process.env.ANIVAYA_EMPTY_STATE === "1") throw new Error("Empty-state mode is forbidden in production.");
-  if (process.env.OPENROUTER_API_KEY && (!process.env.OPENROUTER_MODEL || process.env.OPENROUTER_MODEL.endsWith(":free")))
+  // The explicit testing preview uses fictional data and may use a free AI model.
+  if (!preview && process.env.OPENROUTER_API_KEY && (!process.env.OPENROUTER_MODEL?.trim() || process.env.OPENROUTER_MODEL.trim().endsWith(":free")))
     throw new Error("Select an explicit non-free OPENROUTER_MODEL before enabling production AI imports.");
   legalContent();
 }

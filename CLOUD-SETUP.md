@@ -52,6 +52,20 @@ Compléter `deploy/legal.example.json` avec les informations réelles de l’ent
 
 L’autodéploiement Render est désactivé dans le Blueprint : le premier déploiement se lance après configuration. `/api/health` reste public et vérifie PostgreSQL. Les autres routes applicatives nécessitent le secret de proxy Vercel en plus des autorisations habituelles ; une requête directe au domaine Render est refusée.
 
+### Import IA dans la version de test
+
+Dans Render → `anivaya-api` → Environment, renseigner `OPENROUTER_API_KEY` et
+`OPENROUTER_MODEL=nvidia/nemotron-3.5-super-vl:free`. Le modèle gratuit est autorisé
+uniquement en développement ou dans le profil explicite `ANIVAYA_TESTING_PREVIEW=1`.
+Ce profil conserve `NODE_ENV=production`, les e-mails et les rappels désactivés,
+ainsi que les contrôles TLS et de proxy. Utiliser uniquement des documents fictifs.
+Hors version de test, un modèle explicite sans suffixe `:free` reste obligatoire.
+
+Après publication de cette version du code, déployer le nouveau commit sur Render.
+Pour les changements de variables seuls, « Save and deploy » applique les valeurs
+à la version existante ; il ne remplace pas le déploiement du correctif de code.
+La clé reste côté backend, jamais dans une variable `VITE_*` ni dans Git.
+
 ## 4. Vercel
 
 Importer le même dépôt avec Root Directory `front-back` si nécessaire. `vercel.json` utilise le framework Other et `npm run build:vercel`. Configurer seulement :

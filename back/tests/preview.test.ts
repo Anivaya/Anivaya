@@ -23,6 +23,12 @@ test("preview explicitly disables email while retaining production security requ
     MAIL_PROVIDER: "disabled", REMINDERS_MODE: "disabled", LEGAL_CONTENT_JSON: "", LEGAL_CONTENT_PATH: "", OPENROUTER_API_KEY: "",
   });
   assert.doesNotThrow(validateProductionConfig);
+  process.env.OPENROUTER_API_KEY = "fixture-ai-key";
+  process.env.OPENROUTER_MODEL = "nvidia/nemotron-3.5-super-vl:free";
+  assert.doesNotThrow(validateProductionConfig);
+  delete process.env.OPENROUTER_MODEL;
+  assert.doesNotThrow(validateProductionConfig); // The preview may use the free default.
+  process.env.OPENROUTER_API_KEY = "";
   process.env.ANIVAYA_TESTING_PREVIEW = "0"; assert.throws(validateProductionConfig); process.env.ANIVAYA_TESTING_PREVIEW = "1";
   process.env.MAIL_PROVIDER = "resend"; assert.throws(validateProductionConfig, /disabled/); process.env.MAIL_PROVIDER = "disabled";
   process.env.APP_URL = "https://anivaya.com"; assert.throws(validateProductionConfig, /testing hostname/); process.env.APP_URL = process.env.PUBLIC_SITE_URL;
