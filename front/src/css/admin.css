@@ -364,9 +364,11 @@ a.admin-stat:hover {
 .admin-table-panel :is(th, td):nth-last-child(-n + 3) {
   width: 1%;
 }
-.admin-table-panel td:nth-last-child(-n + 3),
-.admin-table-reports td:nth-child(3) {
+.admin-table-panel td:nth-last-child(-n + 3) {
   white-space: nowrap;
+}
+.admin-table-reports td:nth-child(3) {
+  overflow-wrap: anywhere;
 }
 .admin-table-panel th:last-child {
   text-align: right;
@@ -1040,6 +1042,15 @@ button.admin-stat:active {
 }
 .admin-table-panel td:last-child {
   text-align: right;
+}
+/* Toutes les listes : actions centrées dans leur cellule, avec de l’air aux bords. */
+.admin-table-panel :is(th, td).admin-actions-cell {
+  padding-inline: 20px;
+  text-align: center;
+}
+.admin-table-panel .admin-actions-cell .admin-row-actions {
+  justify-content: center;
+  gap: 10px;
 }
 .admin-list-panel .admin-toolbar {
   margin: 0;

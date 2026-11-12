@@ -149,3 +149,5 @@ Administration, demande du 10 novembre 2026 : les listes vides conservent recher
 Navigation publique et carnet (12 novembre 2026) : le pied de page utilise les destinations directes (#confidentialite, #mentions-legales, #cookies, etc.), avec compatibilité des anciennes ancres #accueil/…. Les pages juridiques gardent leur contenu et défilent librement, sans navigation par blocs. Le carnet s’ouvre en haut ; son retour est à gauche, centré verticalement sur la photo, conformément à la dernière correction utilisateur. Les actions occupent une ligne séparée, puis deux colonnes sur téléphone.
 
 Favoris de l’annuaire : le cœur et son animation réagissent dès le clic. L’enregistrement reste en arrière-plan ; un échec restaure l’état précédent et affiche une erreur. Seule la fiche en cours d’enregistrement est temporairement verrouillée.
+
+Colonnes Actions de l’administration : titre et boutons centrés dans leur cellule, marge intérieure de 20 px de chaque côté et espacement de 10 px entre boutons, sur toutes les listes et à toutes les tailles d’écran. Le composant partagé AdminCollection et admin.css portent cette règle.

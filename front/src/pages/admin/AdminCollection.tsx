@@ -471,7 +471,7 @@ export default function AdminCollection({
                     ) : (
                       sortHeading("Dernière activité", "date")
                     )}
-                    <th>{tr("Actions")}</th>
+                    <th className="admin-actions-cell">{tr("Actions")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -604,7 +604,7 @@ export default function AdminCollection({
                                 )
                               : "—"}
                         </td>
-                        <td>
+                        <td className="admin-actions-cell">
                           <div className="admin-row-actions">
                             <AdminIconButton
                               icon="eye"
