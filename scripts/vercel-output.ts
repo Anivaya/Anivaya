@@ -7,6 +7,13 @@ export function vercelConfig(apiUrl: string, proxySecret: string, preview = fals
   if (api.protocol !== 'https:' || !api.hostname.endsWith('.onrender.com') || api.pathname !== '/' || api.port || api.username || api.password || api.search || api.hash)
     throw new Error('RENDER_API_URL must be your HTTPS onrender.com origin.');
   if (!/^[a-f0-9]{64}$/i.test(proxySecret)) throw new Error('API_PROXY_SECRET must match the 64-character secret on Render.');
+  // Only authenticated document responses may be embedded by our own frontend.
+  const filePath = 'api/(?:(?:documents|received-shares)/[^/]+/file|admin/pros/[^/]+/documents/[^/]+/file)';
+  const securityHeaders = {
+    'X-Content-Type-Options': 'nosniff',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+  };
+  const csp = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; frame-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'";
   return {
     version: 3,
     routes: [
@@ -15,7 +22,8 @@ export function vercelConfig(apiUrl: string, proxySecret: string, preview = fals
       { src: '/api/(.*)', dest: `${api.origin}/api/$1`, headers: { 'Cache-Control': 'private, no-store', 'CDN-Cache-Control': 'no-store', 'Vercel-CDN-Cache-Control': 'no-store' }, transforms: [
         { type: 'request.headers', op: 'set', target: { key: 'x-anivaya-proxy' }, args: proxySecret },
       ] },
-      { src: '/(.*)', headers: { 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin', 'X-Frame-Options': 'DENY', 'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; frame-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'" }, continue: true },
+      { src: `/${filePath}$`, headers: { ...securityHeaders, 'X-Frame-Options': 'SAMEORIGIN', 'Content-Security-Policy': `${csp}; frame-ancestors 'self'` }, continue: true },
+      { src: `/(?!${filePath}$)(.*)`, headers: { ...securityHeaders, 'X-Frame-Options': 'DENY', 'Content-Security-Policy': `${csp}; frame-ancestors 'none'` }, continue: true },
       { src: '/assets/(.*)', headers: { 'Cache-Control': 'public, max-age=31536000, immutable' }, continue: true },
       { handle: 'filesystem' },
       { src: '/(.*)', dest: '/index.html', headers: { 'Cache-Control': 'no-cache' } },

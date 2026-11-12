@@ -31,6 +31,24 @@ test('Vercel routes proxy API before SPA fallback and never publish the secret a
   assert.throws(()=>vercelConfig('https://attacker.test',secret));
 });
 
+test('Vercel permits same-origin PDF previews without allowing the application to be framed', () => {
+  const config=vercelConfig('https://anivaya-api.onrender.com','ab'.repeat(32));
+  const policies=config.routes.filter(route => route.headers && 'X-Frame-Options' in route.headers)
+    .map(route => ({src: route.src!, headers: route.headers as Record<string,string | undefined>}));
+  for (const path of ['/api/documents/demo/file','/api/received-shares/demo/file','/api/admin/pros/demo/documents/proof/file']) {
+    const matches=policies.filter(route => new RegExp(`^${route.src}$`).test(path));
+    assert.equal(matches.length,1);
+    assert.equal(matches[0].headers?.['X-Frame-Options'],'SAMEORIGIN');
+    assert.match(matches[0].headers?.['Content-Security-Policy'] || '', /frame-ancestors 'self'/);
+  }
+  for (const path of ['/','/index.html','/api/dashboard','/api/documents/demo/file/extra','/api/admin/users']) {
+    const matches=policies.filter(route => new RegExp(`^${route.src}$`).test(path));
+    assert.equal(matches.length,1);
+    assert.equal(matches[0].headers?.['X-Frame-Options'],'DENY');
+    assert.match(matches[0].headers?.['Content-Security-Policy'] || '', /frame-ancestors 'none'/);
+  }
+});
+
 test('SQL conversion preserves literals, bound values, aliases and insertion order', () => {
   const sql=postgresSql("SELECT 'INTEGER ? LIKE rowid; it''s' AS message,first_name AS firstName FROM animals WHERE name LIKE ? AND id=? ORDER BY rowid");
   assert.match(sql,/'INTEGER \? LIKE rowid; it''s'/);
