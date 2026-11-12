@@ -68,7 +68,44 @@ test("Preview demos: four logins, isolated admins, clean registrations and resta
         const cookie = response.headers.get("set-cookie")!.split(";")[0];
         cookies.set(id, cookie);
         assert.equal((await read<AuthUser>("/auth/session", cookie)).id, id);
-        assert.equal((await read<Dashboard>("/dashboard", cookie)).animals.length, isEmpty ? 0 : 2);
+        const dashboard = await read<Dashboard>("/dashboard", cookie);
+        assert.equal(dashboard.animals.length, isEmpty ? 0 : 4);
+        if (!isEmpty) {
+          assert.equal(dashboard.documents.filter(doc => doc.id.startsWith("preview-doc-")).length, 4);
+          for (const document of dashboard.documents.filter(doc => doc.id.startsWith("preview-doc-"))) {
+            assert.ok(document.hasFile);
+            const file = await request(`/documents/${document.id}/file?preview=1`, "GET", undefined, cookie);
+            assert.equal(file.status, 200);
+            assert.equal(file.headers.get("content-type"), "application/pdf");
+            assert.match(file.headers.get("content-disposition")!, /^inline;/);
+            const pdf = Buffer.from(await file.arrayBuffer()).toString("latin1");
+            assert.ok(pdf.startsWith("%PDF-") && pdf.includes("%%EOF"));
+          }
+          assert.ok(dashboard.reminders.some(r => !r.done && r.date < dashboard.today));
+          assert.ok(dashboard.reminders.some(r => !r.done && r.date === dashboard.today));
+          assert.ok(dashboard.reminders.some(r => r.done));
+          assert.ok(dashboard.reminders.some(r => r.repeat !== "Aucune"));
+          assert.equal(dashboard.people.filter(p => p.id.startsWith("preview-person-")).length, 3);
+          assert.deepEqual(dashboard.shares.filter(s => s.id.startsWith("preview-share-")).map(s => s.status).sort(), ["active", "expired", "revoked"]);
+          const sheet = dashboard.emergencySheets.find(s => s.animal === "preview-oslo")!;
+          assert.ok(sheet.snapshot.qrSvg && sheet.snapshot.payload?.startsWith("http"));
+          assert.equal(dashboard.emergencySheets.find(s => s.animal === "preview-luna")!.settings.active, false);
+          const token = new URL(sheet.snapshot.payload!).hash.split("/")[1].split("?")[0];
+          const publicSheet = await read<{ name: string; contact: string }>(`/public/emergency/${token}`, "");
+          assert.equal(publicSheet.name, "Oslo");
+          assert.match(publicSheet.contact, /example\.test/);
+          assert.equal((await request("/documents/preview-doc-consultation/file")).status, 401);
+          if (restart && id === "demo")
+            assert.equal(dashboard.documents.find(d => d.id === "preview-doc-consultation")!.name, "Nom conservé après redémarrage");
+          if (!restart && id === "demo")
+            assert.equal((await request("/documents/preview-doc-consultation", "PATCH", {
+              name: "Nom conservé après redémarrage", animal: "preview-oslo", category: "Santé",
+            }, cookie)).status, 200);
+        } else {
+          assert.equal(dashboard.documents.length, 0);
+          assert.equal(dashboard.people.length, 0);
+          assert.equal(dashboard.emergencySheets.length, 0);
+        }
         await read("/directory", cookie);
         await read("/social", cookie);
         if (isAdmin) {

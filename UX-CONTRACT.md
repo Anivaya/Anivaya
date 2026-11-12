@@ -19,6 +19,7 @@ Références : maquettes locales confirmées par l’utilisateur, `back/docs/API
 
 ## Parcours
 
+- Carnet animal : le retour se trouve à gauche de la photo et est centré verticalement sur celle-ci, sur ordinateur comme sur téléphone. L’ouverture du carnet positionne la page en haut.
 - Demandes du 12 novembre 2026 : les actions des onglets Suivi, Documents, Rappels, Habitudes et Personnes de confiance du carnet restent visibles à vide, dans l’en-tête du panneau. Les illustrations et textes vides conservent leur emplacement dans le contenu. La fiche d’urgence possède un texte propre à sa génération et à celle du QR.
 - Import IA : la date du document reste facultative, même avec un événement de suivi. Sans date, l’événement prend la date du jour, annoncée avant validation ; ses informations restent requises, ainsi que la date d’un rappel demandé. La confirmation est centrée. L’aperçu d’un document utilise trois actions icônes accessibles : télécharger (bleu) et partager (blanc) à gauche, fermer à droite.
 - Confidentialité et informations légales : défilement natif continu, sans interception de la molette pour passer d’un bloc au suivant. Les autres pages publiques gardent leur comportement.

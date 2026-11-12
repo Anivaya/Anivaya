@@ -27,6 +27,7 @@ import { ApiError, clientAddress, text, emailAddress } from "./validation.ts";
 import { appUrl, excludeFromMail, sendMail } from "./mail.ts";
 import { emptyStateMode } from "../database/empty-state.ts";
 import { dropPostgresWorkspace } from "../database/postgres.ts";
+import { seedPreviewData } from "./preview-data.ts";
 
 const scrypt = promisify(derive);
 /** Durée de validité d’un lien de réinitialisation du mot de passe. */
@@ -254,6 +255,12 @@ export function authentication(
       db.prepare(
         "INSERT OR IGNORE INTO admin_members(account,role) VALUES (?,?)",
       ).run(adminAccount, DEMO_ADMIN.role);
+    if (db.previewDemo === "sample") {
+      for (const demo of initialAccounts) {
+        const account = db.prepare("SELECT * FROM accounts WHERE id=? AND email=?").get<Account>(demo.id, demo.email);
+        if (account) await seedPreviewData(workspace(account));
+      }
+    }
   })();
   function token(req: IncomingMessage) {
     return (

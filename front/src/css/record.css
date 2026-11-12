@@ -159,25 +159,25 @@
 }
 .record-page .pet-header {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) 44px;
+  grid-template-columns: 44px auto minmax(0, 1fr);
   gap: 23px;
   align-items: center;
   margin-bottom: 26px;
 }
 .record-page .pet-header > .portrait {
-  grid-column: 1;
+  grid-column: 2;
   grid-row: 1;
 }
 .record-page .pet-header > .back {
-  grid-column: 3;
+  grid-column: 1;
   grid-row: 1;
-  justify-self: end;
+  justify-self: start;
   margin: 0;
   width: 44px;
   height: 44px;
 }
 .record-page .pet-header > .pet-summary {
-  grid-column: 2;
+  grid-column: 3;
   grid-row: 1;
 }
 .record-page .pet-header > .actions {
@@ -1345,7 +1345,7 @@ dialog:has(.record-form-grid) {
 }
 /*
  * Mobile : en-tête de la fiche (photo, nom, informations, statut) centré sur toute la
- * largeur ; le retour est à droite, au centre vertical de la photo.
+ * largeur ; le retour est à gauche, au centre vertical de la photo.
  */
 @media (max-width: 620px) {
   .record-page .pet-header {
