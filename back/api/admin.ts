@@ -1250,16 +1250,19 @@ export function adminService(db: Database, auth: Authentication, empty = emptySt
         row.sanctionable = false;
       } else {
         const target = accountRows().find((a) => a.id === row!.target);
+        const socialPerson = !target && row.id.startsWith("social-report-")
+          ? db.prepare("SELECT name FROM social_people WHERE id=?").get<{ name: string }>(row.target || "")
+          : undefined;
         row.targetName = target
           ? `${target.name} · ${target.email}`
-          : "Compte supprimé";
+          : socialPerson?.name || "Compte supprimé";
         row.targetStatus = target
           ? `${target.status} · fiches publiques : ${target.visibility}`
           : "Indisponible";
         row.choices = [
           "Classé sans suite",
           "Signalement confirmé",
-          target?.visibility === "Masqué" ? "Profil rétabli" : "Profil masqué",
+          ...(target ? [target.visibility === "Masqué" ? "Profil rétabli" : "Profil masqué"] : []),
         ];
         row.sanctionable = !!target && target.status !== "Supprimé";
       }
@@ -2207,6 +2210,41 @@ export function adminService(db: Database, auth: Authentication, empty = emptySt
     });
     return { id: row.id, reference: row.reference, status: row.status };
   }
+  /** Rattrapage idempotent des signalements sociaux et transmission à la modération. */
+  function syncSocialReports(id?: string) {
+    const reports = db.prepare(`
+      SELECT r.id, r.from_id AS reporter, r.type, r.target, r.reason, r.at,
+        a.email, m.sender, m.text AS content, m.thread, p.name AS personName
+      FROM social_reports r
+      LEFT JOIN accounts a ON a.id=r.from_id
+      LEFT JOIN social_messages m ON r.type='message' AND m.id=r.target
+      LEFT JOIN social_people p ON p.id=CASE WHEN r.type='person' THEN r.target ELSE m.sender END
+      WHERE NOT EXISTS (SELECT 1 FROM admin_records ar WHERE ar.id='social-report-' || r.id)
+      ${id ? "AND r.id=?" : ""}
+    `).all<{
+      id: string; reporter: string; type: string; target: string; reason: string; at: string;
+      email: string | null; sender: string | null; content: string | null; thread: string | null; personName: string | null;
+    }>(...(id ? [id] : []));
+    for (const report of reports) {
+      const message = report.type === "message";
+      const data: Partial<AdminRecord> = {
+        name: `${message ? "Message signalé" : "Membre signalé"} · ${report.personName || report.target}`,
+        kind: message ? "Message" : "Profil public",
+        targetType: "users",
+        target: message ? report.sender || "" : report.target,
+        account: report.reporter,
+        email: report.email || "",
+        message: `Motif : ${report.reason}\n${message
+          ? `Message : ${report.target}\nDiscussion : ${report.thread || "Indisponible"}\n\n${report.content ?? "Message supprimé avant la transmission à la modération."}`
+          : `Membre : ${report.personName || report.target}`}`,
+        priority: "Normale",
+        reference: "DEC-" + report.id.slice(0, 12).toUpperCase(),
+        history: [],
+      };
+      db.prepare("INSERT INTO admin_records(id,resource,name,status,data,created_at,updated_at) VALUES (?,'reports',?,'À traiter',?,?,?) ON CONFLICT(id) DO NOTHING")
+        .run(`social-report-${report.id}`, data.name!, JSON.stringify(data), report.at, report.at);
+    }
+  }
   function submitReport(account: Account, data: Input) {
     const targetType = pick(data.targetType, ["pros", "users"], "targetType"),
       target = text(data.target, "target", 100);
@@ -2452,6 +2490,7 @@ export function adminService(db: Database, auth: Authentication, empty = emptySt
     publications,
     contact,
     submitReport,
+    syncSocialReports,
     reportPublicSheet,
     requestDeletion,
     registerImport,

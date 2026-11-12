@@ -27,6 +27,7 @@ export interface SocialNotice {
 interface Hooks {
   notify: (person: string, notice: SocialNotice) => void;
   markRead: (person: string, notification: string) => void;
+  report: (id: string) => void;
 }
 
 const schema = `
@@ -1206,14 +1207,18 @@ export function socialService(db: Database, hooks: Hooks, empty = emptyStateMode
         "Élément introuvable.",
         404,
       );
-      db.prepare("INSERT INTO social_reports VALUES (?,?,?,?,?,?)").run(
-        randomUUID(),
-        me,
-        data.type,
-        target,
-        reason,
-        iso(),
-      );
+      if (data.type === "message") {
+        const message = db.prepare("SELECT * FROM social_messages WHERE id=?").get<MessageRow>(target)!;
+        need(canRead(thread(message.thread), me), "Élément introuvable.", 404);
+      }
+      const type = data.type;
+      transaction(db, () => {
+        const id = randomUUID();
+        db.prepare("INSERT INTO social_reports VALUES (?,?,?,?,?,?)").run(
+          id, me, type, target, reason, iso(),
+        );
+        hooks.report(id);
+      });
     },
 
     /** Données du compte pour l’export : adhésions, participations, relations et messages envoyés. */

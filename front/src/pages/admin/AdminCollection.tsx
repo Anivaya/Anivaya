@@ -503,7 +503,7 @@ export default function AdminCollection({
                               : resource === "tickets"
                                 ? adminAssignee(row.assignee, tr)
                                 : resource === "reports"
-                                  ? row.targetType === "pros"
+                                  ? row.kind ? tr(row.kind) : row.targetType === "pros"
                                     ? tr("Fiche professionnelle")
                                     : tr("Profil public")
                                   : resource === "library"

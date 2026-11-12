@@ -872,10 +872,12 @@ export function createApi(
         {
           notify: auth.notify,
           markRead: auth.markNotificationRead,
+          report: (id) => admin?.syncSocialReports(id),
         },
         empty,
       );
     const admin = auth && adminService(database, auth, empty);
+    admin?.syncSocialReports();
     if (auth) prepareBookingStore(database);
     const ready = auth?.ready.then(() => migrateBookings(database, auth));
     // Attach immediately to avoid an unhandled rejection before the first request.

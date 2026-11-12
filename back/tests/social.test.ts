@@ -10,6 +10,7 @@ import { createApi } from "../api/app.ts";
 import { demoCredentials } from "../api/auth.ts";
 import type { Dashboard } from "../../shared/models.ts";
 import type { SocialData } from "../../shared/social.ts";
+import type { AdminRecord } from "../../shared/admin.ts";
 
 test("Communautés : échanges entre comptes, accès, blocages et notifications", async (t) => {
   const directory = mkdtempSync(join(tmpdir(), "anivaya-social-"));
@@ -285,6 +286,15 @@ test("Communautés : échanges entre comptes, accès, blocages et notifications"
   await call(`/social/threads/${privateGroup}/read`, third, "POST", {}, 404);
   await call("/social/reports", second, "POST", { type: "message", target: mine.id, reason: "Autre" });
   assert.equal(db.prepare("SELECT COUNT(*) AS n FROM social_reports WHERE target=?").get<{ n: number }>(mine.id)!.n, 1);
+  const admin = await login("admin@anivaya.fr");
+  const reportId = "social-report-" + db.prepare("SELECT id FROM social_reports WHERE target=?").get<{ id: string }>(mine.id)!.id;
+  const report = await call<AdminRecord>(`/admin/reports/${reportId}`, admin);
+  assert.equal(report.account, "demo-2");
+  assert.equal(report.target, "demo");
+  assert.equal(report.kind, "Message");
+  assert.match(report.message!, /Rendez-vous à 10 h\./);
+  await call(`/admin/reports/${reportId}`, second, "GET", undefined, 403);
+  await call("/social/reports", third, "POST", { type: "message", target: mine.id, reason: "Autre" }, 404);
 
   // Export et suppression du compte : le membre disparaît des communautés.
   const exported = await call<{ data: { social: { messages: unknown[] } } }>(
@@ -293,6 +303,7 @@ test("Communautés : échanges entre comptes, accès, blocages et notifications"
   );
   assert.ok(exported.data.social.messages.length >= 2);
   await call(`/social/threads/${direct.id}/messages/${mine.id}`, first, "DELETE");
+  assert.match((await call<AdminRecord>(`/admin/reports/${reportId}`, admin)).message!, /Rendez-vous à 10 h\./);
   assert.ok(!(await social(second)).threads.find(thread => thread.id === direct.id)!.messages.some(message => message.id === mine.id));
   await call("/account", third, "DELETE", { confirmation: "SUPPRIMER" });
   view = await social(first);

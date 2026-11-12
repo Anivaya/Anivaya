@@ -10,7 +10,7 @@ import { DEMO_PASSWORD } from "../api/auth.ts";
 import type { AuthUser, DirectoryData } from "../../shared/account.ts";
 import { directoryRepository } from "../api/directory.ts";
 import type { Dashboard } from "../../shared/models.ts";
-import type { AdminList } from "../../shared/admin.ts";
+import type { AdminList, AdminRecord } from "../../shared/admin.ts";
 import { adminResources } from "../../shared/admin.ts";
 
 test("Preview demos: four logins, isolated admins, clean registrations and restart", async t => {
@@ -117,6 +117,22 @@ test("Preview demos: four logins, isolated admins, clean registrations and resta
         } else assert.equal((await request("/admin/overview", "GET", undefined, cookie)).status, 403);
       }
       if (!restart) {
+        const reporterLogin = await request("/auth/login", "POST", { email: "test@gmail.com", password: DEMO_PASSWORD });
+        assert.equal(reporterLogin.status, 200);
+        cookies.set("demo", reporterLogin.headers.get("set-cookie")!.split(";")[0]);
+        const reportResponse = await request("/social/reports", "POST", {
+          type: "person", target: "demo-2", reason: "Autre",
+        }, cookies.get("demo"));
+        assert.equal(reportResponse.status, 204, await reportResponse.text());
+        const report = demo.prepare("SELECT id FROM social_reports WHERE from_id='demo'").get<{ id: string }>()!;
+        const detail = await read<AdminRecord>(`/admin/reports/social-report-${report.id}`, cookies.get("demo-admin")!);
+        assert.equal(detail.account, "demo");
+        assert.equal(detail.target, "demo-2");
+        // Un dossier traité ne doit pas être rouvert au redémarrage.
+        demo.prepare("UPDATE admin_records SET status='Classé sans suite' WHERE id=?").run(`social-report-${report.id}`);
+        // Ancien signalement sans dossier admin, créé avant ce correctif.
+        demo.prepare("INSERT INTO social_reports VALUES (?,?,?,?,?,?)")
+          .run("legacy-camille", "demo-2", "person", "demo", "Autre", "2026-11-10T10:00:00.000Z");
         const registration = await request("/auth/register", "POST", {
           email: "preview-owner@example.net", name: "Preview Owner", password: DEMO_PASSWORD, confirmPassword: DEMO_PASSWORD,
         }, cookies.get("demo-admin"));
@@ -124,6 +140,16 @@ test("Preview demos: four logins, isolated admins, clean registrations and resta
         registeredId = (await registration.json() as AuthUser).id;
         cookies.set("registered", registration.headers.get("set-cookie")!.split(";")[0]);
       }
+      if (restart) {
+        const recovered = await read<AdminRecord>("/admin/reports/social-report-legacy-camille", cookies.get("demo-admin")!);
+        assert.equal(recovered.account, "demo-2");
+        assert.equal(recovered.status, "À traiter");
+        const linked = demo.prepare("SELECT status FROM admin_records WHERE id LIKE 'social-report-%'").all<{ status: string }>();
+        assert.deepEqual(linked.map(r => r.status).sort(), ["Classé sans suite", "À traiter"].sort());
+        assert.equal((await request("/admin/reports/social-report-legacy-camille", "GET", undefined, cookies.get("empty-admin"))).status, 404);
+      }
+      assert.equal(empty.prepare("SELECT COUNT(*) AS n FROM admin_records WHERE id LIKE 'social-report-%'").get()!.n, 0);
+      assert.equal(db.prepare("SELECT COUNT(*) AS n FROM admin_records WHERE id LIKE 'social-report-%'").get()!.n, 0);
       assert.equal((await read<AuthUser>("/auth/session", cookies.get("registered")!)).id, registeredId);
       assert.equal((await read<Dashboard>("/dashboard", cookies.get("registered")!)).animals.length, 0);
       const directory = await read<DirectoryData>("/directory", cookies.get("registered")!);

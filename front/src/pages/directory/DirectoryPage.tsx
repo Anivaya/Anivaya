@@ -1,7 +1,7 @@
 import { uiLocale } from "../../shared/i18n/locale.ts";
 import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import EmptyState from "../../shared/ui/EmptyState.tsx";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Animal } from "../../../../shared/models.ts";
 import type {
   Profile,
@@ -54,6 +54,8 @@ export default function DirectoryPage({
     // Favori qui vient de changer : même effet que les cases à cocher (bool-on / bool-off).
     [pulse, setPulse] = useState<{ id: string; on: boolean } | null>(null);
   const [report, setReport] = useState<Professional | null>(null);
+  const favoriteRequests = useRef(new Set<string>());
+  const [pendingFavorites, setPendingFavorites] = useState(new Set<string>());
   const [filters, setFilters] = useState(noFilters),
     [bookingFilters, setBookingFilters] = useState({
       period: "upcoming",
@@ -82,17 +84,28 @@ export default function DirectoryPage({
     setData(await api.directory());
   }
   async function favorite(p: Professional) {
-    if (!data) return;
-    setBusy(p.id);
+    if (!data || favoriteRequests.current.has(p.id)) return;
+    favoriteRequests.current.add(p.id);
+    setPendingFavorites(new Set(favoriteRequests.current));
     const on = !data.favorites.includes(p.id);
+    const updateFavorite = (selected: boolean) => setData(current => current && ({
+      ...current,
+      favorites: selected
+        ? [...current.favorites.filter(id => id !== p.id), p.id]
+        : current.favorites.filter(id => id !== p.id),
+    }));
+    setError("");
+    updateFavorite(on);
+    setPulse({ id: p.id, on });
     try {
       await api.favorite(p.id, on);
-      await reload();
-      setPulse({ id: p.id, on });
     } catch (e) {
+      updateFavorite(!on);
+      setPulse(current => current?.id === p.id ? null : current);
       setError(errorMessage(e));
     } finally {
-      setBusy(null);
+      favoriteRequests.current.delete(p.id);
+      setPendingFavorites(new Set(favoriteRequests.current));
     }
   }
   async function cancelBooking() {
@@ -297,7 +310,7 @@ export default function DirectoryPage({
                           : " bool-off"
                         : "")
                     }
-                    onAnimationEnd={() => setPulse(null)}
+                    onAnimationEnd={() => setPulse(current => current?.id === p.id ? null : current)}
                     aria-label={tr(
                       data.favorites.includes(p.id)
                         ? "Retirer des favoris : {0}"
@@ -305,7 +318,7 @@ export default function DirectoryPage({
                       [p.name],
                     )}
                     aria-pressed={data.favorites.includes(p.id)}
-                    disabled={busy === p.id}
+                    disabled={pendingFavorites.has(p.id)}
                     onClick={() => void favorite(p)}
                   >
                     <Icon name="heart" />
