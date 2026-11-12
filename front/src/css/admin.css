@@ -358,11 +358,14 @@ a.admin-stat:hover {
   min-width: 200px;
 }
 /*
- * Largeur des colonnes adaptée au contenu : État, date et Actions (les trois dernières
- * colonnes de chaque tableau) restent compactes ; l’espace restant va aux colonnes de texte.
+ * Date et Actions restent compactes. État partage l’espace disponible avec les autres
+ * colonnes pour garder les libellés sur une ligne tant que le tableau le permet.
  */
-.admin-table-panel :is(th, td):nth-last-child(-n + 3) {
+.admin-table-panel :is(th, td):nth-last-child(-n + 2) {
   width: 1%;
+}
+.admin-table-panel :is(th, td):nth-last-child(3) {
+  width: 16%;
 }
 .admin-table-panel td:nth-last-child(-n + 3) {
   white-space: nowrap;
@@ -450,7 +453,7 @@ a.admin-stat:hover {
   background: #e9f5ee;
 }
 .admin-table-panel .admin-badge {
-  max-inline-size: 120px;
+  max-inline-size: 100%;
   white-space: normal;
   justify-content: center;
   text-align: center;

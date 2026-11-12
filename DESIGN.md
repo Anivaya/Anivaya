@@ -152,4 +152,4 @@ Favoris de l’annuaire : le cœur et son animation réagissent dès le clic. L�
 
 Colonnes Actions de l’administration : titre et boutons centrés dans leur cellule, marge intérieure de 20 px de chaque côté et espacement de 10 px entre boutons, sur toutes les listes et à toutes les tailles d’écran. Le composant partagé AdminCollection et admin.css portent cette règle.
 
-Badges des tableaux d’administration : largeur maximale de 120 px, texte centré et retour à la ligne autorisé pour les libellés longs (par exemple « Signalement confirmé »), sans masquer le texte.
+Badges des tableaux d’administration : texte centré, largeur limitée à la cellule disponible sans plafond fixe en pixels. La colonne État partage l’espace du tableau avec les autres colonnes : garder les libellés sur une ligne quand ils tiennent, et autoriser le retour à la ligne uniquement lorsque la place manque, sans recouvrir ni masquer les contenus voisins.
