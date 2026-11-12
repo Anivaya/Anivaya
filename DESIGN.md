@@ -151,3 +151,5 @@ Navigation publique et carnet (12 novembre 2026) : le pied de page utilise les d
 Favoris de l’annuaire : le cœur et son animation réagissent dès le clic. L’enregistrement reste en arrière-plan ; un échec restaure l’état précédent et affiche une erreur. Seule la fiche en cours d’enregistrement est temporairement verrouillée.
 
 Colonnes Actions de l’administration : titre et boutons centrés dans leur cellule, marge intérieure de 20 px de chaque côté et espacement de 10 px entre boutons, sur toutes les listes et à toutes les tailles d’écran. Le composant partagé AdminCollection et admin.css portent cette règle.
+
+Badges des tableaux d’administration : largeur maximale de 120 px, texte centré et retour à la ligne autorisé pour les libellés longs (par exemple « Signalement confirmé »), sans masquer le texte.

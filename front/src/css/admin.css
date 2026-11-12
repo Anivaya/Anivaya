@@ -449,6 +449,12 @@ a.admin-stat:hover {
   color: var(--admin-success);
   background: #e9f5ee;
 }
+.admin-table-panel .admin-badge {
+  max-inline-size: 120px;
+  white-space: normal;
+  justify-content: center;
+  text-align: center;
+}
 .admin-badge.danger {
   color: var(--admin-danger);
   background: #fceef0;
