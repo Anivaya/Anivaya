@@ -1,5 +1,6 @@
 import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import EmptyState from "../../shared/ui/EmptyState.tsx";
+import Icon from "../../shared/ui/Icon.tsx";
 import type { Document, DialogProps } from "../../shared/types.ts";
 import { errorMessage } from "../../shared/types.ts";
 import SubmissionForm, {
@@ -42,13 +43,6 @@ export function DocumentDetails({
               alt={tr("Aperçu de {0}", [item.name])}
             />
           )}
-          <a
-            className="button outline download-link"
-            href={item.url || undefined}
-            download={item.name}
-          >
-            {tr("Télécharger le document")}
-          </a>
         </>
       ) : (
         <EmptyState
@@ -61,15 +55,35 @@ export function DocumentDetails({
           )}
         />
       )}
-      <div className="dialog-actions">
+      <div className="dialog-actions document-preview-actions">
+        <div className="document-preview-primary">
+          {item.hasFile && (
+            <a
+              className="button"
+              href={item.url || undefined}
+              download={item.name}
+              aria-label={tr("Télécharger le document")}
+              title={tr("Télécharger le document")}
+            >
+              <Icon name="download" />
+            </a>
+          )}
+          <button
+            className="button outline"
+            onClick={() => onOpenDialog("share-document", item)}
+            aria-label={tr("Partager ce document")}
+            title={tr("Partager ce document")}
+          >
+            <Icon name="share" />
+          </button>
+        </div>
         <button
-          className="button"
-          onClick={() => onOpenDialog("share-document", item)}
+          className="button outline close-action"
+          onClick={onClose}
+          aria-label={tr("Fermer")}
+          title={tr("Fermer")}
         >
-          {tr("Partager ce document")}
-        </button>
-        <button className="button outline close-action" onClick={onClose}>
-          {tr("Fermer")}
+          <Icon name="close" />
         </button>
       </div>
     </>

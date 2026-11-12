@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import type { AuthUser } from "../../../../shared/account.ts";
 import LandingContent from "./LandingContent.tsx";
 import { mountLanding } from "./landing-motion.ts";
@@ -23,7 +23,7 @@ export default function HomePage({
   useEffect(() => {
     translator.current = t;
   }, [t]);
-  useEffect(
+  useLayoutEffect(
     () =>
       host.current
         ? mountLanding(host.current, (text) => translator.current(text))

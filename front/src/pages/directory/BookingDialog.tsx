@@ -112,6 +112,11 @@ export default function BookingDialog({
             : tr("Prendre rendez-vous")}
       </h2>
       <p className="muted">{p.name}</p>
+      {p.fictional && (
+        <p className="muted">
+          {tr("Professionnel fictif : aucun rendez-vous réel ne sera organisé.")}
+        </p>
+      )}
       <ol className="stepper">
         {[
           "Rendez-vous",

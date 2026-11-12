@@ -245,10 +245,10 @@ export default function AiImport({
       return ["Indiquez le nom de l’animal.", "name"];
     if (options.identity && v.dob && v.dob > today())
       return ["La date de naissance ne peut pas être dans le futur.", "dob"];
-    if (options.event && (!v.date || !v.note.trim()))
+    if (options.event && !v.note.trim())
       return [
-        "Renseignez la date du document et les informations de suivi.",
-        !v.date ? "date" : "note",
+        "Renseignez les informations de suivi.",
+        "note",
       ];
     if (options.reminder && (!v.reminderName.trim() || !v.reminderDate))
       return [
@@ -300,7 +300,7 @@ export default function AiImport({
         await api.saveEvent(undefined, {
           animal: pet,
           type: v.eventType,
-          date: v.date,
+          date: v.date || today(),
           note: v.note.trim(),
         });
       if (options.reminder)
@@ -602,7 +602,11 @@ export default function AiImport({
                   />
                 </div>
                 <p className="ai-muted">
-                  {tr("L’événement utilisera la date du document.")}
+                  {tr(
+                    values.date
+                      ? "L’événement utilisera la date du document."
+                      : "Sans date de document, l’événement sera enregistré à la date d’aujourd’hui.",
+                  )}
                 </p>
               </OptionBlock>
               <OptionBlock

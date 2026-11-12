@@ -158,10 +158,32 @@
   margin-bottom: 25px;
 }
 .record-page .pet-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 44px;
   gap: 23px;
   align-items: center;
   margin-bottom: 26px;
+}
+.record-page .pet-header > .portrait {
+  grid-column: 1;
+  grid-row: 1;
+}
+.record-page .pet-header > .back {
+  grid-column: 3;
+  grid-row: 1;
+  justify-self: end;
+  margin: 0;
+  width: 44px;
+  height: 44px;
+}
+.record-page .pet-header > .pet-summary {
+  grid-column: 2;
+  grid-row: 1;
+}
+.record-page .pet-header > .actions {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  justify-self: end;
 }
 .record-page .portrait {
   width: 112px;
@@ -713,12 +735,8 @@
   .record-page .content {
     padding: 25px;
   }
-  .record-page .pet-header {
-    flex-wrap: wrap;
-  }
   .record-page .pet-header > .actions {
     width: 100%;
-    margin-left: 135px;
   }
   .record-page .grid {
     grid-template-columns: minmax(0, 1.3fr) minmax(250px, 1fr);
@@ -1327,24 +1345,24 @@ dialog:has(.record-form-grid) {
 }
 /*
  * Mobile : en-tête de la fiche (photo, nom, informations, statut) centré sur toute la
- * largeur ; le bouton retour reste dans le coin supérieur gauche.
+ * largeur ; le retour est à droite, au centre vertical de la photo.
  */
 @media (max-width: 620px) {
-  .record-page:has(> .back) > .pet-header {
-    grid-column: 1 / -1;
-    grid-row: 1;
-  }
-  .record-page:has(> .back) > .back {
-    grid-row: 1;
-    position: relative;
-    z-index: 1;
-  }
   .record-page .pet-header {
-    flex-direction: column;
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
     text-align: center;
   }
-  .record-page .pet-summary {
+  .record-page .pet-header > .portrait {
+    grid-column: 2;
+    justify-self: center;
+  }
+  .record-page .pet-header > .pet-summary {
+    grid-column: 1 / -1;
+    grid-row: 2;
     width: 100%;
+  }
+  .record-page .pet-header > .actions {
+    grid-row: 3;
   }
 }
 /* Fermeture « X » : même fond blanc que dans le reste du site. */

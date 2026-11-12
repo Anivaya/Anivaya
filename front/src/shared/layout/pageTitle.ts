@@ -1,3 +1,4 @@
+import { publicSection } from "../../../../shared/public-routes.ts";
 const titles: Record<string, string> = {
   accueil: "Accueil",
   connexion: "Connexion",
@@ -21,6 +22,10 @@ const titles: Record<string, string> = {
   invitation: "Invitation à rejoindre l’équipe",
 };
 const publicTitles: Record<string, string> = {
+  fonctionnalites: "Fonctionnalités",
+  tarifs: "Tarifs",
+  faq: "Questions fréquentes",
+  inscription: "Liste d’attente",
   professionnels: "Professionnels",
   "pro-tarifs": "Professionnels",
   "pro-inscription": "Professionnels",
@@ -53,6 +58,10 @@ const adminTitles: Record<string, string> = {
   reservations: "Professionnels",
 };
 const englishPublicTitles: Record<string, string> = {
+  Fonctionnalités: "Features",
+  Tarifs: "Pricing",
+  "Questions fréquentes": "Frequently asked questions",
+  "Liste d’attente": "Waiting list",
   "Tableau de bord": "Dashboard",
   Utilisateurs: "Users",
   Modération: "Moderation",
@@ -93,11 +102,12 @@ export function pageTitle(hash: string, homeView?: string, language = "fr") {
   const [page = "accueil", section = ""] = (
     hash.replace(/^#/, "").split("?")[0] || "accueil"
   ).split("/");
+  const destination = publicSection(hash);
   const label =
     page === "admin"
       ? adminTitles[section || "dashboard"] || "Page introuvable"
-      : page === "accueil"
-        ? publicTitles[section] || publicTitles[homeView || ""] || "Accueil"
+      : destination !== null
+        ? publicTitles[destination] || publicTitles[homeView || ""] || "Accueil"
         : page === "contact" &&
             ["ressources", "service", "donnees"].includes(section)
           ? titles.informations

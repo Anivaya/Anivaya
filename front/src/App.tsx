@@ -3,6 +3,7 @@ import type { ComponentType, Dispatch, SetStateAction } from "react";
 import { HomeLocale } from "./shared/i18n/HomeLocale.tsx";
 import { useTranslations } from "./shared/i18n/useTranslations.ts";
 import { translationScope } from "../../shared/translations.ts";
+import { publicSection } from "../../shared/public-routes.ts";
 import { AdminViewContext } from "./shared/layout/AdminViewContext.ts";
 import PublicFooter from "./shared/layout/PublicFooter.tsx";
 import {
@@ -121,7 +122,7 @@ export default function App() {
         >
           <AppContent user={user} setUser={setUser} />
         </Suspense>
-        {hash !== "" && !hash.startsWith("#accueil") && <PublicFooter />}
+        {publicSection(hash) === null && <PublicFooter />}
       </AdminViewContext.Provider>
     </HomeLocale.Provider>
   );
@@ -184,7 +185,7 @@ function AppContent({
     requestedPage === "contact" && informationTabs.has(params[0])
       ? "informations"
       : requestedPage;
-  const homeSection = page === "accueil" ? params[0] : undefined;
+  const homeSection = publicSection(`#${route}`);
   const authenticated = (value: AuthUser) => {
     sessionVersion.current++;
     setLoading(false);
@@ -214,7 +215,7 @@ function AppContent({
     );
   if (page === "desinscription")
     return <UnsubscribePage key={route} token={params[0]?.split("?")[0]} />;
-  if (page === "accueil")
+  if (homeSection !== null)
     return (
       <HomePage
         user={user}
@@ -314,7 +315,7 @@ function Workspace({
   useEffect(() => {
     const focusContent = () => {
       if (!isTabNavigation())
-        document.getElementById("dashboard-content")?.focus();
+        document.getElementById("dashboard-content")?.focus({ preventScroll: true });
     };
     window.addEventListener("hashchange", focusContent);
     return () => window.removeEventListener("hashchange", focusContent);

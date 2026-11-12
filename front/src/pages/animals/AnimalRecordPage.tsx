@@ -1,7 +1,7 @@
 import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import EmptyState from "../../shared/ui/EmptyState.tsx";
 import type { EmptyKind } from "../../shared/ui/EmptyIllustration.tsx";
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import type { ReactNode } from "react";
 import type {
   DialogKind,
@@ -51,6 +51,10 @@ export default function AnimalRecordPage({
   const [enlarged, setEnlarged] = useState(false);
   const mobile = useMediaQuery("(max-width: 620px)");
   const pet = data.animals.find((a) => a.id === id);
+  // Opening another record starts at its heading; changing tabs preserves the position.
+  useLayoutEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [id]);
   if (!pet)
     return (
       <div className="empty">
@@ -216,7 +220,7 @@ export default function AnimalRecordPage({
       <section className="panel">
         <div className="panel-head">
           <h2>{tr(title)}</h2>
-          {!empty && cta}
+          {cta}
         </div>
         {empty ? <EmptyState kind={empty} compact /> : content}
       </section>
@@ -261,18 +265,19 @@ export default function AnimalRecordPage({
           </a>
         </QrDialog>
       )}
-      <a
+      {emergency && <a
         className="back"
-        href={emergency ? link("apercu") : "#animaux"}
-        aria-label={
-          emergency ? tr("Retour au carnet") : tr("Retour à mes animaux")
-        }
+        href={link("apercu")}
+        aria-label={tr("Retour au carnet")}
       >
         <Icon name="back" />
-      </a>
+      </a>}
       {!emergency && (
         <div className="pet-header">
           <Portrait pet={pet} />
+          <a className="back" href="#animaux" aria-label={tr("Retour à mes animaux")}>
+            <Icon name="back" />
+          </a>
           <div className="pet-summary">
             <h1>{pet.name}</h1>
             <p>
@@ -477,7 +482,16 @@ export default function AnimalRecordPage({
                 ) : (
                   <section className="panel emergency-teaser">
                     <h2>{tr("Fiche d’urgence et QR")}</h2>
-                    <EmptyState kind="documents" compact />
+                    <EmptyState
+                      kind="documents"
+                      compact
+                      title={tr(
+                        "La fiche d’urgence et le QR code ne sont pas encore générés",
+                      )}
+                      description={tr(
+                        "Créez sa fiche pour rendre ses informations essentielles accessibles en cas d’urgence.",
+                      )}
+                    />
                   </section>
                 )}
               </div>
@@ -519,7 +533,7 @@ export default function AnimalRecordPage({
               <>
                 <p className="muted">
                   {tr(
-                    "PDF, JPEG ou PNG · 10 Mo maximum · Enregistrés dans votre base locale.",
+                    "PDF, JPEG ou PNG · 10 Mo maximum · Conservés dans votre espace privé.",
                   )}
                 </p>
                 {rows("document", documents)}

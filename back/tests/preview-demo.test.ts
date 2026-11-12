@@ -7,7 +7,8 @@ import { join, resolve, sep } from "node:path";
 import { openDatabase } from "../database/connection.ts";
 import { createApi } from "../api/app.ts";
 import { DEMO_PASSWORD } from "../api/auth.ts";
-import type { AuthUser } from "../../shared/account.ts";
+import type { AuthUser, DirectoryData } from "../../shared/account.ts";
+import { directoryRepository } from "../api/directory.ts";
 import type { Dashboard } from "../../shared/models.ts";
 import type { AdminList } from "../../shared/admin.ts";
 import { adminResources } from "../../shared/admin.ts";
@@ -88,6 +89,26 @@ test("Preview demos: four logins, isolated admins, clean registrations and resta
       }
       assert.equal((await read<AuthUser>("/auth/session", cookies.get("registered")!)).id, registeredId);
       assert.equal((await read<Dashboard>("/dashboard", cookies.get("registered")!)).animals.length, 0);
+      const directory = await read<DirectoryData>("/directory", cookies.get("registered")!);
+      assert.equal(directory.professionals.length, 3);
+      assert.ok(directory.professionals.every(p => p.fictional && p.services.length > 0));
+      const nextDay = new Date(directory.today + "T12:00:00Z");
+      nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+      const slots = await read<{ time: string; available: boolean }[]>(
+        `/professionals/preview-veterinaire/slots?date=${nextDay.toISOString().slice(0, 10)}`,
+        cookies.get("registered")!,
+      );
+      assert.ok(slots.some(slot => slot.available));
+      assert.equal((await request("/professionals/preview-veterinaire/favorite", "PUT",
+        { favorite: true }, cookies.get("registered"))).status, 204);
+      assert.ok((await read<DirectoryData>("/directory", cookies.get("registered")!))
+        .favorites.includes("preview-veterinaire"));
+      assert.equal(db.prepare("SELECT count(*) AS n FROM professionals").get()!.n, 3);
+      assert.deepEqual((await read<DirectoryData>("/directory", cookies.get("empty-test")!)).professionals, []);
+      delete process.env.ANIVAYA_TESTING_PREVIEW;
+      assert.deepEqual(directoryRepository(db).all().professionals, []);
+      assert.throws(() => directoryRepository(db).slots("preview-veterinaire", "2026-11-20"), /introuvable/);
+      process.env.ANIVAYA_TESTING_PREVIEW = "1";
       assert.equal((await request("/animals/luna", "GET", undefined, cookies.get("registered"))).status, 404);
       for (const id of ["demo-admin", "empty-admin"]) {
         const users = await read<AdminList>("/admin/users?q=preview-owner", cookies.get(id)!);

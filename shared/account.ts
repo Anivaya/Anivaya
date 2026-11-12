@@ -13,6 +13,7 @@ export type ProfileInput = Omit<Profile, "photo"> & {
 };
 export interface Professional {
   id: string;
+  fictional?: boolean;
   verification?: string;
   name: string;
   category: string;

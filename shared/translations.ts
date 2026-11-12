@@ -1,3 +1,4 @@
+import { publicSection } from "./public-routes.ts";
 export type Language = "fr" | "en";
 export type TranslationScope = "home" | "particular" | "admin";
 export type Translator = (
@@ -75,7 +76,7 @@ export function translationScope(
   personalSession = true,
 ): TranslationScope | null {
   const page = hash.replace(/^#/, "").split(/[/?]/)[0] || "accueil";
-  return page === "accueil"
+  return publicSection(hash) !== null
     ? "home"
     : page === "admin"
       ? "admin"

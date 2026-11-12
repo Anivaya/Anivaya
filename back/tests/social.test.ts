@@ -185,6 +185,10 @@ test("Communautés : échanges entre comptes, accès, blocages et notifications"
     201,
   );
   await call(`/social/communities/${group}/join`, second, "POST", {});
+  const groupEdit = { name: "Club renommé", city: "Paris", topic: "Entraide", description: "Description actualisée." };
+  await call(`/social/communities/${group}`, second, "PATCH", groupEdit, 403);
+  await call(`/social/communities/${group}`, first, "PATCH", groupEdit);
+  assert.equal((await social(second)).communities.find(g => g.id === group)!.name, groupEdit.name);
   await call(`/social/communities/${group}`, second, "DELETE", undefined, 403);
   await call(`/social/communities/${group}/leave`, first, "POST", {});
   assert.equal(
@@ -227,6 +231,11 @@ test("Communautés : échanges entre comptes, accès, blocages et notifications"
     409,
   );
   await call(`/social/events/${outing}/cancel`, second, "POST", {}, 403);
+  await call(`/social/events/${outing}`, second, "PATCH", { ...eventInput, capacity: 2 }, 403);
+  await call(`/social/events/${outing}`, first, "PATCH", { ...eventInput, capacity: 2 });
+  await call(`/social/events/${outing}/participation`, second, "POST", { join: true });
+  assert.ok((await social(first)).events.find(e => e.id === outing)!.participants.includes("demo-2"));
+  await call(`/social/events/${outing}/participation`, second, "POST", { join: false });
   await call(`/social/events/${outing}/cancel`, first, "POST", {});
   assert.ok(
     (await social(first)).events.find((e) => e.id === outing)!.cancelled,
@@ -264,12 +273,27 @@ test("Communautés : échanges entre comptes, accès, blocages et notifications"
     403,
   );
 
+  // Groupe privé : invitation réservée au créateur, départ et retrait immédiat de l’accès.
+  const { id: privateGroup } = await call<{ id: string }>("/social/threads", first, "POST", {
+    name: "Groupe de vérification", people: ["demo-2"],
+  }, 201);
+  await call(`/social/threads/${privateGroup}/members`, second, "POST", { people: ["demo-3"] }, 403);
+  await call(`/social/threads/${privateGroup}/members`, first, "POST", { people: ["demo-3"] });
+  assert.ok((await social(third)).threads.some(thread => thread.id === privateGroup));
+  await call(`/social/threads/${privateGroup}/leave`, third, "POST", {});
+  assert.ok(!(await social(third)).threads.some(thread => thread.id === privateGroup));
+  await call(`/social/threads/${privateGroup}/read`, third, "POST", {}, 404);
+  await call("/social/reports", second, "POST", { type: "message", target: mine.id, reason: "Autre" });
+  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM social_reports WHERE target=?").get<{ n: number }>(mine.id)!.n, 1);
+
   // Export et suppression du compte : le membre disparaît des communautés.
   const exported = await call<{ data: { social: { messages: unknown[] } } }>(
     "/export?categories=social",
     first,
   );
   assert.ok(exported.data.social.messages.length >= 2);
+  await call(`/social/threads/${direct.id}/messages/${mine.id}`, first, "DELETE");
+  assert.ok(!(await social(second)).threads.find(thread => thread.id === direct.id)!.messages.some(message => message.id === mine.id));
   await call("/account", third, "DELETE", { confirmation: "SUPPRIMER" });
   view = await social(first);
   assert.ok(!view.people.some((p) => p.id === "demo-3"));

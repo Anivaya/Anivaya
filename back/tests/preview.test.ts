@@ -55,7 +55,7 @@ test("preview rejects email-dependent HTTP actions before persisting requests", 
   for (const path of ["/api/public/contact", "/api/public/leads", "/api/auth/password-reset", "/api/account/password-reset", "/api/admin/team", "/api/internal/reminders"]) {
     const response = await fetch(base + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
     assert.equal(response.status, 503, path);
-    assert.match(await response.text(), /Version de test/);
+    assert.match(await response.text(), /actuellement indisponibles/);
   }
   const health = await fetch(base + "/api/health"); assert.equal(health.status, 200);
   assert.match(health.headers.get("x-robots-tag")!, /noindex/);

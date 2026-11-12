@@ -23,6 +23,7 @@ import {
   documentFile,
 } from "./validation.ts";
 import { directoryRepository } from "./directory.ts";
+import { previewProfessionals } from "./preview-professionals.ts";
 import { profileRepository } from "./profile.ts";
 import type { Household } from "./admin-analytics.ts";
 import { sampleOrigin, seedSamples } from "./admin-samples.ts";
@@ -285,12 +286,33 @@ export function adminService(db: Database, auth: Authentication, empty = emptySt
   }
   let seeded = false;
   function seed() {
+    if (
+      !empty &&
+      !db.previewDemo &&
+      process.env.ANIVAYA_TESTING_PREVIEW === "1" &&
+      !db.prepare("SELECT key FROM admin_metadata WHERE key='preview-directory-v1'").get()
+    ) {
+      transaction(db, () => {
+        for (const pro of previewProfessionals) {
+          db.prepare("INSERT INTO professionals(id,data) VALUES (?,?) ON CONFLICT(id) DO NOTHING")
+            .run(pro.id, JSON.stringify(pro));
+          insert("pros", {
+            name: pro.name,
+            status: "À vérifier",
+            city: pro.city,
+            category: pro.category,
+            body: pro.about,
+          }, pro.id);
+        }
+        db.prepare("INSERT INTO admin_metadata VALUES ('preview-directory-v1',?)").run(now());
+      });
+    }
     if (seeded || empty || (process.env.NODE_ENV === "production" && db.previewDemo !== "sample")) return;
     transaction(db, () => {
       if (
         !db.prepare("SELECT key FROM admin_metadata WHERE key='seed-v1'").get()
       ) {
-        for (const pro of directoryRepository(db).all().professionals)
+        for (const pro of directoryRepository(db).all().professionals.filter(p => !p.fictional))
           insert(
             "pros",
             {

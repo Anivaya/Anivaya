@@ -340,7 +340,7 @@ export function RecordAction({ kind, item, ...props }: DialogProps) {
           : tr("{0} un événement", [tr(item.id ? "Modifier" : "Ajouter")])
       }
       description={tr(
-        "Informations déclaratives conservées dans votre carnet local.",
+        "Informations déclaratives conservées dans votre carnet.",
       )}
       successMessage={tr("Modifications enregistrées.")}
       submitLabel={tr("Enregistrer")}

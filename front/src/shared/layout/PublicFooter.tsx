@@ -36,16 +36,16 @@ export default function PublicFooter() {
               <h2>{t("Particuliers")}</h2>
               <ul>
                 <li>
-                  <a href="#accueil/fonctionnalites">{t("Fonctionnalités")}</a>
+                  <a href="#fonctionnalites">{t("Fonctionnalités")}</a>
                 </li>
                 <li>
-                  <a href="#accueil/tarifs">{t("Tarifs")}</a>
+                  <a href="#tarifs">{t("Tarifs")}</a>
                 </li>
                 <li>
-                  <a href="#accueil/faq">{t("Questions fréquentes")}</a>
+                  <a href="#faq">{t("Questions fréquentes")}</a>
                 </li>
                 <li>
-                  <a href="#accueil/inscription">{t("Liste d'attente")}</a>
+                  <a href="#liste-attente">{t("Liste d'attente")}</a>
                 </li>
               </ul>
             </div>
@@ -53,13 +53,13 @@ export default function PublicFooter() {
               <h2>{t("Professionnels")}</h2>
               <ul>
                 <li>
-                  <a href="#accueil/professionnels">{t("Prestataires")}</a>
+                  <a href="#professionnels">{t("Prestataires")}</a>
                 </li>
                 <li>
-                  <a href="#accueil/cliniques">{t("Cliniques vétérinaires")}</a>
+                  <a href="#cliniques">{t("Cliniques vétérinaires")}</a>
                 </li>
                 <li>
-                  <a href="#accueil/entreprises">
+                  <a href="#entreprises">
                     {t("Entreprises et partenaires")}
                   </a>
                 </li>
@@ -74,15 +74,15 @@ export default function PublicFooter() {
                   </li>
                 )}
                 <li>
-                  <a href="#accueil/mentions-legales">
+                  <a href="#mentions-legales">
                     {t("Mentions légales")}
                   </a>
                 </li>
                 <li>
-                  <a href="#accueil/confidentialite">{t("Confidentialité")}</a>
+                  <a href="#confidentialite">{t("Confidentialité")}</a>
                 </li>
                 <li>
-                  <a href="#accueil/cookies">{t("Cookies")}</a>
+                  <a href="#cookies">{t("Cookies")}</a>
                 </li>
               </ul>
             </div>

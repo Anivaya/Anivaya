@@ -44,7 +44,8 @@ export function directoryRepository(db: Database, shared?: { db: Database; accou
     store
       .prepare("SELECT data FROM professionals ORDER BY rowid")
       .all<{ data: string }>()
-      .map((p) => JSON.parse(p.data));
+      .map((p): Professional => JSON.parse(p.data))
+      .filter((p) => !p.fictional || process.env.ANIVAYA_TESTING_PREVIEW === "1");
   function professional(id: string) {
     const found = professionals().find((p) => p.id === id);
     if (!found) throw new ApiError(404, "Professionnel introuvable.");

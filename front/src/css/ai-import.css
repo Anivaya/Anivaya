@@ -285,7 +285,18 @@ dialog.ai-import {
   font-size: 13px;
 }
 .ai-success {
-  padding: 20px 0;
+  padding: 32px 0;
+  margin: auto;
+  max-width: 680px;
+  text-align: center;
+}
+.ai-success ul {
+  display: table;
+  margin: 20px auto;
+  text-align: left;
+}
+.ai-success .admin-proof {
+  text-align: left;
 }
 .ai-success > svg {
   color: #23804c;

@@ -634,6 +634,27 @@
   display: inline-flex;
   margin-top: 10px;
 }
+.dialog-actions.document-preview-actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.document-preview-actions .button {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  padding: 10px;
+  flex: 0 0 44px;
+}
+.document-preview-primary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.document-preview-actions svg {
+  width: 22px;
+  height: 22px;
+}
 .app-content:focus {
   outline: none;
 }

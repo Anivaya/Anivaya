@@ -1,5 +1,14 @@
 /** Interface copy only; names and user content remain unchanged. */
 export const particularEnglish: Record<string, string> = {
+  "Les e-mails, formulaires de contact et modifications administratives sont actuellement indisponibles.": "Emails, contact forms and administrative changes are currently unavailable.",
+  "Professionnel fictif": "Fictional professional",
+  "Professionnel fictif : aucun rendez-vous réel ne sera organisé.": "Fictional professional: no real appointment will be arranged.",
+  "Renseignez les informations de suivi.": "Enter the follow-up information.",
+  "Sans date de document, l’événement sera enregistré à la date d’aujourd’hui.": "Without a document date, the event will be recorded with today’s date.",
+  "La fiche d’urgence et le QR code ne sont pas encore générés": "The emergency sheet and QR code have not been generated yet",
+  "Créez sa fiche pour rendre ses informations essentielles accessibles en cas d’urgence.": "Create the sheet to make essential information accessible in an emergency.",
+  "PDF, JPEG ou PNG · 10 Mo maximum · Conservés dans votre espace privé.": "PDF, JPEG or PNG · Up to 10 MB · Stored in your private space.",
+  "Informations déclaratives conservées dans votre carnet.": "Self-reported information stored in your record.",
   Ouvert: "Open",
   "En cours": "In progress",
   Résolu: "Resolved",

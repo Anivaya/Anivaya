@@ -318,6 +318,9 @@ export default function DirectoryPage({
                   </p>
                   <p className="description">{p.intro}</p>
                   <div className="tags">
+                    {p.fictional && (
+                      <span className="tag">{tr("Professionnel fictif")}</span>
+                    )}
                     {p.species.map((s) => (
                       <span key={s} className="tag">
                         {tr(s)}
@@ -516,9 +519,11 @@ export default function DirectoryPage({
           {/* Ligne du statut : le drapeau « Signaler » à droite. */}
           <div className="status-line">
             <span className="admin-badge">
-              {view.verification === "Validé"
-                ? tr("Dossier vérifié")
-                : tr("Vérification en cours")}
+              {view.fictional
+                ? tr("Professionnel fictif")
+                : view.verification === "Validé"
+                  ? tr("Dossier vérifié")
+                  : tr("Vérification en cours")}
             </span>
             <button
               type="button"

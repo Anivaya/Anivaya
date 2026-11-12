@@ -1,3 +1,4 @@
+import { publicSection, publicView } from "../../../../shared/public-routes.ts";
 /** Navigation et animations de la vitrine ; les formulaires sont gérés par React. */
 export function mountLanding(host: HTMLElement, t: (text: string) => string) {
   const events = new AbortController();
@@ -119,7 +120,7 @@ export function mountLanding(host: HTMLElement, t: (text: string) => string) {
     menu.classList.toggle("is-open", open);
     menu.inert = !open && innerWidth <= 1100;
     document.body.style.overflow = open ? "hidden" : previousOverflow;
-    dots.hidden = open;
+    dots.hidden = open || Boolean(host.querySelector("#informations-legales.is-active"));
   };
   const dots = document.createElement("nav");
   dots.className = "block-nav";
@@ -264,6 +265,7 @@ export function mountLanding(host: HTMLElement, t: (text: string) => string) {
     "wheel",
     (event) => {
       if (
+        host.querySelector("#informations-legales.is-active") ||
         event.ctrlKey ||
         Math.abs(event.deltaX) > Math.abs(event.deltaY) ||
         !event.deltaY ||
@@ -335,25 +337,18 @@ export function mountLanding(host: HTMLElement, t: (text: string) => string) {
     },
     { passive: false, signal },
   );
+  let firstRoute = true;
   const route = () => {
     blockTarget = null;
-    if (location.hash && !/^#accueil(?:\/|$)/.test(location.hash)) return;
-    const aliases: Record<string, string> = {
-      quotidien: "fonctionnalites",
-      fonctionnement: "comment",
-      engagement: "sante",
-      prochainement: "bientot",
-      questions: "faq",
-      bienvenue: "inscription",
-      moments: "partage",
-    };
-    const requested = location.hash.replace(/^#accueil\/?/, "") || "accueil";
-    const id = aliases[requested] || requested;
+    const id = publicSection(location.hash);
+    if (id === null) return;
     const target = [...host.querySelectorAll<HTMLElement>("[id]")].find(
       (el) => el.id === id,
     );
-    const view = target?.closest<HTMLElement>(".view") || views[0];
+    const view = target?.closest<HTMLElement>(".view") || views.find(v => v.id === publicView(id)) || views[0];
     const changed = !view.classList.contains("is-active");
+    const instant = firstRoute || changed || !location.hash.startsWith("#accueil/");
+    firstRoute = false;
     views.forEach((el) => el.classList.toggle("is-active", el === view));
     buildDots(view);
     window.dispatchEvent(new Event("anivaya-page-title"));
@@ -373,7 +368,7 @@ export function mountLanding(host: HTMLElement, t: (text: string) => string) {
         (header?.getBoundingClientRect().height || 72) -
         1;
       // The testing notice precedes the landing header; do not scroll past it on entry.
-      moveBlock(import.meta.env.VITE_TESTING_PREVIEW === "1" && id === "accueil" ? 0 : top, changed);
+      moveBlock(import.meta.env.VITE_TESTING_PREVIEW === "1" && id === "accueil" ? 0 : top, instant);
       if (id === "contenu") target?.focus({ preventScroll: true });
       if (changed) {
         const h = view.querySelector<HTMLElement>("h1");
@@ -388,6 +383,13 @@ export function mountLanding(host: HTMLElement, t: (text: string) => string) {
     { passive: true, signal },
   );
   window.addEventListener("hashchange", route, { signal });
+  window.addEventListener("anivaya-legal-ready", () => {
+    const section = publicSection(location.hash);
+    if (section && publicView(section) === "informations-legales") {
+      firstRoute = true;
+      route();
+    }
+  }, { signal });
   host.addEventListener(
     "click",
     (e) => {
@@ -401,7 +403,7 @@ export function mountLanding(host: HTMLElement, t: (text: string) => string) {
       if (link?.getAttribute("href") === "#connexion") setMenu(false);
       const href = link?.getAttribute("href");
       if (
-        href?.match(/^#accueil(?:\/|$)/) &&
+        href?.startsWith("#") && publicSection(href) !== null &&
         !e.ctrlKey &&
         !e.metaKey &&
         !e.shiftKey &&

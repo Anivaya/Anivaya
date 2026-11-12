@@ -948,7 +948,7 @@ export function createApi(
       const url = new URL(request.url || "/", "http://localhost");
       if (testingPreview()) response.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
       if (previewBlocksEmailRoute(url.pathname, request.method))
-        throw new ApiError(503, "Version de test : les e-mails, formulaires de contact et modifications administratives sont désactivés.");
+        throw new ApiError(503, "Les e-mails, formulaires de contact et modifications administratives sont actuellement indisponibles.");
       if (url.pathname === "/api/health") db.prepare("SELECT 1 AS ok").get();
       if (url.pathname === "/api/internal/reminders") {
         if (request.method !== "POST" || !secretMatches(request.headers.authorization, process.env.CRON_SECRET ? `Bearer ${process.env.CRON_SECRET}` : undefined))
