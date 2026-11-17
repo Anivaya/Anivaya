@@ -267,6 +267,13 @@ export const particularEnglish: Record<string, string> = {
     "Change your filters or suggest a meet-up for your companions.",
   "Chaque compte dispose de sa propre base de données. Les mots de passe sont hachés et la session est conservée dans un cookie sécurisé, valable 24 heures au maximum. Les documents et photos importés restent dans votre espace.":
     "Each account has its own database. Passwords are hashed and the session is stored in a secure cookie, valid for up to 24 hours. Imported documents and photos stay in your space.",
+  "Le destinataire retrouve les documents dans « Partage avec moi », en lecture seule, jusqu’à la date choisie.": "The recipient can find the documents in ‘Shared with me’, with read-only access until the selected date.",
+  "Chargement du document…": "Loading document…",
+  "Profil incomplet : complétez les informations avec": "Profile incomplete: complete the information with",
+  "« Modifier le profil »": "“Edit profile”",
+  "Page précédente": "Previous page",
+  "Page suivante": "Next page",
+  "Aperçu indisponible. Vous pouvez télécharger le document.": "Preview unavailable. You can download the document.",
   "Chaque destinataire reçoit une invitation par e-mail et retrouve les documents dans « Partage avec moi », en lecture seule, jusqu’à la date choisie.":
     "Each recipient receives an email invitation and can find the documents in “Shared with me”, with read-only access until your chosen date.",
   "Chaque type activé arrive dans votre espace.": "Enabled notifications appear in your account.",

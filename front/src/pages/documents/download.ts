@@ -1,24 +1,6 @@
 import type { Document } from "../../shared/types.ts";
-
-const extensions: Record<string, string> = {
-  "application/pdf": ".pdf",
-  "image/jpeg": ".jpg",
-  "image/png": ".png",
-};
-
-/** Nom de fichier sûr, numéroté pour garder l’ordre dans l’archive. */
-export function downloadName(document: Document, index?: number) {
-  const extension = extensions[document.type ?? ""] ?? "";
-  let name =
-    document.name
-      .replace(/[<>:"/\\|?*\p{Cc}]/gu, "-")
-      .replace(/[. ]+$/, "")
-      .slice(0, 140) || "document";
-  if (extension && !/\.(pdf|jpe?g|png)$/i.test(name)) name += extension;
-  return index === undefined
-    ? name
-    : `${String(index + 1).padStart(2, "0")}-${name}`;
-}
+import { downloadName } from "../../../../shared/document-file.ts";
+export { downloadName } from "../../../../shared/document-file.ts";
 
 function save(blob: Blob, name: string) {
   const url = URL.createObjectURL(blob);

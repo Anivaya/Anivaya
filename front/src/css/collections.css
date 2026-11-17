@@ -99,6 +99,37 @@
 .pdf-preview {
   height: 330px;
 }
+.pdf-reader {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.pdf-reader-pages {
+  max-height: min(60vh, 520px);
+  min-height: 120px;
+  overflow: auto;
+  background: #eef1f6;
+}
+.pdf-reader-pages canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.pdf-reader-pages canvas[hidden] {
+  display: none;
+}
+.pdf-reader-pages p {
+  padding: 16px;
+}
+.pdf-reader-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px;
+}
 .doc-actions svg {
   color: inherit;
 }

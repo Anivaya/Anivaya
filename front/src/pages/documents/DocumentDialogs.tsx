@@ -11,7 +11,8 @@ import SubmissionForm, {
 import { useDialogAction } from "../../shared/hooks.ts";
 import { api, fieldError, readFile } from "../../shared/services/api.ts";
 import { animalName } from "../../shared/utils/format.ts";
-import { downloadDocuments } from "./download.ts";
+import { downloadDocuments, downloadName } from "./download.ts";
+import PdfPreview from "./PdfPreview.tsx";
 
 export function DocumentDetails({
   item,
@@ -31,10 +32,9 @@ export function DocumentDetails({
       {item.hasFile ? (
         <>
           {item.type === "application/pdf" ? (
-            <iframe
-              className="doc-preview pdf-preview"
+            <PdfPreview
               title={tr("Aperçu de {0}", [item.name])}
-              src={`${item.url}?preview=1`}
+              url={`${item.url}?preview=1`}
             />
           ) : (
             <img
@@ -61,7 +61,7 @@ export function DocumentDetails({
             <a
               className="button"
               href={item.url || undefined}
-              download={item.name}
+              download={downloadName(item)}
               aria-label={tr("Télécharger le document")}
               title={tr("Télécharger le document")}
             >

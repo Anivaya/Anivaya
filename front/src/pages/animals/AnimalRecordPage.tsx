@@ -279,30 +279,32 @@ export default function AnimalRecordPage({
             <Icon name="back" />
           </a>
           <div className="pet-summary">
-            <h1>{pet.name}</h1>
-            <p>
+            <h1 title={pet.name}>{pet.name}</h1>
+            <p title={`${pet.breed || tr("Race non renseignée")} · ${tr(pet.sex) || tr("Sexe non renseigné")} · ${age(pet.dob, tr)}`}>
               {pet.breed || tr("Race non renseignée")} ·{" "}
               {tr(pet.sex) || tr("Sexe non renseigné")} · {age(pet.dob, tr)}
             </p>
             {(!pet.breed || !pet.dob || !pet.identifier) && (
               <p className="muted">
                 {tr(
-                  "Profil incomplet : complétez les informations avec « Modifier le profil ».",
-                )}
+                  "Profil incomplet : complétez les informations avec",
+                )}{" "}
+                <span className="record-quoted-action">{tr("« Modifier le profil »")}.</span>
               </p>
             )}
             {/* Le statut vient en dernier, après l’éventuel message de profil incomplet. */}
             <span className="badge">{tr("Dossier privé")}</span>
           </div>
           <div className="actions">
-            <a className="button" href={link("urgence")}>
-              {tr("Fiche d’urgence et QR")}
+            <a className="button" href={link("urgence")} title={tr("Fiche d’urgence et QR")}>
+              <span className="button-label">{tr("Fiche d’urgence et QR")}</span>
             </a>
             <button
               className="button outline"
+              title={tr("Modifier le profil")}
               onClick={() => open("edit-animal", pet)}
             >
-              {tr("Modifier le profil")}
+              <span className="button-label">{tr("Modifier le profil")}</span>
             </button>
             <AiImportButton
               icon={false}
@@ -310,11 +312,12 @@ export default function AnimalRecordPage({
             />
             <button
               className="button danger"
+              title={tr("Supprimer l’animal")}
               onClick={() =>
                 open("delete-record-item", { ...pet, entity: "animal" })
               }
             >
-              {tr("Supprimer l’animal")}
+              <span className="button-label">{tr("Supprimer l’animal")}</span>
             </button>
           </div>
         </div>

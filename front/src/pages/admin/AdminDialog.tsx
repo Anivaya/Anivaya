@@ -5,6 +5,8 @@ import {
 } from "../../../../shared/translations/admin.ts";
 import { uiLocale } from "../../shared/i18n/locale.ts";
 import { useText } from "../../shared/i18n/HomeLocale.tsx";
+import { useAdminReadOnly } from "./AdminReadOnly.ts";
+import PdfPreview from "../documents/PdfPreview.tsx";
 import { useEffect, useState } from "react";
 import type {
   AdminRecord,
@@ -241,7 +243,7 @@ function ProofPreview({
       {image ? (
         <img src={url} alt={tr("Pièce reçue : {0}", [proof.fileName])} />
       ) : (
-        <iframe src={url} title={tr("Pièce reçue : {0}", [proof.fileName])} />
+        <PdfPreview url={url} title={tr("Pièce reçue : {0}", [proof.fileName])} />
       )}
       <a
         className="admin-text-button"
@@ -275,6 +277,7 @@ export default function AdminDialog({
   returnLabel?: string;
 }) {
   const tr = useText();
+  const readOnly = useAdminReadOnly();
   const [busy, setBusy] = useState(false),
     [action, setAction] = useState(row ? initialAction : "new"),
     [dirty, setDirty] = useState(false),
@@ -285,7 +288,7 @@ export default function AdminDialog({
       : ".admin-editor input,.admin-editor select,.admin-editor textarea,.admin-editor button";
     document.querySelector<HTMLElement>(selector)?.focus();
   }, [action, discard]);
-  const actions = row ? actionsFor(resource, row, role) : [];
+  const actions = row && !readOnly ? actionsFor(resource, row, role) : [];
   const chosen = actions.find((a) => a.id === action);
   const close = () => {
     if (dirty) setDiscard(true);
@@ -735,7 +738,7 @@ export default function AdminDialog({
                 <p>{tr("Aucun contrôle enregistré.")}</p>
               )}
             </div>
-            {resource === "pros" && role === "Administrateur" && (
+            {resource === "pros" && role === "Administrateur" && !readOnly && (
               <div className="admin-dialog-actions">
                 <button
                   className="button outline"

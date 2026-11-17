@@ -27,6 +27,7 @@ import { rateLimiter } from "./rate-limit.ts";
 import { legalContent } from "./config.ts";
 import { aiImportAvailable, emailFormsAvailable, testingPreview, previewBlocksEmailRoute } from "./preview.ts";
 import { translationCatalogue } from "../../shared/translations/catalogue.ts";
+import { downloadName } from "../../shared/document-file.ts";
 
 const MAX_BODY_BYTES = 14 * 1024 * 1024;
 const LOCAL_ORIGINS = [
@@ -586,7 +587,7 @@ api.get(
       decodeURIComponent(params[1]),
     );
     return new FileReply(file, {
-      "Content-Disposition": `inline; filename*=UTF-8''${encodeURIComponent(file.name)}`,
+      "Content-Disposition": `inline; filename*=UTF-8''${encodeURIComponent(downloadName(file))}`,
     });
   },
 );
@@ -673,7 +674,7 @@ api.get("/api/received-shares/:id/file", ({ access, account, params }) => {
     throw new ApiError(404, "Cette route est introuvable.");
   const file = access.file(account, params[0]);
   return new FileReply(file, {
-    "Content-Disposition": `inline; filename*=UTF-8''${encodeURIComponent(file.name)}`,
+    "Content-Disposition": `inline; filename*=UTF-8''${encodeURIComponent(downloadName(file))}`,
   });
 });
 api.patch("/api/notifications/:id", async ({ repository, params, body }) =>
@@ -782,7 +783,7 @@ api.get("/api/documents/:id/file", ({ repository, params, query }) => {
   const file = repository.file(params[0]);
   const disposition = query.get("preview") === "1" ? "inline" : "attachment";
   return new FileReply(file, {
-    "Content-Disposition": `${disposition}; filename*=UTF-8''${encodeURIComponent(file.name)}`,
+    "Content-Disposition": `${disposition}; filename*=UTF-8''${encodeURIComponent(downloadName(file))}`,
   });
 });
 

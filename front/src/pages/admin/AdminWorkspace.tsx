@@ -15,6 +15,8 @@ import AdminCollection from "./AdminCollection.tsx";
 import AdminDashboard from "./AdminDashboard.tsx";
 import AdminPreview from "./AdminPreview.tsx";
 import AdminAnalytics from "./AdminAnalytics.tsx";
+import { AdminReadOnly } from "./AdminReadOnly.ts";
+import { usePublicAvailability } from "../../shared/publicAvailability.ts";
 
 const navigationOrder = [
   "dashboard",
@@ -42,6 +44,8 @@ export default function AdminWorkspace({
   onAccountDeleted: () => void;
 }) {
   const tr = useText();
+  const { testingPreview } = usePublicAvailability();
+  const readOnly = user.demo || testingPreview;
   const [path, query = ""] = route.split("?"),
     [, rawPage = "dashboard", section] = path.split("/");
   const page =
@@ -99,6 +103,7 @@ export default function AdminWorkspace({
   );
   const refresh = () => setRetry((n) => n + 1);
   return (
+    <AdminReadOnly.Provider value={readOnly}>
     <div className="workspace admin-workspace">
       <a
         className="skip-link"
@@ -204,6 +209,7 @@ export default function AdminWorkspace({
           </div>
         </header>
         <main id="admin-content" className="admin-content" tabIndex={-1}>
+          {readOnly && <p className="admin-note">{tr("Administration en lecture seule.")}</p>}
           {new URLSearchParams(query).get("from") === "dashboard" && (
             <a className="admin-back" href="#admin/dashboard">
               <Icon name="back" />
@@ -356,5 +362,6 @@ export default function AdminWorkspace({
         )}
       </div>
     </div>
+    </AdminReadOnly.Provider>
   );
 }

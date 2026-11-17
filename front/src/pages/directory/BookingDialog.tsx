@@ -336,8 +336,7 @@ export default function BookingDialog({
               <p>
                 {tr("Aucun paiement en ligne")}
                 <small>
-                  {tr("La confirmation est envoyée par e-mail à")}{" "}
-                  {form.email || tr("votre adresse")}.
+                  {tr("Retrouvez le rendez-vous dans « Mes réservations ».")}
                 </small>
               </p>
             </div>
@@ -393,9 +392,8 @@ export default function BookingDialog({
           </p>
           <p className="muted">
             {tr(
-              "La réservation est enregistrée dans votre espace. La confirmation est adressée à ",
+              "Retrouvez le rendez-vous dans « Mes réservations ».",
             )}
-            {result.email}.
           </p>
           <div className="dialog-actions">
             <button className="button outline close-action" onClick={onClose}>

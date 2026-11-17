@@ -358,7 +358,7 @@ export default function SharingDialog({
             : tr("Partager des documents")
         }
         description={tr(
-          "Chaque destinataire reçoit une invitation par e-mail et retrouve les documents dans « Partage avec moi », en lecture seule, jusqu’à la date choisie.",
+          "Le destinataire retrouve les documents dans « Partage avec moi », en lecture seule, jusqu’à la date choisie.",
         )}
         submitLabel={tr("Confirmer le partage")}
         onSubmit={async (values) => {

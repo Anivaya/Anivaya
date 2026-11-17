@@ -1,6 +1,7 @@
 import { usePublicAvailability } from "../../shared/publicAvailability.ts";
 import { uiLocale } from "../../shared/i18n/locale.ts";
 import { useText } from "../../shared/i18n/HomeLocale.tsx";
+import PdfPreview from "./PdfPreview.tsx";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import type { Dashboard } from "../../shared/types.ts";
@@ -849,9 +850,8 @@ function SourcePreview({ source }: { source: Source }) {
       />
     ) : (
       <>
-        <iframe
-          className="ai-preview ai-pdf"
-          src={source.url}
+        <PdfPreview
+          url={source.url}
           title={tr("Aperçu du PDF importé")}
         />
         <a href={source.url} download={source.name}>

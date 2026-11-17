@@ -17,17 +17,17 @@ function deploymentConfig(destination: string, preview: boolean, proxySecret?: s
     'X-Content-Type-Options': 'nosniff',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
   };
-  const csp = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; frame-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'";
+  const csp = "default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data: blob:; connect-src 'self' blob:; frame-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'";
   return {
     version: 3,
     routes: [
       ...(preview ? [{ src: '/(.*)', headers: { 'X-Robots-Tag': 'noindex, nofollow, noarchive' }, continue: true }] : []),
       { src: '/api/internal/(.*)', status: 404 },
+      { src: `/${filePath}$`, headers: { ...securityHeaders, 'X-Frame-Options': 'SAMEORIGIN', 'Content-Security-Policy': `${csp}; frame-ancestors 'self'` }, continue: true },
+      { src: `/(?!${filePath}$)(.*)`, headers: { ...securityHeaders, 'X-Frame-Options': 'DENY', 'Content-Security-Policy': `${csp}; frame-ancestors 'none'` }, continue: true },
       { src: '/api/(.*)', dest: destination, headers: { 'Cache-Control': 'private, no-store', 'CDN-Cache-Control': 'no-store', 'Vercel-CDN-Cache-Control': 'no-store' }, transforms: proxySecret ? [
         { type: 'request.headers', op: 'set', target: { key: 'x-anivaya-proxy' }, args: proxySecret },
       ] : undefined },
-      { src: `/${filePath}$`, headers: { ...securityHeaders, 'X-Frame-Options': 'SAMEORIGIN', 'Content-Security-Policy': `${csp}; frame-ancestors 'self'` }, continue: true },
-      { src: `/(?!${filePath}$)(.*)`, headers: { ...securityHeaders, 'X-Frame-Options': 'DENY', 'Content-Security-Policy': `${csp}; frame-ancestors 'none'` }, continue: true },
       { src: '/assets/(.*)', headers: { 'Cache-Control': 'public, max-age=31536000, immutable' }, continue: true },
       { handle: 'filesystem' },
       { src: '/(.*)', dest: '/index.html', headers: { 'Cache-Control': 'no-cache' } },

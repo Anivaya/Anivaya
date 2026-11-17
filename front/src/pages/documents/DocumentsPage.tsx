@@ -176,7 +176,7 @@ export function DocumentsSection({
                 )}
               </div>
               <div className="doc-actions">
-                {rowActions.map(([kind, icon, label]) => (
+                {rowActions.filter(([kind]) => kind !== "download" || document.hasFile).map(([kind, icon, label]) => (
                   <button
                     key={kind}
                     className={icon === "trash" ? "delete-action" : ""}

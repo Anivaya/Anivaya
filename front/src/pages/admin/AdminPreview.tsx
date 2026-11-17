@@ -21,6 +21,7 @@ import {
   statusTone,
 } from "./config.ts";
 import AdminIconButton from "./AdminIconButton.tsx";
+import { useAdminReadOnly } from "./AdminReadOnly.ts";
 
 /** Aperçu intermédiaire commun aux indicateurs et à la cloche. Le dossier s'ouvre au-dessus et revient ici. */
 export default function AdminPreview({
@@ -35,6 +36,7 @@ export default function AdminPreview({
   onChanged: () => void;
 }) {
   const tr = useText();
+  const readOnly = useAdminReadOnly();
   const [result, setResult] = useState<{ data?: AdminList; error?: string }>(
     {},
   );
@@ -75,7 +77,7 @@ export default function AdminPreview({
     setBusy(true);
     try {
       const current = await adminApi.detail(indicator.resource, row.id);
-      if (indicator.resource === "alerts" && !current.read) {
+      if (indicator.resource === "alerts" && !current.read && !readOnly) {
         await adminApi.act("alerts", row.id, { action: "read" });
         current.read = true;
         current.status = "Lue";
@@ -166,7 +168,7 @@ export default function AdminPreview({
                   disabled={busy}
                   onClick={() => void open(row)}
                 />
-                {actionsFor(indicator.resource, row, role)
+                {(readOnly ? [] : actionsFor(indicator.resource, row, role))
                   .slice(0, 2)
                   .map((action) => (
                     <AdminIconButton

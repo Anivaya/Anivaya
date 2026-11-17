@@ -16,6 +16,7 @@ export const publicEnglish: Record<string, string> = {
   "Confirmer l’invitation": "Confirm invitation",
   "Utiliser un autre compte": "Use another account",
   "Aucun paiement en ligne": "No online payment",
+  "Retrouvez le rendez-vous dans « Mes réservations ».": "Find your appointment in ‘My bookings’.",
   "La confirmation est envoyée par e-mail à": "The confirmation is emailed to",
   "Confirmer la réservation": "Confirm booking",
   "La réservation est enregistrée dans votre espace. La confirmation est adressée à ": "The booking is saved in your account. The confirmation is addressed to ",

@@ -1328,6 +1328,44 @@ dialog:has(.record-form-grid) {
     height: 24px;
   }
 }
+.record-page .pet-header > .actions .button-label {
+  font: inherit;
+}
+/* Bureau : identité et actions partagent la même ligne. */
+@media (min-width: 1101px) {
+  .record-page .pet-header {
+    grid-template-columns: 44px auto minmax(0, 1fr) auto;
+    column-gap: 18px;
+  }
+  .record-page .pet-header > .actions {
+    grid-column: 4;
+    grid-row: 1;
+    flex-wrap: nowrap;
+  }
+  .record-page .pet-summary h1 {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .record-page .pet-summary p {
+    max-width: 340px;
+    overflow-wrap: anywhere;
+  }
+  .record-page .pet-summary .record-quoted-action {
+    display: inline-block;
+    white-space: nowrap;
+  }
+  .record-page .pet-header > .actions.actions > .button {
+    width: clamp(130px, 11vw, 184px);
+    min-width: 0;
+    padding-inline: 10px;
+  }
+  .record-page .pet-header > .actions .button-label {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
 /* Boutons d’action de la fiche : centrés sur tablette, deux par deux sur mobile. */
 @media (max-width: 1024px) {
   .record-page .pet-header > .actions {

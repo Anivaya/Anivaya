@@ -23,7 +23,9 @@ test('cloud configuration rejects ephemeral databases, insecure TLS and incomple
 test('Vercel routes proxy API before SPA fallback and never publish the secret as response headers', () => {
   const secret='ab'.repeat(32), config=vercelConfig('https://anivaya-api.onrender.com',secret);
   assert.equal(config.routes[0].status,404);
-  const api=config.routes[1]; assert.equal(api.dest,'https://anivaya-api.onrender.com/api/$1');
+  const api=config.routes.find(route => route.src === '/api/(.*)')!;
+  assert.equal(api.dest,'https://anivaya-api.onrender.com/api/$1');
+  assert.ok(config.routes.indexOf(api) < config.routes.findIndex(route => route.handle === 'filesystem'));
   assert.equal(api.headers?.['Cache-Control'],'private, no-store');
   assert.equal(api.transforms?.[0].type,'request.headers');
   assert.ok(!JSON.stringify(api.headers).includes(secret));
@@ -40,6 +42,9 @@ test('Vercel permits same-origin PDF previews without allowing the application t
     assert.equal(matches.length,1);
     assert.equal(matches[0].headers?.['X-Frame-Options'],'SAMEORIGIN');
     assert.match(matches[0].headers?.['Content-Security-Policy'] || '', /frame-ancestors 'self'/);
+    const filePolicyIndex = config.routes.findIndex(route => route.src === matches[0].src);
+    const apiRewriteIndex = config.routes.findIndex(route => route.src === '/api/(.*)');
+    assert.ok(filePolicyIndex < apiRewriteIndex, 'file security headers must run before the terminating API rewrite');
   }
   for (const path of ['/','/index.html','/api/dashboard','/api/documents/demo/file/extra','/api/admin/users']) {
     const matches=policies.filter(route => new RegExp(`^${route.src}$`).test(path));

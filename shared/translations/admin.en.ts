@@ -1,4 +1,5 @@
 export const adminEnglish: Record<string, string> = {
+  "Administration en lecture seule.": "Read-only administration.",
   "Invitation expirée": "Expired invitation",
   "Bouche-à-oreille": "Word of mouth",
   "Partenaire vétérinaire": "Veterinary partner",

@@ -16,6 +16,7 @@ import { adminApi } from "../../shared/services/admin.ts";
 import { errorMessage } from "../../shared/types.ts";
 import AdminDialog from "./AdminDialog.tsx";
 import AdminIconButton from "./AdminIconButton.tsx";
+import { useAdminReadOnly } from "./AdminReadOnly.ts";
 import {
   actionIcon,
   adminEmptyStates,
@@ -55,6 +56,7 @@ export default function AdminCollection({
   onChanged: () => void;
 }) {
   const tr = useText();
+  const readOnly = useAdminReadOnly();
   const params = new URLSearchParams(query),
     committed = params.get("q") || "";
   const [draft, setDraft] = useState({ query, value: committed }),
@@ -360,7 +362,7 @@ export default function AdminCollection({
             </div>
           )}
           <div className="admin-toolbar-actions">
-            {canCreate && (
+            {canCreate && !readOnly && (
               <AdminIconButton
                 icon="plus"
                 label={
@@ -385,7 +387,7 @@ export default function AdminCollection({
                 onClick={() => void download()}
               />
             )}
-            {resource === "alerts" && hasResults && (
+            {resource === "alerts" && hasResults && !readOnly && (
               <AdminIconButton
                 icon="check"
                 label={tr("Tout marquer comme lu")}
@@ -613,7 +615,7 @@ export default function AdminCollection({
                               ])}
                               onClick={() => void openRecord(row)}
                             />
-                            {actionsFor(resource, row, role)
+                            {(readOnly ? [] : actionsFor(resource, row, role))
                               .filter((a) => !a.id.startsWith("proof:"))
                               .map((action) => (
                                 <AdminIconButton
