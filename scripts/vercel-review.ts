@@ -14,7 +14,7 @@ export function buildReviewFunction(root: string, output: string) {
       } else if (entry.name.endsWith(".ts")) {
         const dest = join(target, file.replace(/\.ts$/, ".js"));
         mkdirSync(dirname(dest), { recursive: true });
-        const code = stripTypeScriptTypes(readFileSync(join(root, file), "utf8"), { mode: "transform" });
+        const code = stripTypeScriptTypes(readFileSync(join(root, file), "utf8"));
         writeFileSync(dest, code.replace(/\.ts(["'])/g, ".js$1"));
       }
     }
