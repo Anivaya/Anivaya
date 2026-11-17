@@ -224,7 +224,7 @@ function AppContent({
   if (homeSection && publicView(homeSection) === "informations-legales" && !legal) {
     return settingsLoading
       ? <div className="session-screen" role="status">{tr("Chargement…")}</div>
-      : <Redirect to="#accueil" />;
+      : <Redirect key={route} to="#accueil" />;
   }
   const needsEmail = page === "mot-de-passe" || page === "reinitialisation" ||
     (page === "desinscription" && !params[0]) || (page === "contact" && params[0] !== "recours");
@@ -232,12 +232,12 @@ function AppContent({
     return <div className="session-screen" role="status">{tr("Chargement…")}</div>;
   if (!settingsLoading && !emailFormsAvailable) {
     if (homeSection && ["inscription", "pro-inscription", "clinique-inscription", "entreprise-contact"].includes(homeSection))
-      return <Redirect to={"#" + publicView(homeSection)} />;
-    if (page === "contact" && params[0] !== "recours") return <Redirect to="#informations" />;
-    if (page === "mot-de-passe" || page === "reinitialisation") return <Redirect to="#connexion" />;
-    if (page === "desinscription" && !params[0]) return <Redirect to="#accueil" />;
+      return <Redirect key={route} to={"#" + publicView(homeSection)} />;
+    if (page === "contact" && params[0] !== "recours") return <Redirect key={route} to="#informations" />;
+    if (page === "mot-de-passe" || page === "reinitialisation") return <Redirect key={route} to="#connexion" />;
+    if (page === "desinscription" && !params[0]) return <Redirect key={route} to="#accueil" />;
   }
-  if (homeSection === "bientot") return <Redirect to="#accueil" />;
+  if (homeSection === "bientot") return <Redirect key={route} to="#accueil" />;
   if (page === "urgence")
     return (
       <PublicEmergencyPage key={route} token={params[0]?.split("?")[0] || ""} />
