@@ -169,6 +169,27 @@ test("Preview demos: four logins, isolated admins, clean registrations and resta
       assert.equal(db.prepare("SELECT count(*) AS n FROM professionals").get()!.n, 3);
       assert.deepEqual((await read<DirectoryData>("/directory", cookies.get("empty-test")!)).professionals, []);
       delete process.env.ANIVAYA_TESTING_PREVIEW;
+      if (restart) {
+        process.env.ANIVAYA_LIMITED_LAUNCH = "1";
+        process.env.ANIVAYA_DEMO_ACCOUNTS = "1";
+        process.env.MAIL_PROVIDER = "disabled";
+        try {
+          const settings = await read<{ testingPreview: boolean; emailFormsAvailable: boolean }>("/public/settings", "");
+          assert.equal(settings.testingPreview, false);
+          assert.equal(settings.emailFormsAvailable, false);
+          for (const email of ["test@gmail.com", "test.vide@anivaya.test", "admin@anivaya.fr", "admin.vide@anivaya.test"]) {
+            const login = await request("/auth/login", "POST", { email, password: DEMO_PASSWORD });
+            assert.equal(login.status, 200);
+            assert.ok(((await login.json()) as AuthUser).demo);
+          }
+          assert.deepEqual((await read<DirectoryData>("/directory", cookies.get("registered")!)).professionals, []);
+          assert.equal((await request("/public/contact", "POST", {})).status, 503);
+        } finally {
+          delete process.env.ANIVAYA_LIMITED_LAUNCH;
+          delete process.env.ANIVAYA_DEMO_ACCOUNTS;
+          delete process.env.MAIL_PROVIDER;
+        }
+      }
       assert.deepEqual(directoryRepository(db).all().professionals, []);
       assert.throws(() => directoryRepository(db).slots("preview-veterinaire", "2026-11-20"), /introuvable/);
       process.env.ANIVAYA_TESTING_PREVIEW = "1";

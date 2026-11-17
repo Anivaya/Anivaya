@@ -1,3 +1,4 @@
+import { usePublicAvailability } from "../../shared/publicAvailability.ts";
 import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
@@ -78,6 +79,7 @@ export default function ContactPage({
   profile?: Profile;
   initialTab?: string;
 }) {
+  const { emailFormsAvailable, contactHref } = usePublicAvailability();
   const tr = useText();
   const { title, intro, label, tabs } = sections[section];
   const dataQuestion = section === "contact" && initialTab === "question";
@@ -172,10 +174,12 @@ export default function ContactPage({
           <p>{tr(intro)}</p>
         </div>
       </div>
-      <Tabs label={tr(label)} tabs={tabs} active={tab} onChange={setTab} />
+      {(emailFormsAvailable || section !== "contact") && (
+        <Tabs label={tr(label)} tabs={tabs} active={tab} onChange={setTab} />
+      )}
       {section === "contact" ? (
         <>
-          <section
+          {emailFormsAvailable && (<section
             id="panel-contact"
             role="tabpanel"
             aria-labelledby="tab-contact"
@@ -352,7 +356,7 @@ export default function ContactPage({
                 )}
               </div>
             </div>
-          </section>
+          </section>)}
           <section
             id="panel-recours"
             role="tabpanel"
@@ -414,19 +418,6 @@ export default function ContactPage({
                 </div>
               </div>
             </div>
-            <div className="profile-panel">
-              <h2>{tr("À propos de cette version")}</h2>
-              <p>
-                {tr(
-                  "Les comptes, les animaux, les documents, les partages et les réservations sont enregistrés dans votre espace. Les confirmations, les rappels et les invitations sont envoyés par e-mail.",
-                )}
-              </p>
-              <p>
-                {tr(
-                  "Les coordonnées de l’éditeur, les conditions d’utilisation et les modalités du service seront précisées avant son ouverture au public.",
-                )}
-              </p>
-            </div>
           </section>
           <section
             id="panel-donnees"
@@ -441,19 +432,7 @@ export default function ContactPage({
                   "La fiche publique présente les informations sélectionnées lors de sa configuration. Vous pouvez modifier son contenu, la désactiver ou la supprimer pour révoquer son lien.",
                 )}
               </p>
-              <h3>{tr("Dans cette version")}</h3>
-              <p>
-                {tr(
-                  "Chaque compte dispose de sa propre base de données. Les mots de passe sont hachés et la session est conservée dans un cookie sécurisé, valable 24 heures au maximum. Les documents et photos importés restent dans votre espace.",
-                )}
-              </p>
-              <h3>{tr("Avant le lancement")}</h3>
-              <p>
-                {tr(
-                  "Une politique de confidentialité complète précisera les données traitées, leurs durées de conservation, leurs destinataires et les moyens d’exercer vos droits.",
-                )}
-              </p>
-              <a className="button outline" href="#contact/question">
+              <a className="button outline" href={contactHref === "#contact" ? "#contact/question" : contactHref}>
                 {tr("Poser une question sur mes données")}
               </a>
             </div>

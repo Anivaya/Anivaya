@@ -1,3 +1,4 @@
+import { usePublicAvailability } from "../../shared/publicAvailability.ts";
 import { useEffect, useLayoutEffect, useRef } from "react";
 import type { AuthUser } from "../../../../shared/account.ts";
 import LandingContent from "./LandingContent.tsx";
@@ -17,6 +18,8 @@ export default function HomePage({
   onDismiss?: () => void;
 }) {
   const host = useRef<HTMLDivElement>(null);
+  const { legal, emailFormsAvailable } = usePublicAvailability();
+  const legalPublished = Boolean(legal);
   const [language] = useLanguage();
   const t = useHomeText();
   const translator = useRef(t);
@@ -28,7 +31,7 @@ export default function HomePage({
       host.current
         ? mountLanding(host.current, (text) => translator.current(text))
         : undefined,
-    [],
+    [legalPublished, emailFormsAvailable],
   );
   useEffect(() => {
     // Update imperative navigation labels after React has translated the headings.

@@ -5,7 +5,7 @@ import { openDatabase, databasePath } from "../database/connection.ts";
 import { emptyStateMode } from "../database/empty-state.ts";
 import { createApi } from "./app.ts";
 import { validateProductionConfig } from "./config.ts";
-import { testingPreview } from "./preview.ts";
+import { demoAccountsEnabled } from "./preview.ts";
 
 // Réglages locaux (SMTP, clé OpenRouter…) : fichier .env à la racine, jamais commité.
 const env = fileURLToPath(new URL("../../.env", import.meta.url));
@@ -22,10 +22,10 @@ if (process.env.NODE_ENV === "production" && (
 }
 const emptyRoot = join(dirname(databasePath()), "empty-state");
 const demoRoot = join(dirname(databasePath()), "preview-demo");
-const demoDatabase = testingPreview()
+const demoDatabase = demoAccountsEnabled()
   ? openDatabase(join(demoRoot, "central.sqlite"), true, false, "preview-sample-central", "sample")
   : undefined;
-const emptyDatabase = testingPreview()
+const emptyDatabase = demoAccountsEnabled()
   ? openDatabase(join(emptyRoot, "central.sqlite"), false, true, "preview-empty-central", "empty")
   : !emptyStateMode() && process.env.NODE_ENV !== "production"
   ? openDatabase(join(emptyRoot, "central.sqlite"), false, true)

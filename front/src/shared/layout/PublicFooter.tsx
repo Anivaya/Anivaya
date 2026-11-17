@@ -1,8 +1,10 @@
+import { usePublicAvailability } from "../publicAvailability.ts";
 import { useHomeText } from "../i18n/HomeLocale.tsx";
 import { useAdminView } from "./AdminViewContext.ts";
 /** Pied commun issu de la nouvelle maquette. */
 const year = new Date().getFullYear();
 export default function PublicFooter() {
+  const { legal, emailFormsAvailable, contactHref } = usePublicAvailability();
   const t = useHomeText();
   const isAdmin = useAdminView();
   return (
@@ -44,9 +46,9 @@ export default function PublicFooter() {
                 <li>
                   <a href="#faq">{t("Questions fréquentes")}</a>
                 </li>
-                <li>
+                {emailFormsAvailable && (<li>
                   <a href="#liste-attente">{t("Liste d'attente")}</a>
-                </li>
+                </li>)}
               </ul>
             </div>
             <div className="footer__col">
@@ -65,7 +67,7 @@ export default function PublicFooter() {
                 </li>
               </ul>
             </div>
-            <div className="footer__col">
+            {(!isAdmin || legal) && (<div className="footer__col">
               <h2>{t("Informations")}</h2>
               <ul>
                 {!isAdmin && (
@@ -73,6 +75,7 @@ export default function PublicFooter() {
                     <a href="#informations">{t("Informations du service")}</a>
                   </li>
                 )}
+                {legal && <>
                 <li>
                   <a href="#mentions-legales">
                     {t("Mentions légales")}
@@ -84,21 +87,22 @@ export default function PublicFooter() {
                 <li>
                   <a href="#cookies">{t("Cookies")}</a>
                 </li>
+                </>}
               </ul>
-            </div>
+            </div>)}
             <nav aria-label={t("Contact")}>
               <h2>{t("Contact")}</h2>
               <ul>
                 {!isAdmin && (
                   <li>
-                    <a href="#contact">{t("Nous contacter")}</a>
+                    <a href={contactHref}>{t("Nous contacter")}</a>
                   </li>
                 )}
-                <li>
+                {(emailFormsAvailable || isAdmin) && (<li>
                   <a href="mailto:contact@anivaya.fr">
                     {t("contact@anivaya.fr")}
                   </a>
-                </li>
+                </li>)}
               </ul>
             </nav>
           </div>

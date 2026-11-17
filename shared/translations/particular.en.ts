@@ -269,6 +269,7 @@ export const particularEnglish: Record<string, string> = {
     "Each account has its own database. Passwords are hashed and the session is stored in a secure cookie, valid for up to 24 hours. Imported documents and photos stay in your space.",
   "Chaque destinataire reçoit une invitation par e-mail et retrouve les documents dans « Partage avec moi », en lecture seule, jusqu’à la date choisie.":
     "Each recipient receives an email invitation and can find the documents in “Shared with me”, with read-only access until your chosen date.",
+  "Chaque type activé arrive dans votre espace.": "Enabled notifications appear in your account.",
   "Chaque type activé arrive dans votre espace et par e-mail, à l’adresse de votre compte.":
     "Each enabled type appears in your space and is emailed to your account address.",
   "Chargement de la fiche…": "Loading sheet…",

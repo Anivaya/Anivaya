@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { isAbsolute } from "node:path";
 import type { LegalContent } from "../../shared/legal.ts";
-import { testingPreview } from "./preview.ts";
+import { limitedLaunch, testingPreview } from "./preview.ts";
 
 export function legalContent(): LegalContent | null {
   if (!process.env.LEGAL_CONTENT_PATH && !process.env.LEGAL_CONTENT_JSON) return null;
@@ -21,11 +21,14 @@ export function validateProductionConfig() {
   const missing: string[] = [];
   const cloud = Boolean(process.env.DATABASE_URL);
   const preview = testingPreview();
+  const limited = limitedLaunch();
+  if (limited && preview) throw new Error("Public launch and testing preview are mutually exclusive.");
+  const restricted = preview || limited;
   const mail = process.env.MAIL_PROVIDER || "smtp";
-  if (preview && (mail !== "disabled" || process.env.REMINDERS_MODE !== "disabled"))
-    throw new Error("Testing preview requires disabled mail and reminders.");
-  if (!preview && !["smtp", "resend"].includes(mail)) throw new Error("Unknown MAIL_PROVIDER.");
-  for (const name of ["APP_URL", "PUBLIC_SITE_URL", "ALLOWED_ORIGINS", ...(cloud ? ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_STORAGE_BUCKET"] : ["DATABASE_PATH"]), ...(preview ? [] : mail === "resend" ? ["RESEND_API_KEY", "MAIL_FROM"] : ["SMTP_HOST", "MAIL_FROM"]), "MFA_ENCRYPTION_KEY", ...(preview || process.env.LEGAL_CONTENT_JSON ? [] : ["LEGAL_CONTENT_PATH"])])
+  if (restricted && (mail !== "disabled" || process.env.REMINDERS_MODE !== "disabled"))
+    throw new Error("This deployment requires disabled mail and reminders.");
+  if (!restricted && !["smtp", "resend"].includes(mail)) throw new Error("Unknown MAIL_PROVIDER.");
+  for (const name of ["APP_URL", "PUBLIC_SITE_URL", "ALLOWED_ORIGINS", ...(cloud ? ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_STORAGE_BUCKET"] : ["DATABASE_PATH"]), ...(restricted ? [] : mail === "resend" ? ["RESEND_API_KEY", "MAIL_FROM"] : ["SMTP_HOST", "MAIL_FROM"]), "MFA_ENCRYPTION_KEY", ...(restricted || process.env.LEGAL_CONTENT_JSON ? [] : ["LEGAL_CONTENT_PATH"])])
     if (!process.env[name]?.trim()) missing.push(name);
   if (missing.length) throw new Error("Missing production configuration: " + missing.join(", "));
   const origin = (name: string) => {
@@ -54,15 +57,15 @@ export function validateProductionConfig() {
   if (!/^[a-f\d]{64}$/i.test(process.env.MFA_ENCRYPTION_KEY!)) throw new Error("MFA_ENCRYPTION_KEY must be 64 hexadecimal characters.");
   if (mail === "smtp" && /exemple|example|localhost/i.test(process.env.SMTP_HOST!)) throw new Error("Configure a real SMTP_HOST.");
   if (process.env.RENDER === "true") {
-    if (!cloud || (!preview && mail !== "resend")) throw new Error("Render requires PostgreSQL/private storage and Resend HTTP email; local SQLite and SMTP are unsupported.");
+    if (!cloud || (!restricted && mail !== "resend")) throw new Error("Render requires PostgreSQL/private storage and Resend HTTP email; local SQLite and SMTP are unsupported.");
     if (!/^[a-f\d]{64}$/i.test(process.env.API_PROXY_SECRET || '')) throw new Error("API_PROXY_SECRET must be 64 hexadecimal characters shared with Vercel.");
-    if ((!preview && process.env.REMINDERS_MODE !== 'external') || !/^[a-f\d]{64}$/i.test(process.env.CRON_SECRET || '')) throw new Error("Render requires REMINDERS_MODE=external and a separate 64-character CRON_SECRET.");
+    if ((!restricted && process.env.REMINDERS_MODE !== 'external') || !/^[a-f\d]{64}$/i.test(process.env.CRON_SECRET || '')) throw new Error("Render requires REMINDERS_MODE=external and a separate 64-character CRON_SECRET.");
     if (process.env.CRON_SECRET === process.env.API_PROXY_SECRET) throw new Error("Use different proxy and cron secrets.");
   }
-  if (!preview && !/[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+/.test(process.env.MAIL_FROM!)) throw new Error("MAIL_FROM must contain a valid sender address.");
+  if (!restricted && !/[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+/.test(process.env.MAIL_FROM!)) throw new Error("MAIL_FROM must contain a valid sender address.");
   if (process.env.ANIVAYA_EMPTY_STATE === "1") throw new Error("Empty-state mode is forbidden in production.");
   // The explicit testing preview uses fictional data and may use a free AI model.
-  if (!preview && process.env.OPENROUTER_API_KEY && (!process.env.OPENROUTER_MODEL?.trim() || process.env.OPENROUTER_MODEL.trim().endsWith(":free")))
+  if (!restricted && process.env.OPENROUTER_API_KEY && (!process.env.OPENROUTER_MODEL?.trim() || process.env.OPENROUTER_MODEL.trim().endsWith(":free")))
     throw new Error("Select an explicit non-free OPENROUTER_MODEL before enabling production AI imports.");
   legalContent();
 }

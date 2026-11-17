@@ -25,7 +25,7 @@ import type { SharedAccess } from "./shared-access.ts";
 import { ApiError, text, clientAddress } from "./validation.ts";
 import { rateLimiter } from "./rate-limit.ts";
 import { legalContent } from "./config.ts";
-import { testingPreview, previewBlocksEmailRoute } from "./preview.ts";
+import { aiImportAvailable, emailFormsAvailable, testingPreview, previewBlocksEmailRoute } from "./preview.ts";
 import { translationCatalogue } from "../../shared/translations/catalogue.ts";
 
 const MAX_BODY_BYTES = 14 * 1024 * 1024;
@@ -138,6 +138,10 @@ function requireAdmin(admin: AdminService | null) {
 // Routes accessibles sans session.
 const open = router<RequestContext>();
 open.get("/api/health", () => ({ status: "ok" }));
+open.get("/api/public/settings", () => ({
+  legal: legalContent(), emailFormsAvailable: emailFormsAvailable(),
+  aiImportAvailable: aiImportAvailable(), testingPreview: testingPreview(),
+}) satisfies import("../../shared/public-settings.ts").PublicSettings);
 open.get("/api/public/legal", () => legalContent());
 /** Catalogues sérialisés une seule fois : ils ne changent qu’avec le code. */
 const catalogues = new Map<
@@ -887,7 +891,7 @@ export function createApi(
       auth.hooks.security = admin.securityEvent;
     }
     const stopReminders =
-      auth && options.reminders && !testingPreview() && process.env.REMINDERS_MODE !== "external" ? startReminderMail(auth) : undefined;
+      auth && options.reminders && emailFormsAvailable() && process.env.REMINDERS_MODE !== "external" ? startReminderMail(auth) : undefined;
     return {
       db: database,
       ready,
@@ -993,6 +997,8 @@ export function createApi(
       )?.[1];
       if (publicToken)
         selected = sandboxes.find(service => service.auth?.publicOwner(publicToken)) || normal;
+      if (selected.db.previewDemo && url.pathname.startsWith("/api/admin/") && !["GET", "HEAD"].includes(request.method || ""))
+        throw new ApiError(503, "Cette action est indisponible sur un compte de démonstration.");
       const { auth, admin } = selected;
       const context = {
         publicSite,

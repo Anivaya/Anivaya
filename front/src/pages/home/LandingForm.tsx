@@ -1,3 +1,4 @@
+import { usePublicAvailability } from "../../shared/publicAvailability.ts";
 import { useHomeText } from "../../shared/i18n/HomeLocale.tsx";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
@@ -46,6 +47,7 @@ const consentLabels = {
 
 /** Variante vitrine : mêmes erreurs API que SubmissionForm, avec confirmation dans la page. */
 export default function LandingForm({ kind }: { kind: LeadKind }) {
+  const { legal } = usePublicAvailability();
   const t = useHomeText();
   const form = useRef<HTMLFormElement>(null);
   const success = useRef<HTMLDivElement>(null);
@@ -395,9 +397,9 @@ export default function LandingForm({ kind }: { kind: LeadKind }) {
                     {t(".")}
                   </>
                 )}{" "}
-                <a href="#accueil/confidentialite">
+                {legal && (<a href="#accueil/confidentialite">
                   {t("Politique de confidentialité")}
-                </a>
+                </a>)}
               </span>
             </label>
             {fieldMessage("consent")}

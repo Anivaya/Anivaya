@@ -1,3 +1,4 @@
+import { usePublicAvailability } from "../publicAvailability.ts";
 import { useText } from "../i18n/HomeLocale.tsx";
 import { useEffect, useId, useRef, useState } from "react";
 import type { ReactNode } from "react";
@@ -187,6 +188,7 @@ export function AccountMenu({
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const isAdmin = useAdminView();
+  const { contactHref } = usePublicAvailability();
   const t = useHomeText();
   const ref = useRef<HTMLDivElement>(null),
     button = useRef<HTMLButtonElement>(null),
@@ -288,7 +290,7 @@ export function AccountMenu({
             {!isAdmin && (
               <a
                 className="mobile-help-link"
-                href="#contact"
+                href={contactHref}
                 onClick={() => setOpen(false)}
               >
                 <Icon name="headset" />

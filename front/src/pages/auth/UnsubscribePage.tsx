@@ -1,3 +1,4 @@
+import { usePublicAvailability } from "../../shared/publicAvailability.ts";
 import { useState } from "react";
 import { AuthLayout } from "./AuthPage.tsx";
 import { api } from "../../shared/services/api.ts";
@@ -5,6 +6,7 @@ import { errorMessage } from "../../shared/types.ts";
 import { useText } from "../../shared/i18n/HomeLocale.tsx";
 
 export default function UnsubscribePage({ token }: { token?: string }) {
+  const { emailFormsAvailable } = usePublicAvailability();
   const tr = useText();
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
@@ -82,7 +84,7 @@ export default function UnsubscribePage({ token }: { token?: string }) {
               )}
             </button>
           </form>
-          {token && error && (
+          {token && error && emailFormsAvailable && (
             <p>
               <a href="#desinscription">{tr("Recevoir un nouveau lien")}</a>
             </p>

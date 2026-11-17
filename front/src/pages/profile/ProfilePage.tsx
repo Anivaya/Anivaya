@@ -1,3 +1,4 @@
+import { usePublicAvailability } from "../../shared/publicAvailability.ts";
 import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import LanguageMenu from "../../shared/ui/LanguageMenu.tsx";
 import { useEffect, useRef, useState } from "react";
@@ -55,6 +56,7 @@ export default function ProfilePage({
   /** Contenu de l’onglet Sécurité ; par défaut, la double authentification. */
   security?: ReactNode;
 }) {
+  const { emailFormsAvailable } = usePublicAvailability();
   const tr = useText();
   const [photoLoading, setPhotoLoading] = useState(false);
   const logoutAction = useRef<(() => Promise<void>) | null>(null);
@@ -325,7 +327,7 @@ export default function ProfilePage({
                 ))}
               </div>
             </section>
-            <section className="profile-panel">
+            {emailFormsAvailable && (<section className="profile-panel">
               <h2>{tr("Mot de passe")}</h2>
               <p className="muted">
                 {tr(
@@ -364,7 +366,7 @@ export default function ProfilePage({
               >
                 {tr(passwordLink.text)}
               </p>
-            </section>
+            </section>)}
           </div>
           <section
             id="panel-notifications"
@@ -413,7 +415,9 @@ export default function ProfilePage({
               )}
               <p className="notification-demo">
                 {tr(
-                  "Chaque type activé arrive dans votre espace et par e-mail, à l’adresse de votre compte.",
+                  emailFormsAvailable
+                    ? "Chaque type activé arrive dans votre espace et par e-mail, à l’adresse de votre compte."
+                    : "Chaque type activé arrive dans votre espace.",
                 )}
               </p>
             </div>

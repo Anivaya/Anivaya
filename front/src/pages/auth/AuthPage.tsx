@@ -1,3 +1,4 @@
+import { usePublicAvailability } from "../../shared/publicAvailability.ts";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import type { AuthUser } from "../../../../shared/account.ts";
@@ -17,6 +18,7 @@ export default function AuthPage({
   onAuthenticated: (user: AuthUser) => void;
   invitationToken?: string;
 }) {
+  const { emailFormsAvailable } = usePublicAvailability();
   const tr = useText();
   const suffix = invitationToken ? `/invitation/${invitationToken}` : "";
   const [register, setRegister] = useState(requestedRegister);
@@ -250,7 +252,7 @@ export default function AuthPage({
             </div>
           );
         })}
-        {!register && (
+        {!register && emailFormsAvailable && (
           <div className="forgot-line">
             <a className="text-button" href="#reinitialisation">
               {tr("Mot de passe oublié ?")}

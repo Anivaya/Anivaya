@@ -1,6 +1,10 @@
 /** English copy for the public home pages. French source text is the stable lookup key. */
 export const homeEnglish: Record<string, string> = {
   "Utilisez au maximum {0} caractères.": "Use no more than {0} characters.",
+  "Retrouvez les vaccins, les soins et les documents de votre animal dans son carnet.": "Find your pet’s vaccinations, care history and documents in their record.",
+  "Complétez son carnet": "Complete their record",
+  "Ajoutez ses vaccins, ses documents et les dates à retenir.": "Add their vaccinations, documents and important dates.",
+  "Prix TTC indicatifs.": "Indicative prices including tax.",
   "Aller au contenu": "Skip to content",
   "Anivaya, retour à l'accueil": "Anivaya, back to home",
   Anivaya: "Anivaya",

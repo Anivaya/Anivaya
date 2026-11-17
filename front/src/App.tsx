@@ -1,9 +1,11 @@
+import { PublicAvailability, useLoadPublicSettings, usePublicAvailability } from "./shared/publicAvailability.ts";
+import TestingNotice from "./shared/layout/TestingNotice.tsx";
 import { useText } from "./shared/i18n/HomeLocale.tsx";
 import type { ComponentType, Dispatch, SetStateAction } from "react";
 import { HomeLocale } from "./shared/i18n/HomeLocale.tsx";
 import { useTranslations } from "./shared/i18n/useTranslations.ts";
 import { translationScope } from "../../shared/translations.ts";
-import { publicSection } from "../../shared/public-routes.ts";
+import { publicSection, publicView } from "../../shared/public-routes.ts";
 import { AdminViewContext } from "./shared/layout/AdminViewContext.ts";
 import PublicFooter from "./shared/layout/PublicFooter.tsx";
 import {
@@ -97,6 +99,7 @@ const informationTabs = new Set(["ressources", "service", "donnees"]);
 
 export default function App() {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const settings = useLoadPublicSettings();
   const [hash, setHash] = useState(location.hash);
   const translate = useTranslations(
     translationScope(
@@ -112,21 +115,29 @@ export default function App() {
   }, []);
   return (
     <HomeLocale.Provider value={translate}>
-      <AdminViewContext.Provider value={!!user?.adminRole}>
-        <Suspense
-          fallback={
-            <div className="session-screen" role="status">
-              {tr("Chargement de la page…")}
-            </div>
-          }
-        >
-          <AppContent user={user} setUser={setUser} />
-        </Suspense>
-        {publicSection(hash) === null && <PublicFooter />}
-      </AdminViewContext.Provider>
+      <PublicAvailability.Provider value={settings}>
+        <TestingNotice />
+        <AdminViewContext.Provider value={!!user?.adminRole}>
+          <Suspense
+            fallback={
+              <div className="session-screen" role="status">
+                {tr("Chargement de la page…")}
+              </div>
+            }
+          >
+            <AppContent user={user} setUser={setUser} />
+          </Suspense>
+          {publicSection(hash) === null && <PublicFooter />}
+        </AdminViewContext.Provider>
+      </PublicAvailability.Provider>
     </HomeLocale.Provider>
   );
 }
+function Redirect({ to }: { to: string }) {
+  useEffect(() => { window.location.replace(to); }, [to]);
+  return null;
+}
+
 function AppContent({
   user,
   setUser,
@@ -135,6 +146,7 @@ function AppContent({
   setUser: Dispatch<SetStateAction<AuthUser | null>>;
 }) {
   const tr = useText();
+  const { legal, emailFormsAvailable, loading: settingsLoading } = usePublicAvailability();
   const sessionVersion = useRef(0);
   const [route, setRoute] = useState(
     () => window.location.hash.slice(1) || "accueil",
@@ -209,6 +221,23 @@ function AppContent({
     setDeletedNotice(true);
     window.location.hash = "accueil";
   };
+  if (homeSection && publicView(homeSection) === "informations-legales" && !legal) {
+    return settingsLoading
+      ? <div className="session-screen" role="status">{tr("Chargement…")}</div>
+      : <Redirect to="#accueil" />;
+  }
+  const needsEmail = page === "mot-de-passe" || page === "reinitialisation" ||
+    (page === "desinscription" && !params[0]) || (page === "contact" && params[0] !== "recours");
+  if (settingsLoading && needsEmail)
+    return <div className="session-screen" role="status">{tr("Chargement…")}</div>;
+  if (!settingsLoading && !emailFormsAvailable) {
+    if (homeSection && ["inscription", "pro-inscription", "clinique-inscription", "entreprise-contact"].includes(homeSection))
+      return <Redirect to={"#" + publicView(homeSection)} />;
+    if (page === "contact" && params[0] !== "recours") return <Redirect to="#informations" />;
+    if (page === "mot-de-passe" || page === "reinitialisation") return <Redirect to="#connexion" />;
+    if (page === "desinscription" && !params[0]) return <Redirect to="#accueil" />;
+  }
+  if (homeSection === "bientot") return <Redirect to="#accueil" />;
   if (page === "urgence")
     return (
       <PublicEmergencyPage key={route} token={params[0]?.split("?")[0] || ""} />

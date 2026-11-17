@@ -1,3 +1,4 @@
+import { usePublicAvailability } from "../publicAvailability.ts";
 import LanguageMenu from "../ui/LanguageMenu.tsx";
 import Icon from "../ui/Icon.tsx";
 import { useAdminView } from "./AdminViewContext.ts";
@@ -16,6 +17,7 @@ export default function PublicHeader(_props: {
   account?: boolean;
   menuLogin?: boolean;
 }) {
+  const { contactHref } = usePublicAvailability();
   const tr = useText();
   const isAdmin = useAdminView();
   const [open, setOpen] = useState(false);
@@ -116,7 +118,7 @@ export default function PublicHeader(_props: {
               ))}
               {!isAdmin && (
                 <li className="mobile-help-nav">
-                  <a href="#contact" onClick={() => setOpen(false)}>
+                  <a href={contactHref} onClick={() => setOpen(false)}>
                     {tr("Nous contacter")}
                   </a>
                 </li>

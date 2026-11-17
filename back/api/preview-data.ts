@@ -1,3 +1,4 @@
+import { demoAccountsEnabled } from "./preview.ts";
 import { readFileSync } from "node:fs";
 import type { Database } from "../database/types.ts";
 import { transaction } from "../database/connection.ts";
@@ -14,7 +15,7 @@ const fixtures = [
 
 /** Additive, once per filled preview account. Never used by ordinary or empty accounts. */
 export async function seedPreviewData(db: Database) {
-  if (db.previewDemo !== "sample" || process.env.ANIVAYA_TESTING_PREVIEW !== "1") return;
+  if (db.previewDemo !== "sample" || !demoAccountsEnabled()) return;
   if (db.prepare("SELECT name FROM schema_migrations WHERE name=?").get(version)) return;
   const today = localToday();
   const day = (offset: number) => {

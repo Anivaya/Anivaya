@@ -1,3 +1,4 @@
+import { demoAccountsEnabled } from "./preview.ts";
 import {
   randomBytes,
   randomUUID,
@@ -272,7 +273,7 @@ export function authentication(
     );
   }
   function assertEmailAvailable(email: string, except = "") {
-    if (process.env.ANIVAYA_TESTING_PREVIEW === "1" && !db.previewDemo &&
+    if (demoAccountsEnabled() && !db.previewDemo &&
         [...demoAccounts, ...emptyAccounts].some(account => account.email === email))
       throw new ApiError(409, "Cette adresse est réservée à la démonstration.", "email");
     if (

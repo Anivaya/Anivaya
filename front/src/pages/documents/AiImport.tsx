@@ -1,3 +1,4 @@
+import { usePublicAvailability } from "../../shared/publicAvailability.ts";
 import { uiLocale } from "../../shared/i18n/locale.ts";
 import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -64,6 +65,8 @@ export function AiImportButton({
   icon?: boolean;
 }) {
   const tr = useText();
+  const { aiImportAvailable } = usePublicAvailability();
+  if (!aiImportAvailable) return null;
   return (
     <button
       type="button"

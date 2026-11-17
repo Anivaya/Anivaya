@@ -1,3 +1,4 @@
+import { usePublicAvailability } from "../../shared/publicAvailability.ts";
 import { useHomeText } from "../../shared/i18n/HomeLocale.tsx";
 import LanguageMenu from "../../shared/ui/LanguageMenu.tsx";
 import Icon from "../../shared/ui/Icon.tsx";
@@ -15,6 +16,7 @@ export default memo(function LandingContent({
   user?: AuthUser | null;
   onLogout: () => Promise<void>;
 }) {
+  const { legal, emailFormsAvailable, aiImportAvailable, contactHref } = usePublicAvailability();
   const t = useHomeText();
   return (
     <>
@@ -296,7 +298,7 @@ export default memo(function LandingContent({
               </li>
               {!user?.adminRole && (
                 <li className="mobile-help-nav">
-                  <a href="#contact">{t("Nous contacter")}</a>
+                  <a href={contactHref}>{t("Nous contacter")}</a>
                 </li>
               )}
               {!user?.adminRole && (
@@ -339,7 +341,6 @@ export default memo(function LandingContent({
           <section className="hero" aria-labelledby="hero-title">
             <div className="wrap hero__grid">
               <div className="hero__text">
-                <p className="pill">{t("Bêta privée début 2027")}</p>
                 <h1 className="hero__title" id="hero-title">
                   <span>{t("Toute leur vie,")}</span>{" "}
                   <span>{t("à vos côtés.")}</span>
@@ -350,9 +351,9 @@ export default memo(function LandingContent({
                   )}
                 </p>
                 <div className="btn-row">
-                  <a className="btn btn--primary" href="#accueil/inscription">
+                  {emailFormsAvailable && (<a className="btn btn--primary" href="#accueil/inscription">
                     {t("Rejoindre la liste d'attente")}
-                  </a>
+                  </a>)}
                   <a className="btn btn--ghost" href="#accueil/comment">
                     {t("Voir comment ça marche")}
                   </a>
@@ -555,7 +556,7 @@ export default memo(function LandingContent({
                     <h3>{t("Carnet de santé numérique")}</h3>
                     <p>
                       {t(
-                        "Photographiez le carnet papier : les dates de vaccins et de soins vous sont proposées, vous les vérifiez avant tout enregistrement.",
+                        aiImportAvailable ? "Photographiez le carnet papier : les dates de vaccins et de soins vous sont proposées, vous les vérifiez avant tout enregistrement." : "Retrouvez les vaccins, les soins et les documents de votre animal dans son carnet.",
                       )}
                     </p>
                   </div>
@@ -701,10 +702,10 @@ export default memo(function LandingContent({
                   </li>
                   <li>
                     <div>
-                      <h3>{t("Photographiez son carnet")}</h3>
+                      <h3>{t(aiImportAvailable ? "Photographiez son carnet" : "Complétez son carnet")}</h3>
                       <p>
                         {t(
-                          "Anivaya repère les dates de vaccins et de rappels. Rien n'est enregistré tant que vous ne l'avez pas confirmé.",
+                          aiImportAvailable ? "Anivaya repère les dates de vaccins et de rappels. Rien n'est enregistré tant que vous ne l'avez pas confirmé." : "Ajoutez ses vaccins, ses documents et les dates à retenir.",
                         )}
                       </p>
                     </div>
@@ -722,7 +723,7 @@ export default memo(function LandingContent({
                 </ol>
               </div>
 
-              <div
+              {aiImportAvailable ? (<div
                 className="carnet-demo"
                 role="img"
                 aria-label={t(
@@ -778,7 +779,11 @@ export default memo(function LandingContent({
                     height="814"
                   />
                 </div>
-              </div>
+              </div>) : (
+                <div className="phone phone--real">
+                  <img src="/images/home/carnet-milo.jpg" alt={t("Carnet de santé numérique")} width="382" height="814" />
+                </div>
+              )}
             </div>
           </section>
 
@@ -970,7 +975,7 @@ export default memo(function LandingContent({
                   </ul>
                 </div>
               </div>
-              <p className="care__ai">
+              {aiImportAvailable && (<p className="care__ai">
                 <svg className="ic" aria-hidden="true">
                   <use href="#i-scan-text" />
                 </svg>
@@ -979,71 +984,10 @@ export default memo(function LandingContent({
                     "Quand une intelligence artificielle vous aide, par exemple pour lire votre carnet, l'application l'indique clairement et vous demande toujours de confirmer.",
                   )}
                 </span>
-              </p>
+              </p>)}
             </div>
           </section>
 
-          <section
-            className="section"
-            id="bientot"
-            aria-labelledby="roadmap-title"
-          >
-            <div className="wrap">
-              <div className="head">
-                <h2 id="roadmap-title">
-                  {t("Et ensuite, une communauté près de chez vous.")}
-                </h2>
-                <p className="head__lead">
-                  {t(
-                    "Les services de quartier ouvrent zone par zone, quand assez de membres et de professionnels vérifiés y sont présents pour qu'ils soient vraiment utiles.",
-                  )}
-                </p>
-              </div>
-              <ol className="timeline">
-                <li className="milestone is-next">
-                  <p className="milestone__when">{t("Début 2027")}</p>
-                  <h3>{t("Bêta privée")}</h3>
-                  <p>
-                    {t(
-                      "Les premiers foyers de deux zones pilotes testent le dossier, les rappels et l'annuaire.",
-                    )}
-                  </p>
-                </li>
-                <li className="milestone">
-                  <p className="milestone__when">{t("Printemps 2027")}</p>
-                  <h3>{t("Ouverture au public")}</h3>
-                  <p>
-                    {t(
-                      "L'application web s'installe sur votre téléphone. Puis arrivent le Pass Famille, la fiche de garde et les balades de quartier.",
-                    )}
-                  </p>
-                </li>
-                <li className="milestone">
-                  <p className="milestone__when">{t("Fin 2027")}</p>
-                  <h3>{t("Réserver un professionnel")}</h3>
-                  <p>
-                    {t(
-                      "Garde, visites, promenades, éducation et toilettage auprès de prestataires vérifiés, avec paiement sécurisé et garantie. La médaille QR arrive aussi.",
-                    )}
-                  </p>
-                </li>
-                <li className="milestone">
-                  <p className="milestone__when">{t("À partir de 2028")}</p>
-                  <h3>{t("Partout avec vous")}</h3>
-                  <p>
-                    {t(
-                      "Applications iOS et Android, nouvelles villes, orientation vers l'adoption en refuge, lieux et voyages adaptés aux animaux.",
-                    )}
-                  </p>
-                </li>
-              </ol>
-              <p className="note timeline-note">
-                {t(
-                  "Calendrier indicatif. Chaque étape ouvre quand la précédente a fait ses preuves.",
-                )}
-              </p>
-            </div>
-          </section>
 
           <section
             className="section section--mist"
@@ -1080,12 +1024,12 @@ export default memo(function LandingContent({
                       </svg>
                       <span>{t("Carnet numérique et rappels essentiels")}</span>
                     </li>
-                    <li>
+                    {aiImportAvailable && (<li>
                       <svg className="ic" aria-hidden="true">
                         <use href="#i-check" />
                       </svg>
                       <span>{t("Cinq lectures de carnet par mois")}</span>
-                    </li>
+                    </li>)}
                     <li>
                       <svg className="ic" aria-hidden="true">
                         <use href="#i-check" />
@@ -1099,13 +1043,13 @@ export default memo(function LandingContent({
                       <span>{t("Annuaire de proximité")}</span>
                     </li>
                   </ul>
-                  <a
+                  {emailFormsAvailable && (<a
                     className="btn btn--ghost btn--block"
                     href="#accueil/inscription"
                     data-plan="gratuit"
                   >
                     {t("Rejoindre la liste d'attente")}
-                  </a>
+                  </a>)}
                 </article>
                 <article className="plan plan--featured">
                   <h3 className="plan__name">{t("Anivaya+")}</h3>
@@ -1149,13 +1093,13 @@ export default memo(function LandingContent({
                       <span>{t("Souvenirs et grandes étapes")}</span>
                     </li>
                   </ul>
-                  <a
+                  {emailFormsAvailable && (<a
                     className="btn btn--primary btn--block"
                     href="#accueil/inscription"
                     data-plan="plus"
                   >
                     {t("Rejoindre la liste d'attente")}
-                  </a>
+                  </a>)}
                 </article>
                 <article className="plan">
                   <h3 className="plan__name">{t("Famille")}</h3>
@@ -1195,18 +1139,18 @@ export default memo(function LandingContent({
                       <span>{t("Partages temporaires à des proches")}</span>
                     </li>
                   </ul>
-                  <a
+                  {emailFormsAvailable && (<a
                     className="btn btn--ghost btn--block"
                     href="#accueil/inscription"
                     data-plan="famille"
                   >
                     {t("Rejoindre la liste d'attente")}
-                  </a>
+                  </a>)}
                 </article>
               </div>
               <p className="note" style={{ marginTop: "1.5rem" }}>
                 {t(
-                  "Prix TTC indicatifs, susceptibles d'évoluer avant le lancement. Les inscrits à la liste d'attente seront consultés.",
+                  "Prix TTC indicatifs.",
                 )}
               </p>
             </div>
@@ -1322,7 +1266,7 @@ export default memo(function LandingContent({
                     </p>
                   </div>
                 </details>
-                <details>
+                {aiImportAvailable && (<details>
                   <summary>
                     {t("Comment fonctionne la lecture du carnet ?")}
                     <svg className="ic" aria-hidden="true">
@@ -1336,7 +1280,7 @@ export default memo(function LandingContent({
                       )}
                     </p>
                   </div>
-                </details>
+                </details>)}
                 <details>
                   <summary>
                     {t("Où sont stockées mes données ?")}
@@ -1384,21 +1328,6 @@ export default memo(function LandingContent({
                 </details>
                 <details>
                   <summary>
-                    {t("Quand pourrai-je l'utiliser ?")}
-                    <svg className="ic" aria-hidden="true">
-                      <use href="#i-chevron-down" />
-                    </svg>
-                  </summary>
-                  <div>
-                    <p>
-                      {t(
-                        "Une bêta privée ouvre début 2027 dans deux zones pilotes, puis le service s'étend ville par ville. Anivaya fonctionne d'abord comme une application web que vous installez sur l'écran d'accueil de votre téléphone. Des applications iOS et Android suivront.",
-                      )}
-                    </p>
-                  </div>
-                </details>
-                <details>
-                  <summary>
                     {t("Peut-on vendre ou donner un animal sur Anivaya ?")}
                     <svg className="ic" aria-hidden="true">
                       <use href="#i-chevron-down" />
@@ -1427,7 +1356,7 @@ export default memo(function LandingContent({
             </div>
           </section>
 
-          <section
+          {emailFormsAvailable && (<section
             className="section"
             id="inscription"
             aria-labelledby="join-title"
@@ -1479,7 +1408,7 @@ export default memo(function LandingContent({
                 </div>
               </div>
             </div>
-          </section>
+          </section>)}
         </div>
 
         <div
@@ -1490,9 +1419,6 @@ export default memo(function LandingContent({
           <section className="page-hero" aria-labelledby="pro-title">
             <div className="wrap page-hero__grid">
               <div>
-                <p className="pill">
-                  {t("Inscriptions ouvertes dans les zones pilotes")}
-                </p>
                 <h1 id="pro-title">{t("Votre activité, mieux organisée.")}</h1>
                 <p className="page-hero__lead">
                   {t(
@@ -1507,12 +1433,12 @@ export default memo(function LandingContent({
                   <li>{t("Pensions")}</li>
                 </ul>
                 <div className="btn-row">
-                  <a
+                  {emailFormsAvailable && (<a
                     className="btn btn--primary"
                     href="#accueil/pro-inscription"
                   >
                     {t("Inscrire mon activité")}
-                  </a>
+                  </a>)}
                   <a className="btn btn--ghost" href="#accueil/pro-tarifs">
                     {t("Voir les offres")}
                   </a>
@@ -1766,12 +1692,12 @@ export default memo(function LandingContent({
                       <span>{t("Coordonnées et services affichés")}</span>
                     </li>
                   </ul>
-                  <a
+                  {emailFormsAvailable && (<a
                     className="btn btn--ghost btn--block"
                     href="#accueil/pro-inscription"
                   >
                     {t("Inscrire mon activité")}
-                  </a>
+                  </a>)}
                 </article>
                 <article className="plan plan--featured">
                   <h3 className="plan__name">{t("Pro Starter")}</h3>
@@ -1809,12 +1735,12 @@ export default memo(function LandingContent({
                       <span>{t("Encaissements sécurisés")}</span>
                     </li>
                   </ul>
-                  <a
+                  {emailFormsAvailable && (<a
                     className="btn btn--primary btn--block"
                     href="#accueil/pro-inscription"
                   >
                     {t("Inscrire mon activité")}
-                  </a>
+                  </a>)}
                 </article>
                 <article className="plan">
                   <h3 className="plan__name">{t("Pro")}</h3>
@@ -1858,12 +1784,12 @@ export default memo(function LandingContent({
                       <span>{t("Comptes collaborateurs")}</span>
                     </li>
                   </ul>
-                  <a
+                  {emailFormsAvailable && (<a
                     className="btn btn--ghost btn--block"
                     href="#accueil/pro-inscription"
                   >
                     {t("Inscrire mon activité")}
-                  </a>
+                  </a>)}
                 </article>
               </div>
               <p className="note" style={{ marginTop: "1.5rem" }}>
@@ -1874,7 +1800,7 @@ export default memo(function LandingContent({
             </div>
           </section>
 
-          <section
+          {emailFormsAvailable && (<section
             className="section"
             id="pro-inscription"
             aria-labelledby="pro-join-title"
@@ -1920,7 +1846,7 @@ export default memo(function LandingContent({
                 </div>
               </div>
             </div>
-          </section>
+          </section>)}
         </div>
 
         <div
@@ -1941,12 +1867,12 @@ export default memo(function LandingContent({
                   )}
                 </p>
                 <div className="btn-row">
-                  <a
+                  {emailFormsAvailable && (<a
                     className="btn btn--primary"
                     href="#accueil/clinique-inscription"
                   >
                     {t("Devenir clinique pilote")}
-                  </a>
+                  </a>)}
                   <a
                     className="btn btn--ghost"
                     href="#accueil/clinique-independance"
@@ -2152,7 +2078,7 @@ export default memo(function LandingContent({
             </div>
           </section>
 
-          <section
+          {emailFormsAvailable && (<section
             className="section"
             id="clinique-inscription"
             aria-labelledby="clinic-join-title"
@@ -2196,7 +2122,7 @@ export default memo(function LandingContent({
                 </div>
               </div>
             </div>
-          </section>
+          </section>)}
         </div>
 
         <div
@@ -2219,12 +2145,12 @@ export default memo(function LandingContent({
                   )}
                 </p>
                 <div className="btn-row">
-                  <a
+                  {emailFormsAvailable && (<a
                     className="btn btn--primary"
                     href="#accueil/entreprise-contact"
                   >
                     {t("Parler à l'équipe")}
-                  </a>
+                  </a>)}
                   <a
                     className="btn btn--ghost"
                     href="#accueil/entreprise-offre"
@@ -2395,7 +2321,7 @@ export default memo(function LandingContent({
             </div>
           </section>
 
-          <section
+          {emailFormsAvailable && (<section
             className="section section--mist"
             id="entreprise-contact"
             aria-labelledby="biz-join-title"
@@ -2437,134 +2363,20 @@ export default memo(function LandingContent({
                 </div>
               </div>
             </div>
-          </section>
+          </section>)}
         </div>
 
-        <div
+        {legal && (<div
           className="view"
           id="informations-legales"
           data-title="Informations légales, Anivaya"
         >
           <section className="section section--tight-top">
             <div className="wrap legal">
-              <LegalContent>
-              <h1>{t("Informations légales")}</h1>
-              <p className="legal__warn">
-                {t(
-                  "Gabarit en attente de validation. Les champs surlignés sont à compléter par la direction et le conseil juridique avant toute mise en ligne publique.",
-                )}
-              </p>
-
-              <h2 id="mentions-legales">{t("Mentions légales")}</h2>
-              <h3>{t("Éditeur du site")}</h3>
-              <p>
-                <span className="todo">{t("[Raison sociale]")}</span>
-                {t(",")} <span className="todo">{t("[forme juridique]")}</span>
-                {t(" au capital de")}{" "}
-                <span className="todo">{t("[montant]")}</span>
-                {t(" €, immatriculée au RCS de ")}
-                <span className="todo">{t("[ville]")}</span>
-                {t(" sous le numéro")}{" "}
-                <span className="todo">{t("[SIREN]")}</span>
-                {t(". Siège social :")}{" "}
-                <span className="todo">{t("[adresse]")}</span>
-                {t(". Numéro de TVA intracommunautaire : ")}
-                <span className="todo">{t("[numéro]")}</span>
-                {t(".")}
-              </p>
-              <p>
-                {t("Directeur ou directrice de la publication :")}{" "}
-                <span className="todo">{t("[nom]")}</span>
-                {t(". Contact :")}{" "}
-                <a href="mailto:contact@anivaya.fr">
-                  {t("contact@anivaya.fr")}
-                </a>
-                {t(".")}
-              </p>
-              <h3>{t("Hébergement")}</h3>
-              <p>
-                <span className="todo">{t("[Nom de l'hébergeur]")}</span>
-                {t(",")} <span className="todo">{t("[adresse]")}</span>
-                {t(",")} <span className="todo">{t("[téléphone]")}</span>
-                {t(".")}
-              </p>
-              <h3>{t("Propriété intellectuelle")}</h3>
-              <p>
-                {t(
-                  "Le nom Anivaya, le logo et l'ensemble des contenus de ce site sont la propriété de ",
-                )}
-                <span className="todo">{t("[titulaire]")}</span>
-                {t(". Toute reproduction sans autorisation est interdite.")}
-              </p>
-              <h3>{t("Nature du service")}</h3>
-              <p>
-                {t(
-                  "Anivaya est un service d'organisation et d'information générale. Il ne fournit ni diagnostic, ni prescription, ni consultation vétérinaire, et ne remplace pas l'avis d'un vétérinaire.",
-                )}
-              </p>
-
-              <h2 id="confidentialite">{t("Politique de confidentialité")}</h2>
-              <h3>{t("Responsable du traitement")}</h3>
-              <p>
-                <span className="todo">{t("[Raison sociale]")}</span>
-                {t(",")} <span className="todo">{t("[adresse]")}</span>
-                {t(". Délégué à la protection des données :")}{" "}
-                <span className="todo">{t("[nom ou cabinet, e-mail]")}</span>
-                {t(".")}
-              </p>
-              <h3>{t("Données collectées sur ce site")}</h3>
-              <ul>
-                <li>
-                  {t(
-                    "Liste d'attente : adresse e-mail, code postal, profil, prénom et espèces de vos animaux si vous les indiquez.",
-                  )}
-                </li>
-                <li>
-                  {t(
-                    "Professionnels, cliniques et entreprises : nom, organisation, activité, coordonnées professionnelles et message éventuel.",
-                  )}
-                </li>
-              </ul>
-              <h3>{t("Finalités et base légale")}</h3>
-              <p>
-                {t(
-                  "Vous informer du lancement, choisir les zones pilotes, vous consulter sur les fonctions et les prix, et répondre aux demandes de partenariat. Base légale : votre consentement, que vous pouvez retirer à tout moment.",
-                )}
-              </p>
-              <h3>{t("Durée de conservation")}</h3>
-              <p>
-                {t("Jusqu'à votre désinscription, et au plus")}{" "}
-                <span className="todo">{t("[3 ans]")}</span>
-                {t(" après le dernier contact.")}
-              </p>
-              <h3>{t("Destinataires et hébergement")}</h3>
-              <p>
-                {t("L'équipe Anivaya et ses sous-traitants techniques :")}{" "}
-                <span className="todo">{t("[outil d'e-mailing]")}</span>
-                {t(",")} <span className="todo">{t("[hébergeur]")}</span>
-                {t(". Les données sont hébergées dans l'Union européenne.")}
-              </p>
-              <h3>{t("Vos droits")}</h3>
-              <p>
-                {t(
-                  "Vous disposez des droits d'accès, de rectification, d'effacement, d'opposition, de limitation et de portabilité. Écrivez à ",
-                )}
-                <span className="todo">{t("[adresse e-mail du DPO]")}</span>
-                {t(
-                  ". Vous pouvez également introduire une réclamation auprès de la CNIL.",
-                )}
-              </p>
-
-              <h2 id="cookies">{t("Cookies")}</h2>
-              <p>
-                {t(
-                  "La connexion utilise un cookie de session nécessaire au fonctionnement de votre espace. Aucun outil de mesure d’audience n’est ajouté par cette page.",
-                )}
-              </p>
-              </LegalContent>
+              <LegalContent />
             </div>
           </section>
-        </div>
+        </div>)}
       </main>
 
       <PublicFooter />

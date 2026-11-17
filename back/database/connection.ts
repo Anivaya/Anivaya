@@ -1,3 +1,4 @@
+import { demoAccountsEnabled } from "../api/preview.ts";
 import type { Database } from "./types.ts";
 import { DatabaseSync } from "node:sqlite";
 import { mkdirSync, readFileSync } from "node:fs";
@@ -53,7 +54,7 @@ export function openDatabase(
   workspace?: string,
   previewDemo?: Database["previewDemo"],
 ): Database {
-  if (previewDemo && (process.env.ANIVAYA_TESTING_PREVIEW !== "1" || !workspace?.startsWith(`preview-${previewDemo}-`)))
+  if (previewDemo && (!demoAccountsEnabled() || !workspace?.startsWith(`preview-${previewDemo}-`)))
     throw new Error("Demo preview databases require an isolated workspace and testing preview mode.");
   if (process.env.DATABASE_URL && !previewDemo) demo = false;
   if (emptyStateMode(empty, !!previewDemo)) demo = false;

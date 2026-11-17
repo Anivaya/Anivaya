@@ -1,3 +1,4 @@
+import { limitedLaunch, aiImportAvailable } from "./preview.ts";
 import * as z from "zod/v4";
 import type { Input } from "../database/types.ts";
 import type { ExtractedValues } from "../../shared/models.ts";
@@ -80,6 +81,7 @@ ${JSON.stringify(SCHEMA)}`;
  * OPENROUTER_API_KEY, le modèle de OPENROUTER_MODEL ; rien n’est enregistré ici.
  */
 export async function extractDocument(data: Input): Promise<ExtractedValues> {
+  if (limitedLaunch() && !aiImportAvailable()) throw new ApiError(503, "L’import par IA est indisponible.");
   const content = documentFile(data.type, data.content);
   const type = data.type as "application/pdf" | "image/png" | "image/jpeg";
   const key = process.env.OPENROUTER_API_KEY?.trim();
