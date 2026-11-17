@@ -45,7 +45,7 @@ export default function AdminWorkspace({
 }) {
   const tr = useText();
   const { testingPreview } = usePublicAvailability();
-  const readOnly = user.demo || testingPreview;
+  const readOnly = testingPreview && !user.demo;
   const [path, query = ""] = route.split("?"),
     [, rawPage = "dashboard", section] = path.split("/");
   const page =

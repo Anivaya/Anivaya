@@ -30,6 +30,7 @@ test("Preview demos: four logins, isolated admins, clean registrations and resta
     rmSync(root, { recursive: true, force: true });
   });
   const cookies = new Map<string, string>();
+  const drafts = new Map<string, AdminRecord>();
   let registeredId = "";
   for (let restart = 0; restart < 2; restart++) {
     const db = openDatabase(join(root, "central.sqlite"));
@@ -112,10 +113,37 @@ test("Preview demos: four logins, isolated admins, clean registrations and resta
           await read("/admin/overview", cookie);
           await read("/admin/analytics", cookie);
           for (const resource of adminResources) await read(`/admin/${resource}`, cookie);
-          assert.equal((await request("/admin/users", "POST", {}, cookie)).status, 503);
+          if (!restart) {
+            const created = await request("/admin/announcements", "POST", {
+              name: `Brouillon ${id}`, audience: "Tous", message: "Contenu fictif",
+            }, cookie);
+            assert.equal(created.status, 201, await created.clone().text());
+            const draft = await created.json() as AdminRecord;
+            const edited = await request(`/admin/announcements/${draft.id}/actions`, "POST", {
+              action: "save", version: draft.version, note: "Vérification administrative",
+              name: `Brouillon modifié ${id}`, audience: "Tous", message: "Modification persistante",
+            }, cookie);
+            assert.equal(edited.status, 200, await edited.clone().text());
+            drafts.set(id, await edited.json() as AdminRecord);
+          }
+          const savedDraft = await read<AdminRecord>(`/admin/announcements/${drafts.get(id)!.id}`, cookie);
+          assert.equal(savedDraft.name, `Brouillon modifié ${id}`);
+          assert.equal(savedDraft.message, "Modification persistante");
           if (isEmpty) assert.equal((await read<AdminList>("/admin/users", cookie)).items.length, 2);
-        } else assert.equal((await request("/admin/overview", "GET", undefined, cookie)).status, 403);
+        } else {
+          assert.equal((await request("/admin/overview", "GET", undefined, cookie)).status, 403);
+          assert.equal((await request("/admin/announcements", "POST", {
+            name: "Interdit", audience: "Tous", message: "Interdit",
+          }, cookie)).status, 403);
+        }
       }
+      for (const [owner, other] of [["demo-admin", "empty-admin"], ["empty-admin", "demo-admin"]]) {
+        const draft = drafts.get(owner)!;
+        assert.equal((await request(`/admin/announcements/${draft.id}/actions`, "POST", {
+          action: "delete", version: draft.version, note: "Isolation des espaces",
+        }, cookies.get(other))).status, 404);
+      }
+      assert.equal(db.prepare("SELECT count(*) AS n FROM admin_records WHERE resource='announcements'").get()!.n, 0);
       if (!restart) {
         const reporterLogin = await request("/auth/login", "POST", { email: "test@gmail.com", password: DEMO_PASSWORD });
         assert.equal(reporterLogin.status, 200);
@@ -184,6 +212,14 @@ test("Preview demos: four logins, isolated admins, clean registrations and resta
           }
           assert.deepEqual((await read<DirectoryData>("/directory", cookies.get("registered")!)).professionals, []);
           assert.equal((await request("/public/contact", "POST", {})).status, 503);
+          for (const id of ["demo-admin", "empty-admin"]) {
+            const draft = drafts.get(id)!;
+            assert.equal((await request(`/admin/announcements/${draft.id}/actions`, "POST", {
+              action: "delete", version: draft.version, note: "Nettoyage du brouillon de test",
+            }, cookies.get(id))).status, 204);
+            assert.equal((await request(`/admin/announcements/${draft.id}`, "GET", undefined, cookies.get(id))).status, 404);
+            assert.equal((await request("/account/password-reset", "POST", {}, cookies.get(id))).status, 503);
+          }
         } finally {
           delete process.env.ANIVAYA_LIMITED_LAUNCH;
           delete process.env.ANIVAYA_DEMO_ACCOUNTS;

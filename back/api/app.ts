@@ -953,8 +953,10 @@ export function createApi(
       checkOrigin(request);
       await Promise.all([normal.ready, ...sandboxes.map(service => service.ready)]);
       const url = new URL(request.url || "/", "http://localhost");
+      // Seule une session serveur peut sélectionner un espace de démonstration.
+      let selected = sandboxes.find(service => service.auth?.current(request)) || normal;
       if (testingPreview()) response.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
-      if (previewBlocksEmailRoute(url.pathname, request.method))
+      if (previewBlocksEmailRoute(url.pathname, request.method, Boolean(selected.db.previewDemo)))
         throw new ApiError(503, "Les e-mails, formulaires de contact et modifications administratives sont actuellement indisponibles.");
       if (url.pathname === "/api/health") db.prepare("SELECT 1 AS ok").get();
       if (url.pathname === "/api/internal/reminders") {
@@ -976,7 +978,6 @@ export function createApi(
           limits.consume("contact-recipient", value.email.trim().toLowerCase(), 5, 60 * 60_000);
         return value;
       }));
-      let selected = sandboxes.find(service => service.auth?.current(request)) || normal;
       if (
         request.method === "POST" &&
         url.pathname === "/api/auth/login"
@@ -998,8 +999,6 @@ export function createApi(
       )?.[1];
       if (publicToken)
         selected = sandboxes.find(service => service.auth?.publicOwner(publicToken)) || normal;
-      if (selected.db.previewDemo && url.pathname.startsWith("/api/admin/") && !["GET", "HEAD"].includes(request.method || ""))
-        throw new ApiError(503, "Cette action est indisponible sur un compte de démonstration.");
       const { auth, admin } = selected;
       const context = {
         publicSite,

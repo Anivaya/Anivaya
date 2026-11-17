@@ -11,10 +11,10 @@ export function aiImportAvailable() {
     (process.env.NODE_ENV !== "production" || testingPreview() || (model && !model.endsWith(":free"))));
 }
 
-export function previewBlocksEmailRoute(path: string, method: string | undefined) {
+export function previewBlocksEmailRoute(path: string, method: string | undefined, demoWorkspace = false) {
   if (emailFormsAvailable()) return false;
   return path === "/api/internal/reminders" ||
     /\/password-reset(?:\/|$)/.test(path) ||
     (method !== "GET" && (/^\/api\/public\/(contact|leads|unsubscribe-link)$/.test(path) ||
-      (testingPreview() && /^\/api\/admin\//.test(path))));
+      (testingPreview() && !demoWorkspace && /^\/api\/admin\//.test(path))));
 }
