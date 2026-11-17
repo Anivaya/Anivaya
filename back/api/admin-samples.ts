@@ -3,6 +3,7 @@ import type { Database } from "../database/types.ts";
 import type { Account, Authentication } from "./auth.ts";
 import type { AdminRecord, AdminResource } from "../../shared/admin.ts";
 import { transaction } from "../database/connection.ts";
+import { compactDemoAllows, compactDemoRecordAllows } from "./compact-demo.ts";
 
 const day = 86400000;
 const firstNames = [
@@ -219,12 +220,20 @@ export function seedSamples({
   admin,
   ago,
   entry,
-  insert,
+  insert: insertRecord,
   update,
-  audit,
+  audit: auditRecord,
 }: SeedContext) {
+  const insert: SeedContext["insert"] = (kind, data, id, at) => {
+    if (compactDemoRecordAllows(db, data)) return insertRecord(kind, data, id, at);
+  };
+  const audit: SeedContext["audit"] = (days, kind, target, action, note) => {
+    if ((kind !== "users" && kind !== "team") || compactDemoAllows(db, target))
+      auditRecord(days, kind, target, action, note);
+  };
   const now = Date.now();
   for (const household of sampleHouseholds) {
+    if (!compactDemoAllows(db, household.id)) continue;
     if (db.prepare("SELECT id FROM accounts WHERE id=?").get(household.id))
       continue;
     const signup = now - household.age * day - (household.index % 7) * 3600000;
@@ -249,13 +258,13 @@ export function seedSamples({
   const person = (id: string) =>
     sampleHouseholds.find((h) => h.id === id)!.name;
   // Comptes : un compte suspendu, un compte professionnel, un profil public masqué.
-  db.prepare(
+  if (compactDemoAllows(db, "sample-14")) db.prepare(
     "INSERT OR IGNORE INTO account_controls(account,status,version) VALUES ('sample-14','Suspendu',2)",
   ).run();
-  db.prepare(
+  if (compactDemoAllows(db, "sample-08")) db.prepare(
     "INSERT OR IGNORE INTO account_controls(account,status,version,account_type) VALUES ('sample-08','Actif',2,'Professionnel')",
   ).run();
-  db.prepare(
+  if (compactDemoAllows(db, "sample-19")) db.prepare(
     "INSERT OR IGNORE INTO account_controls(account,status,version,public_visibility) VALUES ('sample-19','Actif',2,'Masqué')",
   ).run();
   // Équipe : une personne au support, une à la modération, une invitation expirée.
@@ -696,7 +705,7 @@ export function seedSamples({
         "Les rappels affichent désormais la prochaine échéance directement sur la fiche de chaque animal.",
       audience: "Particuliers",
       status: "Publié",
-      recipients: sampleHouseholds.length,
+      recipients: sampleHouseholds.filter(h => compactDemoAllows(db, h.id)).length,
       history: [entry(13, "publish", "Diffusion aux particuliers.")],
     },
     "announce-rappels",

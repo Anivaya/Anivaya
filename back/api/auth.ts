@@ -29,6 +29,7 @@ import { appUrl, excludeFromMail, sendMail } from "./mail.ts";
 import { emptyStateMode } from "../database/empty-state.ts";
 import { dropPostgresWorkspace } from "../database/postgres.ts";
 import { seedPreviewData } from "./preview-data.ts";
+import { compactDemoAllows } from "./compact-demo.ts";
 
 const scrypt = promisify(derive);
 /** Durée de validité d’un lien de réinitialisation du mot de passe. */
@@ -89,7 +90,8 @@ export function authentication(
 ) {
   emptyStateMode(empty, !!db.previewDemo);
   const production = process.env.NODE_ENV === "production" && !db.previewDemo;
-  const initialAccounts = production ? [] : empty ? emptyAccounts : demoAccounts;
+  const initialAccounts = (production ? [] : empty ? emptyAccounts : demoAccounts)
+    .filter(account => compactDemoAllows(db, account.id));
   const adminAccount = empty ? "empty-admin" : DEMO_ADMIN.id;
   const SESSION_COOKIE =
     cookieName || (empty ? "anivaya_empty_session" : "anivaya_session");
@@ -425,7 +427,7 @@ export function authentication(
     dropWorkspace(account);
     db.prepare("DELETE FROM public_sheets WHERE account=?").run(account.id);
     db.prepare("DELETE FROM sessions WHERE account=?").run(account.id);
-    if (isDemo(account)) prepareDemoWorkspace(account);
+    if (initialAccounts.some(demo => demo.id === account.id)) prepareDemoWorkspace(account);
     else db.prepare("DELETE FROM accounts WHERE id=?").run(account.id);
   }
   return {

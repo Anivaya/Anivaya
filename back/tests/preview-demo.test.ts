@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { once } from "node:events";
-import { mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve, sep } from "node:path";
 import { openDatabase } from "../database/connection.ts";
@@ -144,23 +144,35 @@ test("Preview demos: four logins, isolated admins, clean registrations and resta
         }, cookies.get(other))).status, 404);
       }
       assert.equal(db.prepare("SELECT count(*) AS n FROM admin_records WHERE resource='announcements'").get()!.n, 0);
+      assert.deepEqual(demo.prepare("SELECT id FROM accounts ORDER BY id").all().map(a => a.id),
+        ["demo", "demo-admin", "sample-01", "sample-02", "sample-06"]);
+      assert.equal((await request("/auth/login", "POST", { email: "test2@gmail.com", password: DEMO_PASSWORD })).status, 401);
+      assert.equal((await request("/auth/login", "POST", { email: "test3@gmail.com", password: DEMO_PASSWORD })).status, 401);
+      if (restart) {
+        for (const id of ["demo-2", "sample-24"]) {
+          assert.equal(existsSync(join(root, "sample", id + ".sqlite")), false);
+          assert.equal(demo.prepare("SELECT id FROM social_people WHERE id=?").get(id), undefined);
+          assert.equal(demo.prepare("SELECT id FROM admin_records WHERE id=?").get("retired-" + id), undefined);
+          assert.equal(demo.prepare("SELECT token FROM sessions WHERE account=?").get(id), undefined);
+        }
+      }
       if (!restart) {
         const reporterLogin = await request("/auth/login", "POST", { email: "test@gmail.com", password: DEMO_PASSWORD });
         assert.equal(reporterLogin.status, 200);
         cookies.set("demo", reporterLogin.headers.get("set-cookie")!.split(";")[0]);
         const reportResponse = await request("/social/reports", "POST", {
-          type: "person", target: "demo-2", reason: "Autre",
+          type: "person", target: "sample-02", reason: "Autre",
         }, cookies.get("demo"));
         assert.equal(reportResponse.status, 204, await reportResponse.text());
         const report = demo.prepare("SELECT id FROM social_reports WHERE from_id='demo'").get<{ id: string }>()!;
         const detail = await read<AdminRecord>(`/admin/reports/social-report-${report.id}`, cookies.get("demo-admin")!);
         assert.equal(detail.account, "demo");
-        assert.equal(detail.target, "demo-2");
+        assert.equal(detail.target, "sample-02");
         // Un dossier traité ne doit pas être rouvert au redémarrage.
         demo.prepare("UPDATE admin_records SET status='Classé sans suite' WHERE id=?").run(`social-report-${report.id}`);
         // Ancien signalement sans dossier admin, créé avant ce correctif.
         demo.prepare("INSERT INTO social_reports VALUES (?,?,?,?,?,?)")
-          .run("legacy-camille", "demo-2", "person", "demo", "Autre", "2026-11-10T10:00:00.000Z");
+          .run("legacy-camille", "sample-02", "person", "demo", "Autre", "2026-11-10T10:00:00.000Z");
         const registration = await request("/auth/register", "POST", {
           email: "preview-owner@example.net", name: "Preview Owner", password: DEMO_PASSWORD, confirmPassword: DEMO_PASSWORD,
         }, cookies.get("demo-admin"));
@@ -170,7 +182,7 @@ test("Preview demos: four logins, isolated admins, clean registrations and resta
       }
       if (restart) {
         const recovered = await read<AdminRecord>("/admin/reports/social-report-legacy-camille", cookies.get("demo-admin")!);
-        assert.equal(recovered.account, "demo-2");
+        assert.equal(recovered.account, "sample-02");
         assert.equal(recovered.status, "À traiter");
         const linked = demo.prepare("SELECT status FROM admin_records WHERE id LIKE 'social-report-%'").all<{ status: string }>();
         assert.deepEqual(linked.map(r => r.status).sort(), ["Classé sans suite", "À traiter"].sort());
@@ -239,6 +251,18 @@ test("Preview demos: four logins, isolated admins, clean registrations and resta
       assert.equal(db.prepare("SELECT count(*) AS n FROM animals").get()!.n, 0);
       assert.equal((await request("/auth/login", "POST", { email: "admin@anivaya.fr", password: "incorrect" })).status, 401);
       assert.equal((await request("/auth/password-reset", "POST", {})).status, 503);
+      if (!restart) {
+        // Simule une installation antérieure : la migration doit aussi effacer les espaces privés.
+        for (const [id, email] of [["demo-2", "test2@gmail.com"], ["sample-24", "theo.gauthier@foyers.example"]]) {
+          demo.prepare("INSERT INTO accounts(id,email,password,workspace) SELECT ?,?,password,? FROM accounts WHERE id='demo'").run(id, email, id);
+          demo.prepare("INSERT INTO sessions(token,account,expires) VALUES (?,?,?)").run(id, id, Date.now() + 60_000);
+          demo.prepare("INSERT INTO social_people VALUES (?,?,?,?)").run(id, "Ancien exemple", "", "");
+          demo.prepare("INSERT INTO admin_records(id,resource,name,status,data,created_at,updated_at) VALUES (?,'tickets','Ancien dossier','Ouvert',?,?,?)")
+            .run("retired-" + id, JSON.stringify({ account: id }), new Date().toISOString(), new Date().toISOString());
+          const own = openDatabase(join(root, "sample", id + ".sqlite"), false, false, "preview-sample-" + id, "sample");
+          own.close();
+        }
+      }
     } finally {
       await new Promise<void>(r => server.close(() => r()));
       db.close(); demo.close(); empty.close();

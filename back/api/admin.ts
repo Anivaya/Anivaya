@@ -29,6 +29,7 @@ import type { Household } from "./admin-analytics.ts";
 import { sampleOrigin, seedSamples } from "./admin-samples.ts";
 import { emptyStateMode } from "../database/empty-state.ts";
 import { appUrl, sendMail } from "./mail.ts";
+import { compactDemoRecordAllows } from "./compact-demo.ts";
 
 interface Row {
   id: string;
@@ -474,6 +475,9 @@ export function adminService(db: Database, auth: Authentication, empty = emptySt
    * rattachés aux comptes de démonstration. Ignoré quand le compte admin n’existe pas.
    */
   function seedDemo() {
+    const insertDemo = (...args: Parameters<typeof insert>) => {
+      if (compactDemoRecordAllows(db, args[1])) return insert(...args);
+    };
     const tools = demoTools();
     if (!tools) return;
     const { accounts, admin, ago, entry, audit, update } = tools;
@@ -595,7 +599,7 @@ export function adminService(db: Database, auth: Authentication, empty = emptySt
     audit(6, "pros", "tilleuls", "save : Clinique des Tilleuls", "Validé");
     audit(3, "pros", "bulle", "save : Bulle de poils", "À corriger");
     // Signalements : un à traiter sur l’annuaire, un urgent sur une fiche publique, un classé.
-    insert(
+    insertDemo(
       "reports",
       {
         name: "Coordonnées incorrectes dans l’annuaire",
@@ -613,7 +617,7 @@ export function adminService(db: Database, auth: Authentication, empty = emptySt
       "report-annuaire",
       ago(0, 20),
     );
-    insert(
+    insertDemo(
       "reports",
       {
         name: "Information inappropriée sur une fiche publique",
@@ -631,7 +635,7 @@ export function adminService(db: Database, auth: Authentication, empty = emptySt
       "report-fiche",
       ago(1, 6),
     );
-    insert(
+    insertDemo(
       "reports",
       {
         name: "Horaires différents de ceux affichés",
@@ -657,7 +661,7 @@ export function adminService(db: Database, auth: Authentication, empty = emptySt
       ago(8),
     );
     update("reports", "report-horaires", {}, ago(7, 20));
-    insert(
+    insertDemo(
       "appeals",
       {
         name: "Recours DEC-ANNUAIRE-0003",
@@ -675,7 +679,7 @@ export function adminService(db: Database, auth: Authentication, empty = emptySt
       ago(2, 4),
     );
     // Assistance : une demande ouverte, une résolue ; imports et retour associé.
-    insert(
+    insertDemo(
       "tickets",
       {
         name: "Document inaccessible",
@@ -698,7 +702,7 @@ export function adminService(db: Database, auth: Authentication, empty = emptySt
       "ticket-document",
       ago(1, 2),
     );
-    insert(
+    insertDemo(
       "tickets",
       {
         name: "Question sur un partage",
@@ -726,7 +730,7 @@ export function adminService(db: Database, auth: Authentication, empty = emptySt
       ago(5),
     );
     update("tickets", "ticket-partage", {}, ago(4));
-    insert(
+    insertDemo(
       "imports",
       {
         name: "Carnet de vaccination — photo",
@@ -747,7 +751,7 @@ export function adminService(db: Database, auth: Authentication, empty = emptySt
       "import-vaccins",
       ago(2, 3),
     );
-    insert(
+    insertDemo(
       "imports",
       {
         name: "Compte rendu de consultation",
@@ -762,7 +766,7 @@ export function adminService(db: Database, auth: Authentication, empty = emptySt
       "import-consultation",
       ago(0, 5),
     );
-    insert(
+    insertDemo(
       "imports",
       {
         name: "Certificat d’identification",
@@ -777,7 +781,7 @@ export function adminService(db: Database, auth: Authentication, empty = emptySt
       "import-exemple",
       ago(9),
     );
-    insert(
+    insertDemo(
       "feedback",
       {
         name: "Date à corriger",
@@ -794,7 +798,7 @@ export function adminService(db: Database, auth: Authentication, empty = emptySt
       ago(1, 8),
     );
     // Publications : une annonce diffusée, un brouillon ; un guide publié, un à relire.
-    insert(
+    insertDemo(
       "announcements",
       {
         name: "Maintenance prévue dimanche matin",
@@ -808,7 +812,7 @@ export function adminService(db: Database, auth: Authentication, empty = emptySt
       "announce-maintenance",
       ago(4),
     );
-    insert(
+    insertDemo(
       "announcements",
       {
         name: "De nouveaux guides sont disponibles",
@@ -821,7 +825,7 @@ export function adminService(db: Database, auth: Authentication, empty = emptySt
       "announce-guides",
       ago(0, 2),
     );
-    insert(
+    insertDemo(
       "library",
       {
         name: "Préparer un relais de garde",
@@ -852,7 +856,7 @@ export function adminService(db: Database, auth: Authentication, empty = emptySt
       ago(12),
     );
     update("library", "guide-relais", {}, ago(9));
-    insert(
+    insertDemo(
       "library",
       {
         name: "Comprendre le calendrier vaccinal",
@@ -883,7 +887,7 @@ export function adminService(db: Database, auth: Authentication, empty = emptySt
       new Date(Date.parse(ago(2)) + INVITATION_DAYS * 86400000).toISOString(),
     );
     if (accounts["demo-3"])
-      insert(
+      insertDemo(
         "deletions",
         {
           name: "Demande de test3",
@@ -897,7 +901,7 @@ export function adminService(db: Database, auth: Authentication, empty = emptySt
         "deletion-demo-3",
         ago(0, 30),
       );
-    insert(
+    insertDemo(
       "security",
       {
         name: "Tentatives de connexion répétées",

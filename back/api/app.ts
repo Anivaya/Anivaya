@@ -12,6 +12,7 @@ import type { AdminService } from "./admin.ts";
 import { analytics } from "./admin-analytics.ts";
 import { exportAccount } from "./export.ts";
 import { socialService } from "./social.ts";
+import { pruneCompactDemo } from "./compact-demo.ts";
 import type { SocialService } from "./social.ts";
 import { directoryRepository } from "./directory.ts";
 import { prepareBookingStore, migrateBookings } from "./booking-store.ts";
@@ -884,7 +885,10 @@ export function createApi(
     const admin = auth && adminService(database, auth, empty);
     admin?.syncSocialReports();
     if (auth) prepareBookingStore(database);
-    const ready = auth?.ready.then(() => migrateBookings(database, auth));
+    const ready = auth?.ready.then(() => {
+      if (social) pruneCompactDemo(database, auth, social);
+      return migrateBookings(database, auth);
+    });
     // Attach immediately to avoid an unhandled rejection before the first request.
     void ready?.catch(error => console.error("Initialisation des réservations impossible :", error));
     const access = auth && sharedAccess(database, auth);

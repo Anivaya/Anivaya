@@ -278,13 +278,16 @@ export function socialService(db: Database, hooks: Hooks, empty = emptyStateMode
 
   // --- Exemples (mêmes contenus que la maquette) --------------------------
   function seed() {
-    const [a, b, c] = ["demo", "demo-2", "demo-3"];
+    const compact = db.previewDemo === "sample";
+    const [a, b, c, d, e] = compact
+      ? ["demo", "sample-02", "sample-06", "sample-01", "demo-admin"]
+      : ["demo", "demo-2", "demo-3", "claire-demo", "samir-demo"];
     const people: [string, string, string, string][] = [
       [a, "test", "Paris", "Nala et Milo"],
-      [b, "test2", "Paris", "Oslo"],
-      [c, "test3", "Lyon", "Luna"],
-      ["claire-demo", "Claire", "Paris", "Rio"],
-      ["samir-demo", "Samir", "Lyon", "Plume"],
+      [b, compact ? "Julien Moreau" : "test2", "Paris", "Oslo"],
+      [c, compact ? "Hugo Fournier" : "test3", "Lyon", "Luna"],
+      [d, compact ? "Claire Dubois" : "Claire", "Paris", "Rio"],
+      [e, compact ? "admin" : "Samir", "Lyon", "Plume"],
     ];
     for (const p of people)
       db.prepare("INSERT OR IGNORE INTO social_people VALUES (?,?,?,?)").run(
@@ -309,7 +312,7 @@ export function socialService(db: Database, hooks: Hooks, empty = emptyStateMode
         "Des promenades tranquilles au bord du canal et des voisins avec qui les partager. Tous les rythmes sont les bienvenus.",
         b,
         "gold",
-        [a, b, c, "claire-demo"],
+        [a, b, c, d],
         [
           [
             b,
@@ -332,7 +335,7 @@ export function socialService(db: Database, hooks: Hooks, empty = emptyStateMode
         "Conseils du quotidien, jeux et entraide pour nos chats. Un endroit pour échanger ses petites découvertes.",
         c,
         "blue",
-        [b, c, "claire-demo"],
+        [b, c, d],
         [[c, "Quel jeu plaît le plus à votre chat en ce moment ?", 100]],
       ],
       [
@@ -341,12 +344,12 @@ export function socialService(db: Database, hooks: Hooks, empty = emptyStateMode
         "Lyon",
         "Balades",
         "Retrouvons-nous pour découvrir les chemins autour de Lyon, avec de l’eau, une laisse et de la bonne humeur.",
-        "samir-demo",
+        e,
         "sage",
-        [c, "samir-demo"],
+        [c, e],
         [
           [
-            "samir-demo",
+            e,
             "La prochaine balade se prépare. Des idées de parcours ?",
             60,
           ],
@@ -437,9 +440,9 @@ export function socialService(db: Database, hooks: Hooks, empty = emptyStateMode
         10,
         "Notre précédente sortie en petit groupe.",
         "lyon",
-        "samir-demo",
-        [c, "samir-demo"],
-        [["samir-demo", "Merci à tous pour cette belle promenade !", 8000]],
+        e,
+        [c, e],
+        [[e, "Merci à tous pour cette belle promenade !", 8000]],
       ],
     ];
     for (const [
