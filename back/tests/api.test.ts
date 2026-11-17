@@ -134,7 +134,7 @@ test("API : données, validation, fichiers et persistance SQLite", async (t) => 
   const content = Buffer.from("%PDF-1.4\n% test Anivaya\n%%EOF");
   const doc = (await (
     await request("/documents", "POST", {
-      name: "test.pdf",
+      name: "Consultation QA",
       animal: pet.id,
       type: "application/pdf",
       content: content.toString("base64"),
@@ -144,12 +144,14 @@ test("API : données, validation, fichiers et persistance SQLite", async (t) => 
   assert.equal(doc.content, undefined);
   const filePreview = await request(`/documents/${doc.id}/file?preview=1`);
   assert.match(filePreview.headers.get("content-disposition")!, /^inline;/);
-  assert.match(filePreview.headers.get("content-disposition")!, /\.pdf$/);
+  assert.match(filePreview.headers.get("content-disposition")!, /Consultation%20QA\.pdf$/);
   assert.equal(filePreview.headers.get("content-type"), "application/pdf");
   assert.deepEqual(Buffer.from(await filePreview.arrayBuffer()), content);
+  const download = await request(`/documents/${doc.id}/file`);
+  assert.match(download.headers.get("content-disposition")!, /^attachment;.*Consultation%20QA\.pdf$/);
   assert.deepEqual(
     Buffer.from(
-      await (await request(`/documents/${doc.id}/file`)).arrayBuffer(),
+      await download.arrayBuffer(),
     ),
     content,
   );
