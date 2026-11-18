@@ -1,5 +1,6 @@
-/** Sur tous les écrans, seule la barre du défilement principal apparaît pendant le geste. */
+/** Sur ordinateur, seule la barre du défilement principal apparaît pendant le geste. */
 export function startResponsiveScrollbars() {
+  const hiddenScrollbars = window.matchMedia("(max-width: 1024px), (hover: none) and (pointer: coarse)");
   const active = new Map<HTMLElement, number>();
   const className = "page-is-scrolling";
 
@@ -21,6 +22,7 @@ export function startResponsiveScrollbars() {
       : null;
   }
   function onScroll(event: Event) {
+    if (hiddenScrollbars.matches) return;
     const element = pageScroller(event);
     if (!element) return;
     window.clearTimeout(active.get(element));
@@ -37,11 +39,13 @@ export function startResponsiveScrollbars() {
   document.addEventListener("scrollend", onScrollEnd, { capture: true, passive: true });
   window.addEventListener("hashchange", reset);
   window.addEventListener("resize", reset);
+  hiddenScrollbars.addEventListener("change", reset);
   return () => {
     reset();
     document.removeEventListener("scroll", onScroll, true);
     document.removeEventListener("scrollend", onScrollEnd, true);
     window.removeEventListener("hashchange", reset);
     window.removeEventListener("resize", reset);
+    hiddenScrollbars.removeEventListener("change", reset);
   };
 }

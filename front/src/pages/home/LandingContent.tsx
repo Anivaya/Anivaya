@@ -781,7 +781,9 @@ export default memo(function LandingContent({
                 </div>
               </div>) : (
                 <div className="phone phone--real">
-                  <img src="/images/home/carnet-milo.jpg" alt={t("Carnet de santé numérique")} width="382" height="814" />
+                  <div className="phone__screen">
+                    <img className="app-capture" src="/images/home/carnet-milo.jpg" alt={t("Carnet de santé numérique")} width="390" height="844" />
+                  </div>
                 </div>
               )}
             </div>

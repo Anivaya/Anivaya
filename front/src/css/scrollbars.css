@@ -50,3 +50,19 @@
     --page-scrollbar-thumb: CanvasText;
   }
 }
+
+/* Mobile et tablette : aucune barre, y compris pendant le défilement tactile.
+   Les débordements restent inchangés pour conserver le défilement et le clavier. */
+@media (max-width: 1024px), (hover: none) and (pointer: coarse) {
+  :root,
+  :root [data-page-scroll] {
+    scrollbar-width: none !important;
+    scrollbar-gutter: auto !important;
+  }
+  :root::-webkit-scrollbar,
+  :root [data-page-scroll]::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+}

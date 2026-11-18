@@ -2852,6 +2852,7 @@
   aspect-ratio: 300 / 644;
 }
 .landing-v2 .app-capture {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
