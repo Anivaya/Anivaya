@@ -1,3 +1,4 @@
+import TabScroller from "../../shared/ui/TabScroller.tsx";
 import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import EmptyState from "../../shared/ui/EmptyState.tsx";
 import type { PageProps, Actions, Animal, Person } from "../../shared/types.ts";
@@ -40,7 +41,7 @@ export default function SharingPage({
           actions.openDialog("share-documents", { animal: animal || undefined })
         }
       />
-      <nav className="page-tabs" aria-label={tr("Sections du partage")}>
+      <TabScroller aria-label={tr("Sections du partage")}>
         {[
           ["partages", "Documents partagés"],
           ["recus", tr("Partage avec moi") + (pending ? ` (${pending})` : "")],
@@ -59,7 +60,7 @@ export default function SharingPage({
             {tr(label)}
           </a>
         ))}
-      </nav>
+      </TabScroller>
       {receivedTab ? (
         <>
           {hasContent && (

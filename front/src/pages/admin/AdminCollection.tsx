@@ -16,6 +16,7 @@ import { adminApi } from "../../shared/services/admin.ts";
 import { errorMessage } from "../../shared/types.ts";
 import AdminDialog from "./AdminDialog.tsx";
 import AdminIconButton from "./AdminIconButton.tsx";
+import Icon from "../../shared/ui/Icon.tsx";
 import { useAdminReadOnly } from "./AdminReadOnly.ts";
 import {
   actionIcon,
@@ -111,6 +112,8 @@ export default function AdminCollection({
   const requestKey = `${resource}|${query}|${retry}`;
   const loading = result?.key !== requestKey;
   const data = result?.data;
+  const initialLoading = loading && !(resource === "users" && data);
+  const activityLabel = resource === "users" ? "Activité" : "Dernière activité";
   const detailLabel = detailLabels[resource] || "Informations";
   const error = exportError || (!loading ? result?.error : "");
   useEffect(() => {
@@ -191,12 +194,12 @@ export default function AdminCollection({
       params.get("category") ||
       params.get("scope"),
   );
-  const emptyContent = !loading && !error && data?.items.length === 0;
+  const emptyContent = !initialLoading && !error && data?.items.length === 0;
   const hasResults = !loading && !!data?.items.length;
   const titleColumn =
     (
       {
-        users: "Compte",
+        users: "Comptes",
         deletions: "Compte",
         reports: "Signalement",
         history: "Historique",
@@ -218,6 +221,20 @@ export default function AdminCollection({
           ? "asc"
           : "desc"
         : "none";
+    const sortLabel = `${tr(label)}: ${tr(state === "none" ? "trier par ordre croissant" : state === "asc" ? "trier par ordre décroissant" : "rétablir l’ordre normal")}`;
+    const sortIcon = state === "asc" ? "up" : state === "desc" ? "down" : "sort";
+    function toggleSort() {
+      const next = new URLSearchParams(query);
+      next.delete("page");
+      if (state === "desc") {
+        next.delete("sort");
+        next.delete("direction");
+      } else {
+        next.set("sort", key);
+        next.set("direction", state === "none" ? "asc" : "desc");
+      }
+      onQuery(next.toString());
+    }
     return (
       <th
         scope="col"
@@ -229,25 +246,19 @@ export default function AdminCollection({
               : "none"
         }
       >
-        <span className="admin-sort-heading">
+        {resource === "users" ? (
+          <button type="button" className="admin-sort-button" aria-label={sortLabel} onClick={toggleSort}>
+            <span>{tr(label)}</span>
+            <Icon name={sortIcon} />
+          </button>
+        ) : <span className="admin-sort-heading">
           {tr(label)}
           <AdminIconButton
-            icon={state === "asc" ? "up" : state === "desc" ? "down" : "sort"}
-            label={`${tr(label)}: ${tr(state === "none" ? "trier par ordre croissant" : state === "asc" ? "trier par ordre décroissant" : "rétablir l’ordre normal")}`}
-            onClick={() => {
-              const next = new URLSearchParams(query);
-              next.delete("page");
-              if (state === "desc") {
-                next.delete("sort");
-                next.delete("direction");
-              } else {
-                next.set("sort", key);
-                next.set("direction", state === "none" ? "asc" : "desc");
-              }
-              onQuery(next.toString());
-            }}
+            icon={sortIcon}
+            label={sortLabel}
+            onClick={toggleSort}
           />
-        </span>
+        </span>}
       </th>
     );
   }
@@ -443,20 +454,22 @@ export default function AdminCollection({
           <div className="admin-table-panel">
             <header className="admin-table-heading">
               <strong>
-                {loading
+                {initialLoading
                   ? tr("Chargement…")
                   : tr(data?.total === 1 ? "{0} résultat" : "{0} résultats", [
                       data?.total ?? 0,
                     ])}
               </strong>
+              {resource === "users" && <span role="status">{loading && !initialLoading ? tr("Actualisation…") : ""}</span>}
             </header>
             <div
               className="admin-table-scroll"
               tabIndex={0}
               role="region"
               aria-label={tr("Liste des dossiers")}
+              aria-busy={loading}
             >
-              <table className={`admin-table-${resource}`}>
+              <table className={`admin-table-${resource}`} role="table">
                 <thead>
                   <tr>
                     {sortHeading(titleColumn, "name")}
@@ -471,18 +484,19 @@ export default function AdminCollection({
                     {resource === "library" ? (
                       <th scope="col">{tr("Publication")}</th>
                     ) : (
-                      sortHeading("Dernière activité", "date")
+                      sortHeading(activityLabel, "date")
                     )}
                     <th className="admin-actions-cell">{tr("Actions")}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {!loading &&
+                  {!initialLoading &&
                     data?.items.map((row) => (
                       <tr key={row.id}>
                         <td>
                           <button
                             className="admin-record-link"
+                            disabled={loading}
                             title={adminRecordTitle(resource, row, tr)}
                             onClick={() => void openRecord(row)}
                           >
@@ -589,7 +603,7 @@ export default function AdminCollection({
                           data-label={
                             resource === "library"
                               ? tr("Publication")
-                              : tr("Dernière activité")
+                              : tr(activityLabel)
                           }
                         >
                           {resource === "library"
@@ -610,6 +624,7 @@ export default function AdminCollection({
                           <div className="admin-row-actions">
                             <AdminIconButton
                               icon="eye"
+                              disabled={loading}
                               label={tr("Consulter {0}", [
                                 adminRecordTitle(resource, row, tr),
                               ])}
@@ -620,6 +635,7 @@ export default function AdminCollection({
                               .map((action) => (
                                 <AdminIconButton
                                   key={action.id}
+                                  disabled={loading}
                                   icon={actionIcon(
                                     action.id,
                                     resource,
@@ -638,7 +654,7 @@ export default function AdminCollection({
                     ))}
                 </tbody>
               </table>
-              {loading ? (
+              {initialLoading ? (
                 <div className="admin-empty" role="status">
                   {tr("Chargement des dossiers…")}
                 </div>

@@ -1,4 +1,5 @@
 import { useText } from "../i18n/HomeLocale.tsx";
+import TabScroller from "./TabScroller.tsx";
 /**
  * Onglets accessibles : flèches gauche/droite, Début et Fin.
  * Chaque onglet `clé` contrôle le panneau `panel-clé`.
@@ -24,8 +25,9 @@ export default function Tabs<K extends string>({
     document.getElementById("tab-" + key)?.focus();
   }
   return (
-    <div
-      className={"page-tabs" + (animated ? " animated" : "")}
+    <TabScroller
+      as="div"
+      className={animated ? "animated" : ""}
       role="tablist"
       aria-label={tr(label)}
     >
@@ -54,6 +56,6 @@ export default function Tabs<K extends string>({
           {tr(text)}
         </button>
       ))}
-    </div>
+    </TabScroller>
   );
 }

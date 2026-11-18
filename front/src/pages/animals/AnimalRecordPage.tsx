@@ -1,3 +1,4 @@
+import TabScroller from "../../shared/ui/TabScroller.tsx";
 import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import EmptyState from "../../shared/ui/EmptyState.tsx";
 import type { EmptyKind } from "../../shared/ui/EmptyIllustration.tsx";
@@ -332,7 +333,7 @@ export default function AnimalRecordPage({
         />
       ) : (
         <>
-          <nav className="page-tabs" aria-label={tr("Sections du carnet")}>
+          <TabScroller aria-label={tr("Sections du carnet")}>
             {Object.entries(tabs).map(([key, label]) => (
               <a
                 key={key}
@@ -342,7 +343,7 @@ export default function AnimalRecordPage({
                 {tr(label)}
               </a>
             ))}
-          </nav>
+          </TabScroller>
           {active === "apercu" && (
             <div className="grid">
               <div className="stack">

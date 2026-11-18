@@ -12,6 +12,7 @@ import MfaPanel from "../profile/MfaPanel.tsx";
 import { errorMessage } from "../../shared/types.ts";
 import { adminPages } from "./config.ts";
 import AdminCollection from "./AdminCollection.tsx";
+import { navigateWithinPage } from "../../shared/layout/tabNavigation.ts";
 import AdminDashboard from "./AdminDashboard.tsx";
 import AdminPreview from "./AdminPreview.tsx";
 import AdminAnalytics from "./AdminAnalytics.tsx";
@@ -97,7 +98,7 @@ export default function AdminWorkspace({
   const collectionPath = `admin/${page}/${tab}`;
   const setQuery = useCallback(
     (q: string) => {
-      window.location.hash = `${collectionPath}${q ? "?" + q : ""}`;
+      navigateWithinPage(`${collectionPath}${q ? "?" + q : ""}`);
     },
     [collectionPath],
   );

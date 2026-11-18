@@ -17,6 +17,12 @@ document.addEventListener(
 // Remis à zéro après tous les écouteurs du changement d’adresse.
 window.addEventListener("hashchange", () => setTimeout(() => (target = "")));
 
-/** Le changement d’adresse en cours vient-il d’un onglet de page ? */
+/** Met à jour un filtre ou un tri sans déplacer la page ni son focus. */
+export function navigateWithinPage(hash: string) {
+  target = hash.startsWith("#") ? hash : `#${hash}`;
+  window.location.hash = target;
+}
+
+/** Le changement d’adresse en cours reste-t-il dans le contenu de la page ? */
 export const isTabNavigation = () =>
   !!target && target === window.location.hash;

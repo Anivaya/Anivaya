@@ -34,6 +34,8 @@ components:
 
 # Anivaya Design System
 
+Décision du 18 novembre 2026 : Utilisateurs conserve le format tableau sur tous les écrans, avec défilement horizontal sur mobile comme les autres listes de l’administration. Les tris Comptes et Activité sont des boutons entièrement cliquables, de largeur adaptée au libellé, avec la flèche à droite. Exception à la dissimulation des barres : les onglets `.page-tabs` affichent une fine barre horizontale sur mobile (≤ 620 px) lorsqu’ils débordent ; sa piste et son curseur utilisent les couleurs existantes à 40 % d’opacité.
+
 ## Overview
 
 ### Creative North Star

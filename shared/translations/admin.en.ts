@@ -1,4 +1,6 @@
 export const adminEnglish: Record<string, string> = {
+  "Activité": "Activity",
+  "Actualisation…": "Updating…",
   "Administration en lecture seule.": "Read-only administration.",
   "Invitation expirée": "Expired invitation",
   "Bouche-à-oreille": "Word of mouth",

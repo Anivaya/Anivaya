@@ -5,6 +5,21 @@
   scrollbar-width: none !important;
   scrollbar-gutter: auto !important;
 }
+
+/* Exception mobile : indicateur persistant des onglets qui débordent.
+   Le pouce suit le défilement ; les barres système restent masquées. */
+@media (max-width: 620px) {
+  .page-tabs[data-scrollable] {
+    padding-bottom: 8px;
+    background-image: linear-gradient(to right,
+      color-mix(in srgb, var(--border) 40%, transparent) 0 var(--tab-scroll-start),
+      color-mix(in srgb, var(--muted) 40%, transparent) var(--tab-scroll-start) var(--tab-scroll-end),
+      color-mix(in srgb, var(--border) 40%, transparent) var(--tab-scroll-end) 100%);
+    background-size: 100% 3px;
+    background-position: left bottom;
+    background-repeat: no-repeat;
+  }
+}
 :root body::-webkit-scrollbar,
 :root body *::-webkit-scrollbar {
   display: none !important;

@@ -1,3 +1,4 @@
+import TabScroller from "../../shared/ui/TabScroller.tsx";
 import { uiLocale } from "../../shared/i18n/locale.ts";
 import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import EmptyState from "../../shared/ui/EmptyState.tsx";
@@ -171,7 +172,7 @@ export default function DirectoryPage({
           </p>
         </div>
       </div>
-      <nav className="page-tabs" aria-label={tr("Sections des professionnels")}>
+      <TabScroller aria-label={tr("Sections des professionnels")}>
         <a href="#annuaire" aria-current={!reservations ? "page" : undefined}>
           {tr("Annuaire des professionnels")}
         </a>
@@ -184,7 +185,7 @@ export default function DirectoryPage({
             .length ?? 0}
           )
         </a>
-      </nav>
+      </TabScroller>
 
       {error && (
         <div className="empty" role="alert">

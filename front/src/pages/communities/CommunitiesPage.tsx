@@ -1,3 +1,4 @@
+import TabScroller from "../../shared/ui/TabScroller.tsx";
 import { uiLocale } from "../../shared/i18n/locale.ts";
 import { useText } from "../../shared/i18n/HomeLocale.tsx";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -122,7 +123,7 @@ export default function CommunitiesPage({ params }: { params: string[] }) {
           "Rejoignez des groupes près de chez vous, participez à des sorties et échangez avec d’autres propriétaires.",
         )}
       />
-      <nav className="page-tabs" aria-label={tr("Sections des communautés")}>
+      <TabScroller aria-label={tr("Sections des communautés")}>
         {socialTabs.map(([key, label]) => (
           <a
             key={key}
@@ -133,7 +134,7 @@ export default function CommunitiesPage({ params }: { params: string[] }) {
             {key === "messagerie" && unread > 0 && ` (${unread})`}
           </a>
         ))}
-      </nav>
+      </TabScroller>
       {feedback && (
         <p className="social-error social-feedback" role="alert">
           {tr(feedback)}
