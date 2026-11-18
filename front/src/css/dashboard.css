@@ -1240,6 +1240,17 @@
 }
 /* Mobile : boutons des titres de page en pleine largeur, cases à cocher plus faciles à toucher. */
 @media (max-width: 620px) {
+  .document-batch {
+    flex-wrap: wrap;
+  }
+  .document-batch label {
+    flex: 1 0 140px;
+    max-width: 100%;
+  }
+  .document-batch label span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
   .welcome .button,
   .heading-actions .button {
     width: 100%;
